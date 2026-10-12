@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Pedal Plate — home-style food, cooked fresh and pedaled straight to your street in Burdwan. Home Food. On The Move.">
-<title>Pedal Plate — Home Food. On The Move.</title>
+<title>Pedal Plate — Home Food. On The Move. | Fresh, Hygienic Thalis in Burdwan</title>
+<meta name="description" content="Pedal Plate brings fresh, hygienic, home-made thalis from ₹55 to your street in Burdwan on cycle carts — creating local jobs and letting you gift a meal to someone who needs it.">
 <link rel="canonical" href="https://pedalplate.in/">
+<meta name="theme-color" content="#96601A">
 
 <link rel="icon" href="images/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16.png">
@@ -14,42 +15,64 @@
 <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="images/icon-512.png">
-<meta name="theme-color" content="#96601A">
+<link rel="manifest" href="site.webmanifest">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pedal Plate">
+<meta property="og:locale" content="en_IN">
 <meta property="og:title" content="Pedal Plate — Home Food. On The Move.">
-<meta property="og:description" content="Home-style food, cooked fresh and pedaled straight to your street in Burdwan. Fresh thalis, honest prices, no app needed.">
+<meta property="og:description" content="Fresh, hygienic, home-made thalis from ₹55, pedaled to your street in Burdwan. Local jobs, zero emissions, and a meal you can gift.">
 <meta property="og:url" content="https://pedalplate.in/">
 <meta property="og:image" content="https://pedalplate.in/images/hero.jpg">
+<meta property="og:image:width" content="1716">
+<meta property="og:image:height" content="642">
+<meta property="og:image:alt" content="A Pedal Plate food cycle parked near Curzon Gate in Burdwan">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Pedal Plate — Home Food. On The Move.">
-<meta name="twitter:description" content="Home-style food, cooked fresh and pedaled straight to your street in Burdwan.">
+<meta name="twitter:description" content="Fresh, hygienic, home-made thalis from ₹55, pedaled to your street in Burdwan.">
 <meta name="twitter:image" content="https://pedalplate.in/images/hero.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="image" href="images/hero.jpg" fetchpriority="high">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=optional">
+
+<script>document.documentElement.classList.add('js');</script>
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "FoodEstablishment",
   "name": "Pedal Plate",
-  "description": "Home-style food, cooked fresh and pedaled straight to your street in Burdwan.",
+  "description": "Fresh, hygienic, home-style thalis cooked daily and pedaled straight to your street in Burdwan on cycle carts.",
+  "slogan": "Home Food. On The Move.",
   "url": "https://pedalplate.in/",
   "logo": "https://pedalplate.in/images/logo.png",
   "image": "https://pedalplate.in/images/hero.jpg",
   "telephone": "+91-7699149899",
+  "email": "iamari.cse@gmail.com",
   "priceRange": "₹55-₹75",
-  "servesCuisine": "Bengali, Home-style Indian",
+  "currenciesAccepted": "INR",
+  "servesCuisine": ["Bengali", "Home-style Indian"],
   "areaServed": "Burdwan, West Bengal",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Burdwan",
     "addressRegion": "West Bengal",
     "addressCountry": "IN"
+  },
+  "hasMenu": {
+    "@type": "Menu",
+    "name": "Weekly thalis",
+    "hasMenuSection": {
+      "@type": "MenuSection",
+      "name": "Rotating thalis",
+      "hasMenuItem": [
+        { "@type": "MenuItem", "name": "Polao & Aloo Dum", "description": "Served Monday and Saturday", "offers": { "@type": "Offer", "price": "65", "priceCurrency": "INR" } },
+        { "@type": "MenuItem", "name": "Khichdi & Mixed Veg", "description": "Served Tuesday and Thursday", "offers": { "@type": "Offer", "price": "55", "priceCurrency": "INR" } },
+        { "@type": "MenuItem", "name": "Polao & Chicken Kosha", "description": "Served Wednesday and Friday", "offers": { "@type": "Offer", "price": "75", "priceCurrency": "INR" } }
+      ]
+    }
   },
   "sameAs": [
     "https://www.facebook.com/profile.php?id=61594354288573",
@@ -59,290 +82,1007 @@
 </script>
 <style>
   :root{
-    --bg:#FBF6EC;
-    --bg-alt:#F4EAD4;
+    --bg:#FFF7EA;
+    --bg-alt:#FCEBD0;
     --surface:#FFFFFF;
-    --ink:#2B2620;
-    --ink-soft:#6B5F51;
-    --accent:#96601A;
-    --accent-deep:#7A4D15;
-    --accent-soft:#F0DAB0;
-    --basil:#3F7D4A;
-    --basil-soft:#E3EFE2;
-    --chili:#C0392B;
-    --line:rgba(43,38,32,0.14);
-    --dark-band:#2B2620;
-    --dark-band-ink:#FBF6EC;
-    --gold-onband:#E3AD57;
+    --ink:#1E1912;
+    --ink-soft:#5E5345;
+    --brand:#96601A;
+    --brand-deep:#6F4512;
+    --turmeric:#F5B335;
+    --turmeric-soft:#FFE3A8;
+    --chili:#C8402A;
+    --chili-soft:#FBDCD3;
+    --basil:#2F7A43;
+    --basil-soft:#DDEFDD;
+    --sky:#2C6E8F;
+    --sky-soft:#DCEBF2;
+    --line:rgba(30,25,18,0.12);
+    --dark:#1E1912;
+    --on-dark:#FFF7EA;
+    --shadow:0 24px 50px -28px rgba(70,40,10,0.45);
+    --radius:22px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#1E1A15; --bg-alt:#251F18; --surface:#2A241D;
-      --ink:#F3EAD9; --ink-soft:#C9BBA6;
-      --accent:#E3AD57; --accent-deep:#F0C878; --accent-soft:#3B2E1B;
-      --basil:#7BC787; --basil-soft:#22301F; --chili:#E5695C;
-      --line:rgba(243,234,217,0.14); --dark-band:#14110D; --dark-band-ink:#F3EAD9;
+      --bg:#16120D; --bg-alt:#201912; --surface:#261F17;
+      --ink:#F6ECDB; --ink-soft:#C9BBA6;
+      --brand:#F0B35A; --brand-deep:#F7CB86;
+      --turmeric-soft:#3A2C14; --basil:#7BC787; --basil-soft:#1F2E20; --chili:#E5695C; --chili-soft:#3A1E18;
+      --sky:#7CC0DE; --sky-soft:#17262E;
+      --line:rgba(246,236,219,0.13); --dark:#0E0B08; --on-dark:#F6ECDB;
+      --shadow:0 24px 50px -28px rgba(0,0,0,0.8);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#1E1A15; --bg-alt:#251F18; --surface:#2A241D;
-    --ink:#F3EAD9; --ink-soft:#C9BBA6;
-    --accent:#E3AD57; --accent-deep:#F0C878; --accent-soft:#3B2E1B;
-    --basil:#7BC787; --basil-soft:#22301F; --chili:#E5695C;
-    --line:rgba(243,234,217,0.14); --dark-band:#14110D; --dark-band-ink:#F3EAD9;
+    --bg:#16120D; --bg-alt:#201912; --surface:#261F17;
+    --ink:#F6ECDB; --ink-soft:#C9BBA6;
+    --brand:#F0B35A; --brand-deep:#F7CB86;
+    --turmeric-soft:#3A2C14; --basil:#7BC787; --basil-soft:#1F2E20; --chili:#E5695C; --chili-soft:#3A1E18;
+    --sky:#7CC0DE; --sky-soft:#17262E;
+    --line:rgba(246,236,219,0.13); --dark:#0E0B08; --on-dark:#F6ECDB;
+    --shadow:0 24px 50px -28px rgba(0,0,0,0.8);
   }
 
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;scroll-padding-top:80px;}
   body{
     margin:0;background:var(--bg);color:var(--ink);
-    font-family:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    line-height:1.65;-webkit-font-smoothing:antialiased;
+    font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-optical-sizing:auto;font-size:1.0625rem;line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
   }
-  img{max-width:100%;display:block;}
-  .wrap{max-width:820px;margin-inline:auto;padding-inline:20px;}
-  section{padding-block:clamp(40px,7vw,72px);}
-  h1,h2,h3{font-weight:800;line-height:1.2;text-wrap:balance;margin:0;}
-  h1{font-size:clamp(2rem,4vw + 1rem,2.9rem);}
-  h2{font-size:clamp(1.4rem,2.4vw + 1rem,1.85rem);}
-  h3{font-size:1.02rem;font-weight:700;}
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;}
+  .wrap{max-width:1140px;margin-inline:auto;padding-inline:20px;}
+  section{padding-block:clamp(64px,10vw,120px);position:relative;}
+  h1,h2,h3{margin:0;line-height:1.02;letter-spacing:-0.025em;text-wrap:balance;}
+  h2{font-size:clamp(2.1rem,4.2vw + 1rem,3.8rem);font-weight:800;}
+  h3{font-size:1.3rem;font-weight:700;letter-spacing:-0.01em;line-height:1.15;}
   p{margin:0;color:var(--ink-soft);}
-  .eyebrow{
-    display:inline-flex;align-items:center;gap:8px;
-    font-size:.76rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
-    color:var(--accent);margin-bottom:12px;
+  .skip{position:absolute;left:-999px;top:8px;z-index:100;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;}
+  .skip:focus{left:8px;}
+  :focus-visible{outline:3px solid var(--turmeric);outline-offset:3px;border-radius:6px;}
+
+  .kicker{
+    display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;
+    font-size:.8rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--brand);
   }
-  .eyebrow::before{content:"";width:16px;height:2px;background:var(--accent);border-radius:2px;}
+  .kicker::before{content:"";width:28px;height:3px;border-radius:3px;background:currentColor;}
+  .section-head{max-width:740px;}
+  .section-head.center{margin-inline:auto;text-align:center;}
+  .section-head.center .kicker{justify-content:center;}
+  .section-head p{margin-top:18px;font-size:1.12rem;max-width:56ch;}
+  .section-head.center p{margin-inline:auto;}
+  .hl{color:var(--brand);}
+
+  /* Buttons */
   .btn{
-    display:inline-flex;align-items:center;justify-content:center;gap:8px;
-    padding:13px 24px;border-radius:999px;font-weight:600;font-size:.95rem;
-    border:2px solid transparent;cursor:pointer;text-decoration:none;
-    transition:transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
-    font-family:inherit;
+    position:relative;overflow:hidden;isolation:isolate;
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    padding:16px 28px;border-radius:999px;border:2px solid transparent;
+    font:inherit;font-weight:700;font-size:1rem;text-decoration:none;cursor:pointer;
+    transition:transform .2s cubic-bezier(.2,.8,.2,1), background .2s, color .2s, border-color .2s, box-shadow .2s;
   }
-  .btn-primary{background:var(--accent);color:#FFF9EE;}
-  .btn-primary:hover{background:var(--accent-deep);transform:translateY(-2px);}
-  .btn-outline{background:transparent;border-color:var(--ink);color:var(--ink);}
-  .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
-  .btn-light{background:var(--bg);color:var(--dark-band);}
-  .btn-light:hover{background:#fff;}
+  .btn svg{transition:transform .2s;}
+  .btn:hover svg{transform:translateX(4px);}
+  .btn-primary{background:var(--ink);color:var(--bg);box-shadow:0 10px 24px -12px rgba(30,25,18,.6);}
+  .btn-primary:hover{transform:translateY(-3px);}
+  .btn-primary::after{
+    content:"";position:absolute;inset:0;z-index:-1;
+    background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);
+    transform:translateX(-120%);transition:transform .6s ease;
+  }
+  .btn-primary:hover::after{transform:translateX(120%);}
+  .btn-ghost{border-color:var(--ink);color:var(--ink);background:transparent;}
+  .btn-ghost:hover{background:var(--ink);color:var(--bg);transform:translateY(-3px);}
+  .btn-turmeric{background:var(--turmeric);color:#1E1912;}
+  .btn-turmeric:hover{transform:translateY(-3px);box-shadow:0 14px 30px -14px var(--turmeric);}
 
+  /* Scroll progress (scroll-driven, no JS) */
+  .progress{display:none;}
+  @supports (animation-timeline: scroll()){
+    @media (prefers-reduced-motion:no-preference){
+      .progress{
+        display:block;position:fixed;inset:0 0 auto 0;height:4px;z-index:60;
+        background:linear-gradient(90deg,var(--turmeric),var(--chili));
+        transform-origin:0 50%;transform:scaleX(0);
+        animation:grow linear both;animation-timeline:scroll(root);
+      }
+    }
+  }
+  @keyframes grow{to{transform:scaleX(1);}}
+
+  /* Header */
   header{
-    position:sticky;top:0;z-index:40;
-    background:color-mix(in srgb, var(--bg) 90%, transparent);
-    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:50;
+    background:color-mix(in srgb,var(--bg) 82%,transparent);
+    backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);
+    border-bottom:1px solid transparent;transition:border-color .3s, box-shadow .3s;
   }
-  .nav{display:flex;align-items:center;justify-content:space-between;padding-block:12px;gap:16px;}
-  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);}
-  .brand img{width:38px;height:38px;border-radius:50%;}
-  .brand span{font-weight:800;font-size:1rem;}
-  .nav-links{display:flex;align-items:center;gap:24px;list-style:none;margin:0;padding:0;}
-  .nav-links a{text-decoration:none;font-size:.9rem;font-weight:500;color:var(--ink-soft);}
-  .nav-links a:hover{color:var(--accent);}
-  @media (max-width:640px){ .nav-links{display:none;} }
-
-  .hero{text-align:center;}
-  .hero .eyebrow{justify-content:center;}
-  .hero p.lead{font-size:1.05rem;max-width:44ch;margin:16px auto 0;}
-  .hero-ctas{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:28px;}
-  .hero-banner{
-    margin-top:36px;border-radius:20px;overflow:hidden;border:1px solid var(--line);
-    box-shadow:0 18px 40px -22px rgba(43,38,32,0.35);
+  header.scrolled{border-bottom-color:var(--line);box-shadow:0 8px 24px -20px rgba(0,0,0,.5);}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px;}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:1.15rem;letter-spacing:-0.02em;}
+  .brand img{width:42px;height:42px;border-radius:50%;transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  .brand:hover img{transform:rotate(-20deg) scale(1.06);}
+  .nav-links{display:flex;align-items:center;gap:4px;list-style:none;margin:0;padding:0;}
+  .nav-links a{
+    display:block;padding:8px 13px;border-radius:999px;text-decoration:none;
+    font-weight:600;font-size:.95rem;color:var(--ink-soft);transition:background .2s,color .2s;
   }
-  .hero-banner img{width:100%;height:auto;aspect-ratio:1716/642;object-fit:cover;}
+  .nav-links a:hover{background:var(--turmeric-soft);color:var(--ink);}
+  .nav-cta{padding:11px 20px;font-size:.92rem;}
+  .menu-toggle{
+    display:none;width:46px;height:46px;border-radius:50%;border:2px solid var(--ink);
+    background:transparent;color:var(--ink);cursor:pointer;align-items:center;justify-content:center;
+  }
+  .menu-toggle span,.menu-toggle span::before,.menu-toggle span::after{
+    display:block;width:18px;height:2px;background:currentColor;border-radius:2px;position:relative;transition:transform .25s, background .25s;
+  }
+  .menu-toggle span::before,.menu-toggle span::after{content:"";position:absolute;left:0;}
+  .menu-toggle span::before{top:-6px;} .menu-toggle span::after{top:6px;}
+  .menu-toggle[aria-expanded="true"] span{background:transparent;}
+  .menu-toggle[aria-expanded="true"] span::before{transform:translateY(6px) rotate(45deg);}
+  .menu-toggle[aria-expanded="true"] span::after{transform:translateY(-6px) rotate(-45deg);}
+  @media (max-width:900px){
+    .menu-toggle{display:inline-flex;}
+    .nav-cta{display:none;}
+    .nav-links{
+      position:absolute;top:100%;left:12px;right:12px;flex-direction:column;align-items:stretch;gap:2px;
+      padding:10px;border-radius:20px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);
+      opacity:0;transform:translateY(-8px);visibility:hidden;transition:opacity .2s, transform .2s, visibility .2s;
+    }
+    .nav-links.open{opacity:1;transform:none;visibility:visible;}
+    .nav-links a{padding:14px 16px;font-size:1.05rem;}
+  }
 
+  /* Hero */
+  .hero{padding-top:clamp(40px,7vw,80px);padding-bottom:0;overflow:hidden;}
+  .hero-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:40px;align-items:end;}
+  .hero h1{font-size:clamp(3.1rem,8.2vw + .5rem,7.4rem);font-weight:800;letter-spacing:-0.045em;line-height:.92;}
+  .hero h1 .line{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em;}
+  .hero h1 .line > span{display:inline-block;}
+  .squiggle{position:relative;display:inline-block;color:var(--brand);}
+  .squiggle svg{position:absolute;left:-2%;bottom:-.12em;width:104%;height:.32em;overflow:visible;}
+  .squiggle path{fill:none;stroke:var(--turmeric);stroke-width:9;stroke-linecap:round;}
+  .hero-side p{font-size:1.18rem;max-width:36ch;}
+  .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0;list-style:none;padding:0;}
+  .chips li{
+    display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;
+    background:var(--surface);border:1px solid var(--line);font-size:.88rem;font-weight:600;color:var(--ink);
+  }
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;gap:22px;} }
+
+  .hero-stage{position:relative;margin-top:clamp(36px,6vw,64px);}
+  .hero-photo{
+    position:relative;border-radius:clamp(20px,3vw,34px);overflow:hidden;
+    box-shadow:var(--shadow);aspect-ratio:1716/642;background:var(--bg-alt);
+  }
+  .hero-photo img{width:100%;height:100%;object-fit:cover;}
+  .hero-photo::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,transparent 55%,rgba(20,14,8,.35));
+  }
+  .badge-spin{
+    position:absolute;right:clamp(10px,4vw,48px);top:0;transform:translateY(-55%);
+    width:clamp(96px,13vw,150px);aspect-ratio:1;z-index:2;
+  }
+  .badge-spin .ring{width:100%;height:100%;}
+  .badge-spin text{font-size:10.5px;font-weight:800;letter-spacing:2.6px;fill:var(--ink);text-transform:uppercase;}
+  .badge-spin .core{
+    position:absolute;inset:26%;border-radius:50%;background:var(--turmeric);
+    display:grid;place-items:center;box-shadow:0 8px 20px -8px rgba(0,0,0,.4);
+  }
+  .badge-spin .core svg{width:62%;}
+  .badge-spin .disc{fill:var(--bg);}
+  .sticker{
+    position:absolute;z-index:2;display:flex;align-items:center;gap:12px;
+    padding:12px 16px 12px 12px;border-radius:18px;background:var(--surface);
+    box-shadow:var(--shadow);border:1px solid var(--line);max-width:min(300px,70%);
+  }
+  .sticker .ico{
+    flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:1.4rem;
+    background:var(--turmeric-soft);
+  }
+  .sticker small{display:block;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);}
+  .sticker strong{display:block;font-size:1rem;line-height:1.25;}
+  .sticker-today{left:clamp(-6px,2vw,28px);bottom:clamp(-28px,-2vw,-16px);}
+  .sticker-live{right:clamp(12px,5vw,64px);bottom:clamp(-28px,-2vw,-16px);}
+  .live-dot{width:10px;height:10px;border-radius:50%;background:var(--basil);position:relative;flex:none;}
+  .live-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--basil);}
+  @media (max-width:640px){
+    .sticker-live{display:none;}
+    .sticker-today{position:relative;left:auto;bottom:auto;max-width:none;margin:-22px 12px 0;}
+    .badge-spin{width:84px;right:6px;}
+  }
+
+  /* Doodles */
+  .doodle{position:absolute;pointer-events:none;z-index:0;opacity:.9;}
+  .d1{width:54px;top:6%;right:4%;color:var(--basil);}
+  .d2{width:42px;top:44%;right:30%;color:var(--chili);}
+  .d3{width:30px;top:12%;right:38%;color:var(--turmeric);}
+  .d4{width:26px;top:58%;left:-6px;color:var(--brand);}
+  @media (max-width:900px){ .d2,.d3{display:none;} }
+  .hero .wrap{position:relative;z-index:1;}
+
+  /* Road + rider */
+  .road{position:relative;height:120px;margin-top:clamp(56px,7vw,80px);overflow:hidden;}
+  .road::before{
+    content:"";position:absolute;left:0;right:0;bottom:22px;height:3px;
+    background:repeating-linear-gradient(90deg,var(--ink) 0 26px,transparent 26px 46px);opacity:.25;
+  }
+  .road::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;background:var(--bg-alt);}
+  .rider{position:absolute;left:0;bottom:16px;width:150px;color:var(--ink);}
+  .rider .box{fill:var(--turmeric);}
+  .rider .box-band{fill:var(--chili);}
+  .rider .tyre{fill:none;stroke:currentColor;stroke-width:4;}
+  .rider .spokes{stroke:currentColor;stroke-width:1.3;opacity:.7;}
+  .rider .frame{fill:none;stroke:var(--brand);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
+  .steam path{fill:none;stroke-linecap:round;}
+  .rider .steam path{stroke:var(--ink-soft);stroke-width:3;opacity:.6;}
+  .road-tag{
+    position:absolute;right:20px;top:14px;font-weight:800;font-size:clamp(.95rem,2vw,1.2rem);letter-spacing:-.01em;color:var(--ink-soft);
+  }
+  .road-tag span{color:var(--brand);}
+
+  /* Marquee */
+  .marquee{background:var(--dark);color:var(--on-dark);overflow:hidden;padding-block:18px;transform:rotate(-1.2deg);margin:-6px -10px 0;position:relative;z-index:2;}
+  .marquee-track{display:flex;width:max-content;}
+  .marquee-group{display:flex;align-items:center;gap:28px;padding-right:28px;font-weight:800;font-size:clamp(1.3rem,3vw,2rem);letter-spacing:-0.02em;white-space:nowrap;}
+  .marquee-group i{font-style:normal;color:var(--turmeric);}
+
+  /* Story / how it works */
   .alt{background:var(--bg-alt);}
-  .about p{max-width:58ch;margin-top:14px;}
-  .about p + p{margin-top:10px;}
-  .story-line{
-    margin-top:18px;font-family:"Poppins",sans-serif;font-weight:700;
-    font-size:1.15rem;color:var(--accent);
+  .story{padding-top:clamp(80px,11vw,140px);}
+  .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,80px);align-items:start;}
+  .story-grid .section-head p + p{margin-top:12px;}
+  @media (max-width:900px){ .story-grid{grid-template-columns:1fr;} }
+  .steps{list-style:none;margin:0;padding:0;display:grid;gap:16px;counter-reset:step;}
+  .step{
+    display:grid;grid-template-columns:76px 1fr;gap:18px;align-items:center;
+    padding:20px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
   }
+  .step:hover{transform:translateX(6px);box-shadow:var(--shadow);}
+  .step-ico{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;}
+  .step:nth-child(1) .step-ico{background:var(--turmeric-soft);color:var(--brand);}
+  .step:nth-child(2) .step-ico{background:var(--basil-soft);color:var(--basil);}
+  .step:nth-child(3) .step-ico{background:var(--chili-soft);color:var(--chili);}
+  .step-ico svg{width:42px;height:42px;}
+  .step h3::before{counter-increment:step;content:"0" counter(step);display:block;font-size:.78rem;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:4px;}
+  .step p{margin-top:4px;font-size:.98rem;}
 
-  .partner{background:var(--dark-band);color:var(--dark-band-ink);}
-  .partner .eyebrow{color:var(--gold-onband);}
-  .partner .eyebrow::before{background:var(--gold-onband);}
-  .partner h2{color:var(--dark-band-ink);}
-  .partner p{color:color-mix(in srgb, var(--dark-band-ink) 72%, transparent);}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:clamp(48px,7vw,80px);}
+  @media (max-width:760px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  .stat{padding:22px;border-radius:var(--radius);border:2px dashed color-mix(in srgb,var(--brand) 40%,transparent);}
+  .stat b{display:block;font-size:clamp(2.2rem,4vw,3.2rem);font-weight:800;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink);}
+  .stat > span{display:block;margin-top:8px;font-size:.92rem;color:var(--ink-soft);font-weight:600;}
+
+  /* Promise pillars */
+  .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:clamp(36px,5vw,56px);}
+  @media (max-width:980px){ .pillars{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .pillars{grid-template-columns:1fr;} }
+  .pillar{
+    position:relative;overflow:hidden;padding:26px 22px 24px;border-radius:28px;background:var(--surface);
+    border:1px solid var(--line);transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
+  }
+  .pillar:hover{transform:translateY(-8px);box-shadow:var(--shadow);}
+  .pillar::before{
+    content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-60px;top:-60px;
+    background:var(--tint);opacity:.9;transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .pillar:hover::before{transform:scale(1.25);}
+  .pillar-ico{position:relative;width:60px;height:60px;border-radius:18px;display:grid;place-items:center;background:var(--surface);color:var(--tone);box-shadow:0 6px 18px -10px rgba(0,0,0,.35);margin-bottom:22px;}
+  .pillar-ico svg{width:32px;height:32px;}
+  .pillar h3{position:relative;font-size:1.4rem;}
+  .pillar p{position:relative;margin-top:10px;font-size:.98rem;}
+  .pillar ul{position:relative;list-style:none;margin:14px 0 0;padding:0;display:grid;gap:6px;}
+  .pillar li{display:flex;gap:8px;font-size:.92rem;font-weight:600;}
+  .pillar li::before{content:"✓";color:var(--tone);font-weight:800;}
+  .p-home{--tint:var(--turmeric-soft);--tone:var(--brand);}
+  .p-health{--tint:var(--basil-soft);--tone:var(--basil);}
+  .p-hygiene{--tint:var(--sky-soft);--tone:var(--sky);}
+  .p-price{--tint:var(--chili-soft);--tone:var(--chili);}
+
+  /* Menu */
+  .menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:clamp(36px,5vw,56px);}
+  @media (max-width:900px){ .menu-grid{grid-template-columns:1fr;} }
+  .dish{
+    position:relative;padding:22px;border-radius:28px;background:var(--surface);border:1px solid var(--line);
+    display:flex;flex-direction:column;transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
+  }
+  .dish:hover{transform:translateY(-8px) rotate(-.6deg);box-shadow:var(--shadow);}
+  .dish.is-today{border:2px solid var(--turmeric);box-shadow:0 0 0 6px color-mix(in srgb,var(--turmeric) 22%,transparent);}
+  .dish-art{position:relative;aspect-ratio:4/3;border-radius:20px;display:grid;place-items:center;margin-bottom:20px;overflow:hidden;}
+  .dish:nth-child(1) .dish-art{background:radial-gradient(circle at 50% 60%,#FFE3A8,#F5B335);}
+  .dish:nth-child(2) .dish-art{background:radial-gradient(circle at 50% 60%,#E4F2DA,#8CC08A);}
+  .dish:nth-child(3) .dish-art{background:radial-gradient(circle at 50% 60%,#FFD3BF,#E2775A);}
+  .dish-art > svg{width:78%;}
+  .dish-art .plate{transform-box:fill-box;transform-origin:center;transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  .dish:hover .dish-art .plate{transform:rotate(-8deg) scale(1.04);}
+  .dish-art .steam path{stroke:#fff;stroke-width:4;opacity:.85;}
+  .today-flag{
+    position:absolute;top:14px;left:14px;z-index:1;padding:6px 12px;border-radius:999px;
+    background:var(--ink);color:var(--bg);font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;display:none;
+  }
+  .dish.is-today .today-flag{display:inline-block;}
+  .days{display:flex;gap:6px;margin-bottom:10px;}
+  .days span{padding:4px 10px;border-radius:999px;background:var(--basil-soft);color:var(--basil);font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+  .dish-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:auto;padding-top:14px;}
+  .dish h3{font-size:1.45rem;}
+  .price{font-size:2.2rem;font-weight:800;letter-spacing:-0.04em;line-height:1;color:var(--brand);white-space:nowrap;}
+  .price sup{font-size:.5em;vertical-align:.55em;margin-right:1px;}
+  .menu-note{margin-top:24px;font-size:.95rem;}
+
+  /* Bulk / B2B */
+  .bulk-card{
+    display:grid;grid-template-columns:1.1fr .9fr;overflow:hidden;border-radius:34px;
+    background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);
+  }
+  @media (max-width:900px){ .bulk-card{grid-template-columns:1fr;} }
+  .bulk-main{padding:clamp(26px,4.5vw,52px);}
+  .bulk-main h2{font-size:clamp(2rem,3.6vw + 1rem,3.3rem);}
+  .bulk-main > p{margin-top:16px;font-size:1.1rem;max-width:50ch;}
+  .segments{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;list-style:none;}
+  .segments li{padding:8px 14px;border-radius:999px;background:var(--bg-alt);font-weight:700;font-size:.92rem;}
+  .bulk-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;}
+  .bulk-side{
+    position:relative;padding:clamp(26px,4.5vw,52px);background:var(--turmeric);color:#1E1912;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .bulk-side h3{font-size:1.25rem;margin-bottom:18px;}
+  .bulk-feats{list-style:none;margin:0;padding:0;display:grid;gap:14px;}
+  .bulk-feats li{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;}
+  .bulk-feats .fi{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.5);display:grid;place-items:center;font-size:1.15rem;}
+  .bulk-feats strong{display:block;font-size:1rem;}
+  .bulk-feats span{display:block;font-size:.92rem;opacity:.8;}
+  .bulk-side .tiffin{position:absolute;right:-26px;bottom:-30px;width:150px;opacity:.18;color:#1E1912;}
+
+  /* Impact */
+  .impact{background:var(--dark);color:var(--on-dark);overflow:hidden;}
+  .impact .kicker{color:var(--turmeric);}
+  .impact h2{color:var(--on-dark);}
+  .impact .section-head p{color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
+  .impact-grid{display:grid;grid-template-columns:1.2fr 1fr;grid-template-rows:auto auto;gap:16px;margin-top:clamp(36px,5vw,56px);}
+  @media (max-width:900px){ .impact-grid{grid-template-columns:1fr;} }
+  .impact-card{
+    position:relative;overflow:hidden;padding:clamp(24px,3vw,34px);border-radius:28px;
+    background:color-mix(in srgb,var(--on-dark) 6%,transparent);
+    border:1px solid color-mix(in srgb,var(--on-dark) 14%,transparent);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s;
+  }
+  .impact-card:hover{transform:translateY(-6px);border-color:var(--turmeric);}
+  .impact-card h3{color:var(--on-dark);font-size:clamp(1.5rem,2.4vw,2rem);}
+  .impact-card p{margin-top:12px;color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
+  .impact-card .tag{display:inline-block;margin-bottom:16px;padding:5px 12px;border-radius:999px;font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;}
+  .impact-gift{grid-row:span 2;background:var(--turmeric);border-color:var(--turmeric);display:flex;flex-direction:column;}
+  .impact-gift h3,.impact-gift p{color:#1E1912;}
+  .impact-gift p{opacity:.85;}
+  .impact-gift .tag{background:#1E1912;color:var(--turmeric);}
+  .impact-gift ul{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:10px;}
+  .impact-gift li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.45);color:#1E1912;font-weight:700;}
+  .impact-gift li span{font-size:1.3rem;}
+  .impact-gift .btn{margin-top:24px;align-self:flex-start;}
+  .gift-art{position:absolute;right:18px;bottom:18px;width:clamp(90px,12vw,130px);opacity:.95;}
+  .impact-gift > *:not(.gift-art){position:relative;}
+  .impact-jobs .tag{background:var(--basil);color:#fff;}
+  .impact-green .tag{background:var(--sky);color:#fff;}
+  .impact-card .big{display:block;margin-top:14px;font-size:clamp(2.4rem,5vw,3.6rem);font-weight:800;letter-spacing:-0.04em;line-height:1;color:var(--turmeric);}
+  .impact-card .big small{display:block;margin-top:8px;font-size:.36em;letter-spacing:0;color:color-mix(in srgb,var(--on-dark) 72%,transparent);font-weight:600;}
+
+  /* Model / scale */
+  .model-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(32px,6vw,72px);align-items:center;}
+  @media (max-width:900px){ .model-grid{grid-template-columns:1fr;} }
+  .model-points{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:14px;}
+  .model-points li{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;}
+  .model-points .n{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--ink);color:var(--bg);font-weight:800;}
+  .model-points strong{display:block;font-size:1.08rem;}
+  .model-points p{font-size:.96rem;margin-top:2px;}
+  .hub{width:100%;height:auto;overflow:visible;}
+  .hub .spoke{fill:none;stroke:var(--brand);stroke-width:2.5;stroke-dasharray:6 8;opacity:.6;}
+  .hub .node-bg{fill:var(--surface);stroke:var(--line);stroke-width:1.5;}
+  .hub .node-new .node-bg{fill:transparent;stroke:var(--brand);stroke-dasharray:5 5;stroke-width:2;}
+  .hub .node-ico{color:var(--ink);}
+  .hub .node-new .node-ico{color:var(--brand);}
+  .hub text{font-family:inherit;font-size:13px;font-weight:700;fill:var(--ink-soft);text-anchor:middle;}
+  .hub .kitchen-bg{fill:var(--turmeric);}
+  .hub .kitchen-ring{fill:none;stroke:var(--turmeric);stroke-width:2;opacity:.5;transform-box:fill-box;transform-origin:center;}
+  .hub .kitchen-label{font-size:15px;font-weight:800;fill:var(--ink);}
+  .hub .dot{fill:var(--chili);}
+
+  /* Find us */
+  .venues{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:clamp(36px,5vw,56px);}
+  @media (max-width:900px){ .venues{grid-template-columns:1fr;} }
+  .venue{
+    position:relative;overflow:hidden;min-height:220px;padding:24px;border-radius:28px;
+    background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:flex-end;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
+  }
+  .venue:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
+  .venue .map{position:absolute;inset:0;width:100%;height:100%;color:var(--ink);opacity:.09;}
+  .venue .pin{position:absolute;top:30px;right:34px;width:40px;height:50px;color:var(--chili);}
+  .venue h3{position:relative;font-size:1.35rem;}
+  .venue p{position:relative;margin-top:6px;font-size:.95rem;}
+  .venue-soon{background:transparent;border:2px dashed var(--line);}
+  .venue-soon .pin{color:var(--brand);}
+  .venue-soon a{position:relative;margin-top:14px;align-self:flex-start;font-weight:700;color:var(--brand);text-decoration:none;}
+  .venue-soon a:hover{text-decoration:underline;}
+
+  /* Partner */
+  .wave{display:block;width:100%;height:clamp(40px,6vw,80px);color:var(--dark);}
+  .partner{background:var(--dark);color:var(--on-dark);margin-top:-1px;}
+  .partner .kicker{color:var(--turmeric);}
+  .partner h2{color:var(--on-dark);}
+  .partner p{color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
+  .partner-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,72px);align-items:start;}
+  @media (max-width:900px){ .partner-grid{grid-template-columns:1fr;} }
+  .paths{display:grid;gap:12px;margin-top:30px;}
+  .path{
+    display:flex;align-items:center;gap:16px;width:100%;text-align:left;cursor:pointer;
+    padding:16px 18px;border-radius:18px;font:inherit;color:var(--on-dark);
+    background:color-mix(in srgb,var(--on-dark) 6%,transparent);
+    border:1px solid color-mix(in srgb,var(--on-dark) 14%,transparent);
+    transition:background .2s, border-color .2s, transform .2s;
+  }
+  .path:hover,.path[aria-pressed="true"]{background:color-mix(in srgb,var(--turmeric) 16%,transparent);border-color:var(--turmeric);transform:translateX(6px);}
+  .path .emoji{font-size:1.6rem;flex:none;}
+  .path strong{display:block;font-size:1.05rem;}
+  .path small{display:block;color:color-mix(in srgb,var(--on-dark) 65%,transparent);font-size:.88rem;}
   .form-card{
-    margin-top:28px;background:color-mix(in srgb, var(--dark-band-ink) 6%, transparent);
-    border:1px solid color-mix(in srgb, var(--dark-band-ink) 16%, transparent);
-    border-radius:20px;padding:clamp(20px,4vw,28px);
+    background:var(--bg);color:var(--ink);border-radius:28px;padding:clamp(22px,4vw,34px);
+    box-shadow:0 30px 60px -30px rgba(0,0,0,.7);
   }
+  .form-card h3{font-size:1.5rem;margin-bottom:6px;}
+  .form-card > p{color:var(--ink-soft);font-size:.95rem;margin-bottom:20px;}
   .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
-  .field label{font-size:.8rem;font-weight:600;color:color-mix(in srgb, var(--dark-band-ink) 80%, transparent);}
-  .field input, .field select{
-    font-family:inherit;font-size:.94rem;padding:12px 14px;border-radius:10px;
-    border:1px solid color-mix(in srgb, var(--dark-band-ink) 22%, transparent);
-    background:color-mix(in srgb, var(--dark-band-ink) 8%, transparent);
-    color:var(--dark-band-ink);
+  .field label{font-size:.85rem;font-weight:700;}
+  .field input,.field select{
+    font:inherit;font-size:1rem;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);
+    background:var(--surface);color:var(--ink);transition:border-color .2s, box-shadow .2s;
   }
-  .field input::placeholder{color:color-mix(in srgb, var(--dark-band-ink) 45%, transparent);}
-  .field input:focus, .field select:focus{outline:2px solid var(--gold-onband);outline-offset:1px;}
+  .field select{
+    appearance:none;-webkit-appearance:none;padding-right:42px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235E5345' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 16px center;
+  }
+  .field input:focus,.field select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--turmeric) 35%,transparent);}
+  .field textarea{
+    font:inherit;font-size:1rem;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);
+    background:var(--surface);color:var(--ink);resize:vertical;min-height:88px;transition:border-color .2s, box-shadow .2s;
+  }
+  .field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--turmeric) 35%,transparent);}
+  .field label small{font-weight:500;color:var(--ink-soft);}
   .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-  @media (max-width:480px){ .field-row{grid-template-columns:1fr;} }
-  .form-msg{margin-top:12px;font-size:.86rem;display:none;padding:11px 14px;border-radius:10px;}
+  @media (max-width:520px){ .field-row{grid-template-columns:1fr;} }
+  .form-card .btn{width:100%;margin-top:6px;}
+  .form-msg{margin-top:12px;font-size:.92rem;display:none;padding:12px 14px;border-radius:12px;}
   .form-msg.show{display:block;}
-  .form-msg.ok{background:color-mix(in srgb, var(--basil) 22%, transparent);color:var(--dark-band-ink);}
-  .form-msg.err{background:color-mix(in srgb, var(--chili) 24%, transparent);color:var(--dark-band-ink);}
+  .form-msg.ok{background:var(--basil-soft);color:var(--basil);}
+  .form-msg.err{background:var(--chili-soft);color:var(--chili);}
 
-  footer{border-top:1px solid var(--line);padding-block:32px;text-align:center;}
-  footer p{font-size:.85rem;}
-  footer .foot-brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;}
-  footer .foot-brand img{width:28px;height:28px;border-radius:50%;}
-  footer .foot-brand strong{font-size:.92rem;color:var(--ink);}
-  .social-row{display:flex;justify-content:center;gap:12px;}
+  /* Footer */
+  footer{background:var(--dark);color:var(--on-dark);padding-block:clamp(48px,7vw,80px) 28px;border-top:1px solid color-mix(in srgb,var(--on-dark) 10%,transparent);}
+  .foot-big{font-size:clamp(2.6rem,9vw,7rem);font-weight:800;letter-spacing:-0.05em;line-height:.9;color:var(--on-dark);}
+  .foot-big span{color:var(--turmeric);}
+  .foot-grid{display:flex;flex-wrap:wrap;justify-content:space-between;gap:28px;margin-top:40px;padding-top:28px;border-top:1px solid color-mix(in srgb,var(--on-dark) 16%,transparent);}
+  .foot-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.1rem;}
+  .foot-brand img{width:40px;height:40px;border-radius:50%;}
+  footer p,footer a{color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
+  footer a{text-decoration:none;}
+  footer a:hover{color:var(--turmeric);}
+  .foot-contact{display:grid;gap:4px;font-size:.98rem;}
+  .social-row{display:flex;gap:10px;}
   .social-row a{
-    display:inline-flex;align-items:center;justify-content:center;
-    width:34px;height:34px;border-radius:50%;color:var(--ink-soft);
-    border:1px solid var(--line);transition:color .15s ease, border-color .15s ease, transform .15s ease;
+    display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;
+    border:1px solid color-mix(in srgb,var(--on-dark) 22%,transparent);transition:transform .2s, border-color .2s, color .2s;
   }
-  .social-row a:hover{color:var(--accent);border-color:var(--accent);transform:translateY(-2px);}
+  .social-row a:hover{transform:translateY(-3px);border-color:var(--turmeric);}
+  .copy{margin-top:28px;font-size:.85rem;}
 
-  .menu-grid, .venue-grid{
-    margin-top:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  /* Floating call button (mobile) */
+  .call-fab{
+    position:fixed;right:16px;bottom:16px;z-index:40;display:none;align-items:center;gap:8px;
+    padding:14px 20px;border-radius:999px;background:var(--turmeric);color:#1E1912;font-weight:800;text-decoration:none;
+    box-shadow:0 14px 30px -12px rgba(0,0,0,.5);
   }
-  @media (max-width:700px){ .menu-grid, .venue-grid{grid-template-columns:1fr;} }
-  .menu-card, .venue-card{
-    background:var(--surface);border:1px solid var(--line);border-radius:16px;
-    padding:18px 20px;transition:transform .2s ease, box-shadow .2s ease;
-  }
-  .menu-card:hover, .venue-card:hover{
-    transform:translateY(-3px);box-shadow:0 14px 28px -20px rgba(43,38,32,0.45);
-  }
-  .menu-days{
-    display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-    background:var(--basil-soft);color:var(--basil);padding:4px 10px;border-radius:999px;margin-bottom:10px;
-  }
-  .menu-card h3{margin-bottom:8px;}
-  .menu-price{font-weight:800;color:var(--accent);font-size:1.05rem;}
-  .venue-pin{font-size:1.3rem;display:block;margin-bottom:8px;}
-  .venue-card h3{font-size:.98rem;}
-  .venue-card-soon{background:transparent;border-style:dashed;}
-  .venue-card-soon p{margin-top:6px;font-size:.86rem;}
+  @media (max-width:900px){ .call-fab{display:inline-flex;} }
 
+  /* ---------- Motion: transform/opacity only, honours reduced-motion ---------- */
   @media (prefers-reduced-motion:no-preference){
-    .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease, transform .5s ease;}
-    .reveal.in{opacity:1;transform:none;}
-    .menu-grid .reveal:nth-child(1), .venue-grid .reveal:nth-child(1){transition-delay:0s;}
-    .menu-grid .reveal:nth-child(2), .venue-grid .reveal:nth-child(2){transition-delay:.08s;}
-    .menu-grid .reveal:nth-child(3), .venue-grid .reveal:nth-child(3){transition-delay:.16s;}
+    .js .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1);}
+    .js .reveal.in{opacity:1;transform:none;}
+    .js .stagger > .reveal:nth-child(2){transition-delay:.1s;}
+    .js .stagger > .reveal:nth-child(3){transition-delay:.2s;}
+    .js .stagger > .reveal:nth-child(4){transition-delay:.3s;}
+
+    .hero h1 .line > span{animation:lineUp .9s cubic-bezier(.2,.8,.2,1) both;}
+    .hero h1 .line:nth-child(2) > span{animation-delay:.1s;}
+    .squiggle path{stroke-dasharray:420;stroke-dashoffset:420;animation:draw 1s .7s cubic-bezier(.6,0,.2,1) forwards;}
+    .hero-side{animation:fadeUp .9s .25s cubic-bezier(.2,.8,.2,1) both;}
+    .hero-photo img{animation:kenburns 1.6s cubic-bezier(.2,.8,.2,1) both;}
+    .sticker{animation:pop .7s cubic-bezier(.3,1.5,.5,1) both;}
+    .sticker-today{animation-delay:.6s;} .sticker-live{animation-delay:.8s;}
+    .badge-spin .ring{animation:spin 18s linear infinite;}
+    .live-dot::after{animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite;}
+    .doodle{animation:float 6s ease-in-out infinite;}
+    .d2{animation-delay:-2s;} .d3{animation-delay:-4s;animation-duration:7s;} .d4{animation-delay:-1s;}
+
+    .rider{animation:ride 14s linear infinite;}
+    .rider .wheel{transform-box:fill-box;transform-origin:center;animation:spin .7s linear infinite;}
+    .rider .bob{animation:bob .35s ease-in-out infinite alternate;}
+    .steam path{animation:steam 2.4s ease-in-out infinite;}
+    .steam path:nth-child(2){animation-delay:.8s;}
+    .steam path:nth-child(3){animation-delay:1.6s;}
+
+    .marquee-track{animation:marquee 32s linear infinite;}
+    .marquee:hover .marquee-track{animation-play-state:paused;}
+    .step-ico svg,.pillar-ico svg{animation:bobSlow 3.2s ease-in-out infinite;}
+    .step:nth-child(2) .step-ico svg,.pillar:nth-child(2) .pillar-ico svg{animation-delay:-1s;}
+    .step:nth-child(3) .step-ico svg,.pillar:nth-child(3) .pillar-ico svg{animation-delay:-2s;}
+    .pillar:nth-child(4) .pillar-ico svg{animation-delay:-.5s;}
+    .venue .pin{animation:pinBounce 2.4s cubic-bezier(.3,0,.3,1) infinite;}
+    .venue:nth-child(2) .pin{animation-delay:-.8s;}
+    .gift-art{animation:float 5s ease-in-out infinite;}
+
+    .hub .spoke{animation:flow 1.2s linear infinite;}
+    .hub .kitchen-ring{animation:pulse 2.6s cubic-bezier(0,0,.2,1) infinite;}
+    .hub .kitchen-ring.r2{animation-delay:1.3s;}
+    .hub .node-new{animation:blink 2.4s ease-in-out infinite;}
+    .hub .node-new:nth-of-type(2){animation-delay:.8s;}
+
+    /* Pause loops while their section is off-screen */
+    .is-off, .is-off *{animation-play-state:paused !important;}
+  }
+  @keyframes lineUp{from{transform:translateY(105%);}to{transform:none;}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+  @keyframes kenburns{from{transform:scale(1.08);}to{transform:none;}}
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.9);}to{opacity:1;transform:none;}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0;}}
+  @keyframes pulse{from{transform:scale(1);opacity:.6;}to{transform:scale(1.7);opacity:0;}}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.45;}}
+  @keyframes flow{to{stroke-dashoffset:-28;}}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0);}50%{transform:translateY(-14px) rotate(8deg);}}
+  @keyframes ride{from{transform:translateX(-170px);}to{transform:translateX(calc(100vw + 20px));}}
+  @keyframes bob{to{transform:translateY(-1.5px);}}
+  @keyframes bobSlow{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  @keyframes steam{0%{transform:translateY(4px);opacity:0;}40%{opacity:.85;}100%{transform:translateY(-10px);opacity:0;}}
+  @keyframes marquee{to{transform:translateX(-50%);}}
+  @keyframes pinBounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-10px);}}
+  @media (prefers-reduced-motion:reduce){
+    .rider{left:50%;margin-left:-75px;}
+    html{scroll-behavior:auto;}
   }
 </style>
 </head>
 <body>
-  <header>
-    <div class="wrap nav">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"></div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 30"><path d="M12 0C5.4 0 0 5.2 0 11.7 0 20.4 12 30 12 30s12-9.6 12-18.3C24 5.2 18.6 0 12 0Z" fill="currentColor"/><circle cx="12" cy="11.5" r="4.5" fill="#fff"/></symbol>
+      <symbol id="i-map" viewBox="0 0 300 220" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"><path d="M-10 60 Q80 40 150 90 T320 70"/><path d="M60 -10 L90 240"/><path d="M200 -10 Q180 110 230 240"/><path d="M-10 170 L320 150"/></g><g fill="none" stroke="currentColor" stroke-width="3"><path d="M-10 120 L320 110"/><path d="M140 -10 L130 240"/><path d="M260 -10 L280 240"/></g></symbol>
+      <symbol id="i-bike" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="33" r="8"/><circle cx="37" cy="33" r="8"/><path d="M11 33l8-14h12l6 14M19 19l-3-6h-5M29 12h6"/></g></symbol>
+      <symbol id="i-pot" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22h36v6a12 12 0 0 1-12 12H18A12 12 0 0 1 6 28Z"/><path d="M2 22h4M42 22h4M18 14c-2-3 2-5 0-8M26 14c-2-3 2-5 0-8M34 14c-2-3 2-5 0-8"/></g></symbol>
+    </defs>
+  </svg>
+
+  <header id="siteHeader">
+    <nav class="wrap nav" aria-label="Main">
       <a href="#top" class="brand">
-        <img src="images/logo.png" alt="Pedal Plate logo" width="38" height="38">
+        <img src="images/logo.png" alt="" width="42" height="42">
         <span>Pedal Plate</span>
       </a>
-      <ul class="nav-links">
-        <li><a href="#about">About</a></li>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#promise">Why Us</a></li>
         <li><a href="#menu">Menu</a></li>
+        <li><a href="#bulk">Bulk Orders</a></li>
+        <li><a href="#impact">Impact</a></li>
         <li><a href="#find-us">Find Us</a></li>
-        <li><a href="#partner">Partner With Us</a></li>
+        <li><a href="#partner">Partner</a></li>
       </ul>
-      <a href="#find-us" class="btn btn-outline" style="padding:9px 18px;font-size:.86rem;">Find Us</a>
-    </div>
+      <a href="tel:+917699149899" class="btn btn-primary nav-cta">Call us
+        <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Open menu"><span></span></button>
+    </nav>
   </header>
 
-  <main id="top">
+  <main id="main">
+    <span id="top"></span>
 
-    <section class="hero">
-      <div class="wrap reveal">
-        <div class="eyebrow">Now pedaling through Burdwan</div>
-        <h1>Home Food.<br>On The Move.</h1>
-        <p class="lead">Fresh, home-style meals — cooked the way ghar ka khana should taste, pedaled straight to your street. No app, no long wait. Just good food, close by.</p>
-        <div class="hero-ctas">
-          <a href="#find-us" class="btn btn-primary">Find Our Cycles</a>
-          <a href="#partner" class="btn btn-outline">Become a Pedal Partner</a>
+    <!-- HERO -->
+    <section class="hero" data-anim>
+      <svg class="doodle d1" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z" fill="currentColor"/><path d="M10 38 34 14" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg>
+      <svg class="doodle d2" viewBox="0 0 48 48" aria-hidden="true"><path d="M10 14c10 0 16 4 22 14s6 16 2 16C24 44 6 34 6 20c0-4 1-6 4-6Z" fill="currentColor"/><path d="M10 14c0-4 2-8 6-10" stroke="#2F7A43" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      <svg class="doodle d3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="currentColor"/></svg>
+      <svg class="doodle d4" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="currentColor"/></svg>
+
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <div class="kicker">Now pedaling through Burdwan</div>
+            <h1>
+              <span class="line"><span>Home Food.</span></span>
+              <span class="line"><span>On The <span class="squiggle">Move.<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14 C 40 4, 70 18, 104 9 S 170 4, 196 11"/></svg></span></span></span>
+            </h1>
+          </div>
+          <div class="hero-side">
+            <p>Fresh, hygienic, home-made meals — cooked the way <em>ghar ka khana</em> should taste, pedaled straight to your street. No app, no long wait. Just good food, close by.</p>
+            <div class="hero-ctas">
+              <a href="#menu" class="btn btn-primary">See this week's menu
+                <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
+              </a>
+              <a href="#impact" class="btn btn-ghost">Gift a meal</a>
+            </div>
+          </div>
         </div>
-        <div class="hero-banner">
-          <img src="images/hero.jpg" alt="A Pedal Plate cycle with insulated food boxes and umbrella, parked near Curzon Gate in Burdwan" width="1716" height="642" fetchpriority="high">
+        <ul class="chips" aria-label="Highlights">
+          <li>🏠 Home-made</li>
+          <li>🧼 Hygienic &amp; sealed</li>
+          <li>🍛 Thalis from ₹55</li>
+          <li>🤝 Local jobs</li>
+          <li>🚲 Zero emissions</li>
+        </ul>
+
+        <div class="hero-stage">
+          <div class="badge-spin" aria-hidden="true">
+            <svg class="ring" viewBox="0 0 160 160">
+              <circle class="disc" cx="80" cy="80" r="78"/>
+              <defs><path id="circlePath" d="M80,80 m-60,0 a60,60 0 1,1 120,0 a60,60 0 1,1 -120,0"/></defs>
+              <text><textPath href="#circlePath">Home food • On the move • Burdwan •</textPath></text>
+            </svg>
+            <div class="core"><svg viewBox="0 0 48 48" style="color:#1E1912"><use href="#i-bike"/></svg></div>
+          </div>
+          <div class="hero-photo">
+            <img src="images/hero.jpg" alt="A Pedal Plate cycle cart with insulated food boxes and umbrella, parked near Curzon Gate in Burdwan" width="1716" height="642" fetchpriority="high">
+          </div>
+          <div class="sticker sticker-today">
+            <span class="ico" aria-hidden="true">🍛</span>
+            <span><small id="todayLabel">On the pedal this week</small><strong id="todayDish">Fresh thalis from ₹55</strong></span>
+          </div>
+          <div class="sticker sticker-live">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span><small>Serving at</small><strong>Court Compound &amp; District Hospital</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="road" aria-hidden="true">
+        <div class="road-tag">We cook. We pedal. <span>You eat.</span></div>
+        <svg class="rider" viewBox="0 0 150 90">
+          <g class="steam" transform="translate(8 0) scale(.6)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
+          <g class="bob">
+            <rect class="box" x="4" y="20" width="44" height="32" rx="6"/>
+            <rect class="box-band" x="4" y="32" width="44" height="7"/>
+            <path class="frame" d="M34 70 L62 70 L92 44 L56 44 Z M62 70 L50 36 M92 44 L122 70 M92 44 L88 28 L100 26 M44 34 h14 M26 52 h24"/>
+          </g>
+          <g class="wheel"><circle class="tyre" cx="34" cy="70" r="17"/><path class="spokes" d="M34 53v34M17 70h34M22 58l24 24M46 58 22 82"/></g>
+          <g class="wheel"><circle class="tyre" cx="122" cy="70" r="17"/><path class="spokes" d="M122 53v34M105 70h34M110 58l24 24M134 58l-24 24"/></g>
+        </svg>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <div class="marquee-group"><span>Home-made</span><i>✦</i><span>Hygienic</span><i>✦</i><span>Healthy</span><i>✦</i><span>Affordable</span><i>✦</i><span>Hyperlocal</span><i>✦</i><span>Ghar ka khana</span><i>✦</i></div>
+        <div class="marquee-group"><span>Home-made</span><i>✦</i><span>Hygienic</span><i>✦</i><span>Healthy</span><i>✦</i><span>Affordable</span><i>✦</i><span>Hyperlocal</span><i>✦</i><span>Ghar ka khana</span><i>✦</i></div>
+      </div>
+    </div>
+
+    <!-- STORY -->
+    <section class="alt story" id="about">
+      <div class="wrap">
+        <div class="story-grid">
+          <div class="section-head reveal">
+            <div class="kicker">Our Story</div>
+            <h2>Good food shouldn't be <span class="hl">expensive</span>, complicated, or far away.</h2>
+            <p>Pedal Plate started with a simple idea: bring the comfort of home-cooked food closer to people — one bicycle at a time.</p>
+            <p>We celebrate the everyday meals we grew up with, made with care and served fresh, locally and affordably. Because sometimes, the best food is simply home food, on the move.</p>
+          </div>
+          <ol class="steps stagger" data-anim>
+            <li class="step reveal">
+              <span class="step-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#i-pot"/></svg></span>
+              <div><h3>We cook</h3><p>Home-style recipes, made fresh every day in small batches.</p></div>
+            </li>
+            <li class="step reveal">
+              <span class="step-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#i-bike"/></svg></span>
+              <div><h3>We pedal</h3><p>Our cycle carts carry it, hot and sealed, to a street near you.</p></div>
+            </li>
+            <li class="step reveal">
+              <span class="step-ico" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="26" r="15"/><circle cx="24" cy="26" r="8"/><path d="M4 8v12a3 3 0 0 0 6 0V8M7 20v20M44 8c-4 0-6 6-6 12h6v20"/></svg></span>
+              <div><h3>You eat</h3><p>Walk up, pay, and enjoy a proper meal — no app, no wait.</p></div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="stats stagger">
+          <div class="stat reveal"><b>₹<span data-count="55">55</span></b><span>thalis start at</span></div>
+          <div class="stat reveal"><b data-count="3">3</b><span>rotating home-style thalis</span></div>
+          <div class="stat reveal"><b data-count="2">2</b><span>stops in Burdwan &amp; growing</span></div>
+          <div class="stat reveal"><b>0</b><span>apps to download</span></div>
         </div>
       </div>
     </section>
 
-    <section class="alt" id="about">
-      <div class="wrap reveal">
-        <div class="eyebrow">Our Story</div>
-        <h2>Good food shouldn't have to be expensive, complicated, or far away</h2>
-        <p style="margin-top:14px;">Pedal Plate started with a simple idea: bring the comfort of home-cooked food closer to people — one bicycle at a time. We celebrate the everyday meals we grew up with, made with care and served fresh, locally and affordably.</p>
-        <p class="story-line">We cook. We pedal. You eat.</p>
-        <p>Because sometimes, the best food is simply home food, on the move.</p>
+    <!-- PROMISE -->
+    <section id="promise">
+      <div class="wrap">
+        <div class="section-head center reveal">
+          <div class="kicker">The Pedal Promise</div>
+          <h2>Four things we <span class="hl">never</span> compromise on.</h2>
+          <p>Street food convenience, with the care of a home kitchen.</p>
+        </div>
+        <div class="pillars stagger" data-anim>
+          <article class="pillar p-home reveal">
+            <span class="pillar-ico" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15 16 5l12 10"/><path d="M7 13v14h18V13"/><path d="M13 27v-7h6v7"/></svg></span>
+            <h3>Home-made</h3>
+            <p>Recipes from home kitchens — the polao, dal and kosha you grew up with.</p>
+            <ul><li>Cooked fresh, daily</li><li>Small batches</li></ul>
+          </article>
+          <article class="pillar p-health reveal">
+            <span class="pillar-ico" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 26C6 13 14 6 27 5c0 13-7 21-21 21Z"/><path d="M6 26 18 14"/></svg></span>
+            <h3>Healthy</h3>
+            <p>Balanced, wholesome thalis — the everyday meal your body actually wants.</p>
+            <ul><li>Rice, dal &amp; sabzi</li><li>Home-style spice, not junk</li></ul>
+          </article>
+          <article class="pillar p-hygiene reveal">
+            <span class="pillar-ico" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3 5 7v8c0 7 5 12 11 14 6-2 11-7 11-14V7Z"/><path d="m11 16 4 4 7-8"/></svg></span>
+            <h3>Hygienic</h3>
+            <p>Clean kitchen, clean hands, clean cart — and food carried in sealed, insulated boxes.</p>
+            <ul><li>Sealed &amp; insulated</li><li>Clean, covered serving</li></ul>
+          </article>
+          <article class="pillar p-price reveal">
+            <span class="pillar-ico" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h14M9 12h14M9 6c8 0 8 12 0 12h-1l11 9"/></svg></span>
+            <h3>Affordable</h3>
+            <p>A full, filling meal from ₹55. Honest prices with no app commissions or delivery fees.</p>
+            <ul><li>Thalis ₹55–₹75</li><li>No hidden charges</li></ul>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section id="menu">
-      <div class="wrap reveal">
-        <div class="eyebrow">What's on the Pedal?</div>
-        <h2>Local flavours, freshly cooked, easy on the pocket <span aria-hidden="true">❤️</span></h2>
-        <p style="margin-top:14px;max-width:56ch;">We're putting local cuisine and comfort food at the heart of Pedal Plate — familiar flavours, freshly cooked and easy on the pocket. Here's what's rotating on the plate this week.</p>
-        <div class="menu-grid">
-          <div class="menu-card reveal">
-            <span class="menu-days">Mon &amp; Sat</span>
-            <h3>Polao &amp; Aloo Dum</h3>
-            <span class="menu-price">₹65</span>
+    <!-- MENU -->
+    <section class="alt" id="menu">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="kicker">What's on the Pedal?</div>
+          <h2>Local flavours, <span class="hl">freshly cooked</span>, easy on the pocket.</h2>
+          <p>Familiar comfort food at honest prices. Here's what's rotating on the plate this week.</p>
+        </div>
+        <div class="menu-grid stagger" data-anim>
+          <article class="dish reveal" data-days="1,6">
+            <span class="today-flag">Today</span>
+            <div class="dish-art" aria-hidden="true">
+              <svg viewBox="0 0 200 150">
+                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
+                <g class="plate">
+                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
+                  <ellipse cx="80" cy="90" rx="30" ry="18" fill="#FBE7A1"/><circle cx="72" cy="86" r="3" fill="#7BAA5A"/><circle cx="86" cy="92" r="3" fill="#C8402A"/><circle cx="80" cy="82" r="2.5" fill="#7BAA5A"/>
+                  <circle cx="124" cy="96" r="18" fill="#B5621F"/><circle cx="118" cy="92" r="6" fill="#E8A94B"/><circle cx="130" cy="100" r="6" fill="#E8A94B"/>
+                </g>
+              </svg>
+            </div>
+            <div class="days"><span>Mon</span><span>Sat</span></div>
+            <div class="dish-foot"><h3>Polao &amp; Aloo Dum</h3><span class="price"><sup>₹</sup>65</span></div>
+          </article>
+          <article class="dish reveal" data-days="2,4">
+            <span class="today-flag">Today</span>
+            <div class="dish-art" aria-hidden="true">
+              <svg viewBox="0 0 200 150">
+                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
+                <g class="plate">
+                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
+                  <ellipse cx="82" cy="93" rx="32" ry="19" fill="#E9C46A"/><circle cx="74" cy="90" r="2.5" fill="#fff" opacity=".7"/><circle cx="90" cy="96" r="2.5" fill="#fff" opacity=".7"/>
+                  <circle cx="126" cy="94" r="17" fill="#6FA35C"/><rect x="118" y="88" width="7" height="7" rx="2" fill="#F08A3C"/><rect x="128" y="96" width="6" height="6" rx="2" fill="#F7E3A0"/><circle cx="132" cy="88" r="3" fill="#3C7D3A"/>
+                </g>
+              </svg>
+            </div>
+            <div class="days"><span>Tue</span><span>Thu</span></div>
+            <div class="dish-foot"><h3>Khichdi &amp; Mixed Veg</h3><span class="price"><sup>₹</sup>55</span></div>
+          </article>
+          <article class="dish reveal" data-days="3,5">
+            <span class="today-flag">Today</span>
+            <div class="dish-art" aria-hidden="true">
+              <svg viewBox="0 0 200 150">
+                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
+                <g class="plate">
+                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
+                  <ellipse cx="78" cy="90" rx="28" ry="17" fill="#FBE7A1"/><circle cx="70" cy="86" r="2.5" fill="#7BAA5A"/><circle cx="84" cy="92" r="2.5" fill="#C8402A"/>
+                  <circle cx="125" cy="96" r="20" fill="#8A3A16"/><path d="M114 92c4-6 14-6 18 0M116 101c4 4 12 4 16-1" stroke="#C8622B" stroke-width="5" stroke-linecap="round" fill="none"/>
+                </g>
+              </svg>
+            </div>
+            <div class="days"><span>Wed</span><span>Fri</span></div>
+            <div class="dish-foot"><h3>Polao &amp; Chicken Kosha</h3><span class="price"><sup>₹</sup>75</span></div>
+          </article>
+        </div>
+        <p class="menu-note reveal">Sunday is our day off — we're back on the pedal Monday.</p>
+      </div>
+    </section>
+
+    <!-- BULK / B2B -->
+    <section id="bulk">
+      <div class="wrap">
+        <div class="bulk-card reveal">
+          <div class="bulk-main">
+            <div class="kicker">Bulk &amp; Corporate Orders</div>
+            <h2>Feeding a team, an event or an institution?</h2>
+            <p>From daily office lunches to one-off events, we cater fresh, home-style meals in bulk, with menus, schedules and pricing built around your needs. Call us or send an enquiry, and we'll get back to you with a custom quote.</p>
+            <ul class="segments" aria-label="Who we cater for">
+              <li>🏢 Offices &amp; corporates</li>
+              <li>🎉 Events &amp; functions</li>
+              <li>🏥 Hospitals &amp; clinics</li>
+              <li>🎓 Colleges &amp; coaching centres</li>
+              <li>🤝 NGOs &amp; CSR meal drives</li>
+            </ul>
+            <div class="bulk-ctas">
+              <a href="#partner" class="btn btn-primary" data-interest-link="Bulk / corporate order">Request a quote
+                <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
+              </a>
+              <a href="tel:+917699149899" class="btn btn-ghost">Call +91 76991 49899</a>
+            </div>
           </div>
-          <div class="menu-card reveal">
-            <span class="menu-days">Tue &amp; Thu</span>
-            <h3>Khichdi &amp; Mixed Veg</h3>
-            <span class="menu-price">₹55</span>
-          </div>
-          <div class="menu-card reveal">
-            <span class="menu-days">Wed &amp; Fri</span>
-            <h3>Polao &amp; Chicken Kosha</h3>
-            <span class="menu-price">₹75</span>
+          <div class="bulk-side">
+            <svg class="tiffin" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-pot"/></svg>
+            <h3>Why order in bulk with us</h3>
+            <ul class="bulk-feats">
+              <li><span class="fi" aria-hidden="true">📋</span><div><strong>Customised menus</strong><span>Veg, non-veg and regional options, planned around your group.</span></div></li>
+              <li><span class="fi" aria-hidden="true">🗓️</span><div><strong>One-time or recurring</strong><span>Single events, or daily and weekly meal plans.</span></div></li>
+              <li><span class="fi" aria-hidden="true">🚲</span><div><strong>On-time, on-site delivery</strong><span>Fresh, sealed meals delivered to your location.</span></div></li>
+              <li><span class="fi" aria-hidden="true">💬</span><div><strong>Volume-based pricing</strong><span>Transparent quotes, with a single point of contact.</span></div></li>
+            </ul>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- IMPACT -->
+    <section class="impact" id="impact">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="kicker">More Than a Meal</div>
+          <h2>Every plate does a little <span style="color:var(--turmeric)">good</span>.</h2>
+          <p>Pedal Plate is built to feed people well, create work close to home, and keep our streets clean.</p>
+        </div>
+        <div class="impact-grid stagger" data-anim>
+          <article class="impact-card impact-gift reveal">
+            <svg class="gift-art" viewBox="0 0 120 120" aria-hidden="true"><rect x="18" y="48" width="84" height="60" rx="8" fill="#1E1912"/><rect x="12" y="34" width="96" height="20" rx="6" fill="#C8402A"/><rect x="54" y="34" width="12" height="74" fill="#FFF7EA"/><path d="M60 34c-10-20-34-14-26-2 4 6 26 2 26 2Zm0 0c10-20 34-14 26-2-4 6-26 2-26 2Z" fill="#C8402A"/></svg>
+            <span class="tag">Gift a Meal</span>
+            <h3>Pay it forward, one plate at a time.</h3>
+            <p>Buy a hot, home-made meal for someone who needs it — or sponsor meals in bulk as part of your company's CSR.</p>
+            <ul>
+              <li><span aria-hidden="true">🏥</span> Patients' families at the hospital</li>
+              <li><span aria-hidden="true">👷</span> Daily-wage &amp; gig workers</li>
+              <li><span aria-hidden="true">🎒</span> Students away from home</li>
+              <li><span aria-hidden="true">🏢</span> Corporate &amp; CSR meal programmes</li>
+            </ul>
+            <a href="#partner" class="btn btn-primary" data-interest-link="Gifting meals / CSR partnership">Gift meals
+              <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a>
+          </article>
+          <article class="impact-card impact-jobs reveal">
+            <span class="tag">Hyperlocal Jobs</span>
+            <h3>Every new cycle is a new livelihood.</h3>
+            <p>Each Pedal Plate cart is run by someone from the neighbourhood it serves — steady, dignified work close to home, with a low-cost way to start.</p>
+            <span class="big">1 cycle = 1 job<small>and counting</small></span>
+          </article>
+          <article class="impact-card impact-green reveal">
+            <span class="tag">Zero Emissions</span>
+            <h3>Pedal power, not petrol.</h3>
+            <p>Our carts run on legs, not fuel — no smoke, no noise, no parking jams. Just good food rolling quietly down your street.</p>
+            <span class="big">0 g<small>fuel burned per delivery</small></span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODEL -->
+    <section id="model">
+      <div class="wrap model-grid">
+        <div class="reveal">
+          <div class="kicker">Built to Scale</div>
+          <h2>One kitchen. <span class="hl">Many cycles.</span></h2>
+          <p style="margin-top:18px;font-size:1.12rem;max-width:46ch;">Pedal Plate is a mobile quick-service restaurant. A central kitchen cooks; a fleet of cycle carts takes the food to where people are.</p>
+          <ul class="model-points">
+            <li><span class="n">01</span><div><strong>Central kitchen, consistent taste</strong><p>Every plate is cooked to the same recipe, with the same hygiene standards.</p></div></li>
+            <li><span class="n">02</span><div><strong>Low-cost cycle carts</strong><p>No rent, no big outlet — a new stop opens as fast as a new cart rolls out.</p></div></li>
+            <li><span class="n">03</span><div><strong>Goes where demand is</strong><p>Courts, hospitals, colleges, offices — carts move to where the hungry crowd is.</p></div></li>
+          </ul>
+        </div>
+        <div class="reveal" data-anim>
+          <svg class="hub" viewBox="0 0 560 440" role="img" aria-labelledby="hubTitle">
+            <title id="hubTitle">Diagram: one central kitchen supplying many Pedal Plate cycle carts across Burdwan</title>
+            <path class="spoke" d="M280 210 L90 80"/>
+            <path class="spoke" d="M280 210 L470 80"/>
+            <path class="spoke" d="M280 210 L70 300"/>
+            <path class="spoke" d="M280 210 L490 300"/>
+            <path class="spoke" d="M280 210 L280 375"/>
+            <circle class="kitchen-ring" cx="280" cy="210" r="62"/>
+            <circle class="kitchen-ring r2" cx="280" cy="210" r="62"/>
+            <circle class="kitchen-bg" cx="280" cy="210" r="62"/>
+            <svg x="250" y="168" width="60" height="60" viewBox="0 0 48 48" style="color:#1E1912"><use href="#i-pot"/></svg>
+            <text class="kitchen-label" x="280" y="248" style="fill:#1E1912">Kitchen</text>
+
+            <g class="node"><circle class="node-bg" cx="90" cy="80" r="34"/><svg class="node-ico" x="68" y="58" width="44" height="44" viewBox="0 0 48 48"><use href="#i-bike"/></svg><text x="90" y="134">Court Compound</text></g>
+            <g class="node"><circle class="node-bg" cx="470" cy="80" r="34"/><svg class="node-ico" x="448" y="58" width="44" height="44" viewBox="0 0 48 48"><use href="#i-bike"/></svg><text x="470" y="134">District Hospital</text></g>
+            <g class="node node-new"><circle class="node-bg" cx="70" cy="300" r="34"/><svg class="node-ico" x="48" y="278" width="44" height="44" viewBox="0 0 48 48"><use href="#i-bike"/></svg><text x="70" y="354">Next stop</text></g>
+            <g class="node node-new"><circle class="node-bg" cx="490" cy="300" r="34"/><svg class="node-ico" x="468" y="278" width="44" height="44" viewBox="0 0 48 48"><use href="#i-bike"/></svg><text x="490" y="354">Your college?</text></g>
+            <g class="node node-new"><circle class="node-bg" cx="280" cy="375" r="34"/><svg class="node-ico" x="258" y="353" width="44" height="44" viewBox="0 0 48 48"><use href="#i-bike"/></svg><text x="280" y="428">Your street?</text></g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- FIND US -->
     <section class="alt" id="find-us">
-      <div class="wrap reveal">
-        <div class="eyebrow">Find Us Around Burdwan <span aria-hidden="true">🚲</span></div>
-        <h2>We're coming to a street near you</h2>
-        <p style="margin-top:14px;max-width:58ch;">You'll be able to easily find our cycles and know where we're serving each day. Here's where we're currently pedalling:</p>
-        <div class="venue-grid">
-          <div class="venue-card reveal">
-            <span class="venue-pin" aria-hidden="true">📍</span>
-            <h3>Court Compound, Burdwan</h3>
-          </div>
-          <div class="venue-card reveal">
-            <span class="venue-pin" aria-hidden="true">📍</span>
-            <h3>District Hospital Area, Burdwan</h3>
-          </div>
-          <div class="venue-card venue-card-soon reveal">
-            <span class="venue-pin" aria-hidden="true">🚲</span>
-            <h3>More places coming soon</h3>
-            <p>We're adding new stops across Burdwan — stay tuned!</p>
-          </div>
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="kicker">Find Us Around Burdwan</div>
+          <h2>Look for the cycle with the <span class="hl">food box</span>.</h2>
+          <p>Here's where we're currently pedalling. New stops are on the way — follow us for daily updates.</p>
+        </div>
+        <div class="venues stagger" data-anim>
+          <article class="venue reveal">
+            <svg class="map" aria-hidden="true"><use href="#i-map"/></svg>
+            <svg class="pin" viewBox="0 0 24 30" aria-hidden="true"><use href="#i-pin"/></svg>
+            <h3>Court Compound</h3>
+            <p>Burdwan</p>
+          </article>
+          <article class="venue reveal">
+            <svg class="map" aria-hidden="true" style="transform:scaleX(-1)"><use href="#i-map"/></svg>
+            <svg class="pin" viewBox="0 0 24 30" aria-hidden="true"><use href="#i-pin"/></svg>
+            <h3>District Hospital Area</h3>
+            <p>Burdwan</p>
+          </article>
+          <article class="venue venue-soon reveal">
+            <svg class="pin" viewBox="0 0 24 30" aria-hidden="true"><use href="#i-pin"/></svg>
+            <h3>More stops coming soon</h3>
+            <p>We're adding new spots across Burdwan.</p>
+            <a href="https://www.instagram.com/pedalplate.in/" target="_blank" rel="noopener">Follow on Instagram →</a>
+          </article>
         </div>
       </div>
     </section>
 
+    <!-- PARTNER -->
+    <svg class="wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" style="background:var(--bg-alt)"><path d="M0 40 C 240 90, 480 0, 720 40 S 1200 80, 1440 30 V80 H0 Z" fill="currentColor"/></svg>
     <section class="partner" id="partner">
-      <div class="wrap reveal">
-        <div class="eyebrow">Ride With Us</div>
-        <h2>Bring Pedal Plate to your street</h2>
-        <p style="margin-top:12px;max-width:50ch;">We're looking for people who want to run a Pedal Plate cycle, open a small outlet, or back our next kitchen. If home food on the move sounds like your kind of business, let's talk.</p>
+      <div class="wrap partner-grid">
+        <div class="reveal">
+          <div class="kicker">Ride With Us</div>
+          <h2>Bring Pedal Plate to <span style="color:var(--turmeric)">your street</span>.</h2>
+          <p style="margin-top:18px;max-width:46ch;font-size:1.1rem;">Run a cycle, open an outlet, back our next kitchen, place a bulk order or gift meals to people who need them. Tell us what you have in mind and we'll take it from there.</p>
+          <div class="paths" role="group" aria-label="Choose how you'd like to partner">
+            <button type="button" class="path" data-interest="Running a Pedal Plate cycle" aria-pressed="false"><span class="emoji" aria-hidden="true">🚲</span><span><strong>Run a cycle</strong><small>Earn a livelihood on your own street</small></span></button>
+            <button type="button" class="path" data-interest="Opening a franchise outlet" aria-pressed="false"><span class="emoji" aria-hidden="true">🏪</span><span><strong>Open an outlet</strong><small>A small Pedal Plate counter in your area</small></span></button>
+            <button type="button" class="path" data-interest="Investing or partnering" aria-pressed="false"><span class="emoji" aria-hidden="true">🤝</span><span><strong>Invest or partner</strong><small>Help us fire up the next kitchen</small></span></button>
+            <button type="button" class="path" data-interest="Bulk / corporate order" aria-pressed="false"><span class="emoji" aria-hidden="true">📦</span><span><strong>Bulk / corporate order</strong><small>Office meals, events and institutions</small></span></button>
+            <button type="button" class="path" data-interest="Gifting meals / CSR partnership" aria-pressed="false"><span class="emoji" aria-hidden="true">🎁</span><span><strong>Gift meals / CSR</strong><small>Sponsor meals for people who need them</small></span></button>
+          </div>
+        </div>
 
-        <form class="form-card" id="partnerForm" novalidate>
+        <form class="form-card reveal" id="partnerForm" novalidate>
+          <h3>Send an enquiry</h3>
+          <p>Share a few details and our team will get back to you shortly. Prefer to talk? Call <a href="tel:+917699149899">+91 76991 49899</a>.</p>
           <div class="field-row">
             <div class="field">
               <label for="pf-name">Full name</label>
-              <input type="text" id="pf-name" name="name" placeholder="Your name" required>
+              <input type="text" id="pf-name" name="name" placeholder="Your name" autocomplete="name" required>
             </div>
             <div class="field">
               <label for="pf-phone">Phone number</label>
-              <input type="tel" id="pf-phone" name="phone" placeholder="10-digit mobile" required>
+              <input type="tel" id="pf-phone" name="phone" placeholder="10-digit mobile" autocomplete="tel" inputmode="tel" required>
             </div>
           </div>
           <div class="field-row">
             <div class="field">
               <label for="pf-city">City / Area</label>
-              <input type="text" id="pf-city" name="city" placeholder="e.g. Burdwan" required>
+              <input type="text" id="pf-city" name="city" placeholder="e.g. Burdwan" autocomplete="address-level2" required>
             </div>
             <div class="field">
               <label for="pf-interest">Interested in</label>
@@ -351,61 +1091,162 @@
                 <option>Running a Pedal Plate cycle</option>
                 <option>Opening a franchise outlet</option>
                 <option>Investing or partnering</option>
+                <option>Bulk / corporate order</option>
+                <option>Gifting meals / CSR partnership</option>
               </select>
             </div>
           </div>
-          <button type="submit" class="btn btn-light" style="width:100%;">Send My Details</button>
-          <div class="form-msg" id="formMsg"></div>
+          <div class="field">
+            <label for="pf-details">Requirements <small>(optional)</small></label>
+            <textarea id="pf-details" name="details" rows="3" placeholder="e.g. 40 lunches daily, Mon–Fri, from 1 Nov — or event date and headcount"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Send my details
+            <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </button>
+          <div class="form-msg" id="formMsg" role="status" aria-live="polite"></div>
         </form>
       </div>
     </section>
-
   </main>
 
   <footer>
     <div class="wrap">
-      <div class="foot-brand">
-        <img src="images/logo.png" alt="Pedal Plate logo" width="28" height="28">
-        <strong>Pedal Plate</strong>
+      <p class="foot-big" aria-hidden="true">Home food.<br><span>On the move.</span></p>
+      <div class="foot-grid">
+        <div>
+          <div class="foot-brand"><img src="images/logo.png" alt="" width="40" height="40" loading="lazy">Pedal Plate</div>
+          <p style="margin-top:10px;max-width:34ch;">Fresh, hygienic, home-made thalis pedaled across Burdwan, West Bengal.</p>
+        </div>
+        <div class="foot-contact">
+          <a href="tel:+917699149899">+91 76991 49899</a>
+          <a href="mailto:iamari.cse@gmail.com">iamari.cse@gmail.com</a>
+          <p>Burdwan, West Bengal</p>
+        </div>
+        <div class="social-row">
+          <a href="https://www.facebook.com/profile.php?id=61594354288573" target="_blank" rel="noopener" aria-label="Pedal Plate on Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.9h-2.34V22c4.78-.8 8.44-4.95 8.44-9.94Z"/></svg>
+          </a>
+          <a href="https://www.instagram.com/pedalplate.in/" target="_blank" rel="noopener" aria-label="Pedal Plate on Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
+          </a>
+        </div>
       </div>
-      <div class="social-row">
-        <a href="https://www.facebook.com/profile.php?id=61594354288573" target="_blank" rel="noopener" aria-label="Pedal Plate on Facebook">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.9h-2.34V22c4.78-.8 8.44-4.95 8.44-9.94Z"/></svg>
-        </a>
-        <a href="https://www.instagram.com/pedalplate.in/" target="_blank" rel="noopener" aria-label="Pedal Plate on Instagram">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
-        </a>
-      </div>
-      <p style="margin-top:14px;">iamari.cse@gmail.com &nbsp;&middot;&nbsp; <a href="tel:+917699149899" style="color:inherit;">+91 76991 49899</a> &nbsp;&middot;&nbsp; Burdwan, West Bengal</p>
-      <p style="margin-top:6px;">&copy; <span id="year"></span> Pedal Plate. Home food, on the move.</p>
+      <p class="copy">&copy; <span id="year">2026</span> Pedal Plate. Home food, on the move.</p>
     </div>
   </footer>
 
+  <a class="call-fab" href="tel:+917699149899" aria-label="Call Pedal Plate">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1Z"/></svg>
+    Call to order
+  </a>
+
 <script>
-  if ('IntersectionObserver' in window){
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
-      });
-    }, {threshold:.12});
-    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
-  } else {
-    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
-  }
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Pedal Partner form — no backend yet, so this hands the details off
-  // via a pre-filled email. Swap for a real endpoint (Formspree, a Google
-  // Sheet, etc.) once one exists.
+  // Header shadow once scrolled
+  var header = document.getElementById('siteHeader');
+  var onScroll = function(){ header.classList.toggle('scrolled', window.scrollY > 8); };
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+  // Mobile menu
+  var toggle = document.getElementById('menuToggle'), links = document.getElementById('navLinks');
+  var setMenu = function(open){
+    toggle.setAttribute('aria-expanded', open);
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    links.classList.toggle('open', open);
+  };
+  toggle.addEventListener('click', function(){ setMenu(toggle.getAttribute('aria-expanded') !== 'true'); });
+  links.addEventListener('click', function(e){ if (e.target.tagName === 'A') setMenu(false); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') setMenu(false); });
+
+  // Today's dish (Burdwan time)
+  var day = ({Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6})[new Date().toLocaleDateString('en-US',{weekday:'short',timeZone:'Asia/Kolkata'})];
+  var label = document.getElementById('todayLabel'), dishEl = document.getElementById('todayDish');
+  if (day === 0){
+    label.textContent = 'Sunday — day off'; dishEl.textContent = 'Back on the pedal Monday';
+  } else {
+    document.querySelectorAll('.dish').forEach(function(card){
+      if (card.dataset.days.split(',').indexOf(String(day)) > -1){
+        card.classList.add('is-today');
+        label.textContent = "Today's plate";
+        dishEl.textContent = card.querySelector('h3').textContent + ' · ' + card.querySelector('.price').textContent;
+      }
+    });
+  }
+
+  if (!('IntersectionObserver' in window)){
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+
+  // Reveal on scroll
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.15, rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  // Pause looping animations while off-screen (saves CPU and battery)
+  var loopIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ e.target.classList.toggle('is-off', !e.isIntersecting); });
+  });
+  document.querySelectorAll('[data-anim], .marquee').forEach(function(el){ loopIO.observe(el); });
+
+  // Count-up stats (final values are already in the HTML for no-JS and crawlers)
+  if (!reduce){
+    var countIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (!e.isIntersecting) return;
+        countIO.unobserve(e.target);
+        var el = e.target, end = +el.dataset.count, t0 = null;
+        var tick = function(t){
+          if (!t0) t0 = t;
+          var p = Math.min((t - t0) / 1100, 1);
+          el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }, {threshold:.6});
+    document.querySelectorAll('[data-count]').forEach(function(el){ countIO.observe(el); });
+  }
+})();
+
+// Pedal Partner form — no backend yet, so this hands the details off
+// via a pre-filled email. Swap for a real endpoint (Formspree, a Google
+// Sheet, etc.) once one exists.
+(function(){
   var form = document.getElementById('partnerForm');
   var msg = document.getElementById('formMsg');
+  var select = document.getElementById('pf-interest');
+  var paths = document.querySelectorAll('.path');
+  var smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var choose = function(interest){
+    select.value = interest;
+    paths.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.interest === interest); });
+  };
+  paths.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      choose(btn.dataset.interest);
+      form.scrollIntoView({behavior: smooth ? 'smooth' : 'auto', block:'center'});
+      document.getElementById('pf-name').focus({preventScroll:true});
+    });
+  });
+  document.querySelectorAll('[data-interest-link]').forEach(function(a){
+    a.addEventListener('click', function(){ choose(a.dataset.interestLink); });
+  });
+  select.addEventListener('change', function(){ choose(select.value); });
+
   form.addEventListener('submit', function(ev){
     ev.preventDefault();
     var name = form.name.value.trim();
     var phone = form.phone.value.trim();
     var city = form.city.value.trim();
     var interest = form.interest.value;
+    var details = form.details.value.trim();
 
     if (!name || !phone || !city || !interest){
       msg.textContent = 'Please fill in your name, phone, city and interest so we know how to reach you.';
@@ -418,16 +1259,18 @@
       return;
     }
 
-    var body = 'Name: ' + name + '\nPhone: ' + phone + '\nCity/Area: ' + city + '\nInterested in: ' + interest;
+    var body = 'Name: ' + name + '\nPhone: ' + phone + '\nCity/Area: ' + city + '\nInterested in: ' + interest + (details ? '\nRequirements: ' + details : '');
     var mailto = 'mailto:iamari.cse@gmail.com?subject=' +
-      encodeURIComponent('Pedal Partner enquiry from ' + name) +
+      encodeURIComponent(interest + ' enquiry from ' + name) +
       '&body=' + encodeURIComponent(body);
 
     msg.textContent = 'Thanks, ' + name.split(' ')[0] + '! Opening your email app to send us your details.';
     msg.className = 'form-msg show ok';
     window.location.href = mailto;
     form.reset();
+    paths.forEach(function(b){ b.setAttribute('aria-pressed', 'false'); });
   });
+})();
 </script>
 </body>
 </html>

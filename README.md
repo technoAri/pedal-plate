@@ -9,6 +9,8 @@ Landing page for Pedal Plate — home-style food, cooked fresh and pedaled strai
 ```
 index.html                  Single-page site (inline CSS + JS, Poppins via Google Fonts)
 images/                     Hero, logo, favicons and app icons
+site.webmanifest            PWA manifest (name, icons, theme colour)
+robots.txt, sitemap.xml     Crawler directives + sitemap for SEO
 vercel.json                 Vercel config (clean URLs, caching + security headers)
 scripts/check-site.sh       Pre-deploy checks (HTML structure, missing assets)
 .github/workflows/vercel.yml  CI/CD pipeline
@@ -43,6 +45,13 @@ python3 -m http.server 8000     # then open http://localhost:8000
    - `VERCEL_ORG_ID` — `orgId` from `.vercel/project.json`
    - `VERCEL_PROJECT_ID` — `projectId` from `.vercel/project.json`
 4. **Avoid double deploys:** if the Vercel project is also connected to this repo via Vercel's Git integration, either disconnect it (Vercel → Project → Settings → Git) or remove this workflow's deploy job — use one or the other.
+
+## Design & performance notes
+
+- One font family (Bricolage Grotesque, variable) with `display=optional`, so text never reflows after first paint (CLS 0).
+- All motion is CSS `transform`/`opacity`, paused off-screen, and disabled under `prefers-reduced-motion`.
+- Hero image is preloaded with `fetchpriority="high"` and has explicit dimensions; all graphics are inline SVG (no extra requests).
+- Structured data: `FoodEstablishment` + `Menu` (JSON-LD), Open Graph and Twitter cards.
 
 ## Notes
 
