@@ -13,7 +13,7 @@ site.webmanifest            PWA manifest (name, icons, theme colour)
 robots.txt, sitemap.xml     Crawler directives + sitemap for SEO
 vercel.json                 Vercel config (clean URLs, caching + security headers)
 scripts/check-site.sh       Pre-deploy checks (HTML structure, missing assets)
-.github/workflows/vercel.yml  CI/CD pipeline
+.github/workflows/checks.yml  Site checks on every push/PR
 ```
 
 ## Run locally
@@ -23,28 +23,18 @@ python3 -m http.server 8000     # then open http://localhost:8000
 ./scripts/check-site.sh         # same checks CI runs
 ```
 
-## CI/CD (GitHub Actions → Vercel)
+## Deployment (Vercel)
+
+The Vercel project is connected to this repo through Vercel's GitHub integration:
 
 | Event | What happens |
 |---|---|
-| Push to `main` | Checks → **production** deploy (pedalplate.in) |
-| Push to any other branch | Checks → **preview** deploy (URL in the run summary) |
-| Pull request | Checks only |
+| Push to `main` | **Production** deploy to pedalplate.in |
+| Push to any other branch | **Preview** deploy (private URL from Vercel) |
 
-### One-time setup
+GitHub Actions (`.github/workflows/checks.yml`) runs `scripts/check-site.sh` on every push and PR to catch broken asset references.
 
-1. **Link the project** (on your machine, in this repo):
-   ```bash
-   npm i -g vercel
-   vercel link          # pick the existing Pedal Plate project
-   cat .vercel/project.json   # shows orgId and projectId
-   ```
-2. **Create a token** at https://vercel.com/account/tokens.
-3. **Add repo secrets** — GitHub → Settings → Secrets and variables → Actions:
-   - `VERCEL_TOKEN` — the token from step 2
-   - `VERCEL_ORG_ID` — `orgId` from `.vercel/project.json`
-   - `VERCEL_PROJECT_ID` — `projectId` from `.vercel/project.json`
-4. **Avoid double deploys:** if the Vercel project is also connected to this repo via Vercel's Git integration, either disconnect it (Vercel → Project → Settings → Git) or remove this workflow's deploy job — use one or the other.
+Vercel project settings: Framework Preset **Other**, no build command, output directory = repo root, production branch `main`.
 
 ## Design & performance notes
 

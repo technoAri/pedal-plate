@@ -1,0 +1,17 @@
+name: Site checks
+
+# Deployment is handled by Vercel's GitHub integration (production from
+# main, previews from other branches). This workflow only validates the
+# site so broken asset references are caught before they go live.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Site checks
+        run: ./scripts/check-site.sh
