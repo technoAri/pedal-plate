@@ -81,47 +81,51 @@
 }
 </script>
 <style>
+  /* Brand palette (corrected): Deep turmeric #96601A primary, Basil green #3F7D4A secondary,
+     Warm cream #FBF6EC background, Charcoal ink #2B2620 text, Chili red #C0392B accent (<10%, never next to green).
+     Tints below are lighter/darker shades of those five, not new colours. */
   :root{
-    --bg:#FFF7EA;
-    --bg-alt:#FCEBD0;
+    --bg:#FBF6EC;            /* warm cream */
+    --bg-alt:#F4EAD4;        /* cream, one step deeper */
     --surface:#FFFFFF;
-    --ink:#1E1912;
-    --ink-soft:#5E5345;
-    --brand:#96601A;
-    --brand-deep:#6F4512;
-    --turmeric:#F5B335;
-    --turmeric-soft:#FFE3A8;
-    --chili:#C8402A;
-    --chili-soft:#FBDCD3;
-    --basil:#2F7A43;
-    --basil-soft:#DDEFDD;
-    --sky:#2C6E8F;
-    --sky-soft:#DCEBF2;
-    --line:rgba(30,25,18,0.12);
-    --dark:#1E1912;
-    --on-dark:#FFF7EA;
+    --ink:#2B2620;           /* charcoal ink */
+    --ink-soft:#6B5F51;
+    --ink-tint:#ECE5DA;
+    --brand:#96601A;         /* deep turmeric */
+    --brand-deep:#7A4D15;
+    --brand-fill:#96601A;    /* deep turmeric surfaces in both themes */
+    --on-brand:#FBF6EC;
+    --brand-light:#E3AD57;   /* turmeric tint for text/accents on charcoal */
+    --tint:#F3E3C6;          /* pale turmeric tint */
+    --basil:#3F7D4A;         /* basil green */
+    --basil-soft:#E3EFE2;
+    --chili:#C0392B;         /* chili red, accent only */
+    --chili-soft:#F6DEDA;
+    --line:rgba(43,38,32,0.13);
+    --dark:#2B2620;
+    --on-dark:#FBF6EC;
     --shadow:0 24px 50px -28px rgba(70,40,10,0.45);
     --radius:22px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#16120D; --bg-alt:#201912; --surface:#261F17;
-      --ink:#F6ECDB; --ink-soft:#C9BBA6;
-      --brand:#F0B35A; --brand-deep:#F7CB86;
-      --turmeric-soft:#3A2C14; --basil:#7BC787; --basil-soft:#1F2E20; --chili:#E5695C; --chili-soft:#3A1E18;
-      --sky:#7CC0DE; --sky-soft:#17262E;
-      --line:rgba(246,236,219,0.13); --dark:#0E0B08; --on-dark:#F6ECDB;
+      --bg:#1E1A15; --bg-alt:#251F18; --surface:#2A241D;
+      --ink:#F3EAD9; --ink-soft:#C9BBA6; --ink-tint:#332C24;
+      --brand:#E3AD57; --brand-deep:#F0C878; --brand-light:#E3AD57; --tint:#3B2E1B;
+      --basil:#7BC787; --basil-soft:#22301F; --chili:#E5695C; --chili-soft:#3A1E18;
+      --line:rgba(243,234,217,0.14); --dark:#14110D; --on-dark:#F3EAD9;
       --shadow:0 24px 50px -28px rgba(0,0,0,0.8);
+      color-scheme:dark;
     }
   }
   :root[data-theme="dark"]{
-    --bg:#16120D; --bg-alt:#201912; --surface:#261F17;
-    --ink:#F6ECDB; --ink-soft:#C9BBA6;
-    --brand:#F0B35A; --brand-deep:#F7CB86;
-    --turmeric-soft:#3A2C14; --basil:#7BC787; --basil-soft:#1F2E20; --chili:#E5695C; --chili-soft:#3A1E18;
-    --sky:#7CC0DE; --sky-soft:#17262E;
-    --line:rgba(246,236,219,0.13); --dark:#0E0B08; --on-dark:#F6ECDB;
+    --bg:#1E1A15; --bg-alt:#251F18; --surface:#2A241D;
+    --ink:#F3EAD9; --ink-soft:#C9BBA6; --ink-tint:#332C24;
+    --brand:#E3AD57; --brand-deep:#F0C878; --brand-light:#E3AD57; --tint:#3B2E1B;
+    --basil:#7BC787; --basil-soft:#22301F; --chili:#E5695C; --chili-soft:#3A1E18;
+    --line:rgba(243,234,217,0.14); --dark:#14110D; --on-dark:#F3EAD9;
     --shadow:0 24px 50px -28px rgba(0,0,0,0.8);
+    color-scheme:dark;
   }
 
   *,*::before,*::after{box-sizing:border-box;}
@@ -142,7 +146,7 @@
   p{margin:0;color:var(--ink-soft);}
   .skip{position:absolute;left:-999px;top:8px;z-index:100;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;}
   .skip:focus{left:8px;}
-  :focus-visible{outline:3px solid var(--turmeric);outline-offset:3px;border-radius:6px;}
+  :focus-visible{outline:3px solid var(--brand);outline-offset:3px;border-radius:6px;}
 
   .kicker{
     display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;
@@ -166,7 +170,10 @@
   }
   .btn svg{transition:transform .2s;}
   .btn:hover svg{transform:translateX(4px);}
-  .btn-primary{background:var(--ink);color:var(--bg);box-shadow:0 10px 24px -12px rgba(30,25,18,.6);}
+  .btn-primary{background:var(--brand-fill);color:var(--on-brand);box-shadow:0 10px 24px -12px rgba(122,77,21,.7);}
+  .btn-primary:hover{background:var(--brand-deep);}
+  .btn-dark{background:#2B2620;color:#FBF6EC;}
+  .btn-dark:hover{transform:translateY(-3px);}
   .btn-primary:hover{transform:translateY(-3px);}
   .btn-primary::after{
     content:"";position:absolute;inset:0;z-index:-1;
@@ -176,8 +183,6 @@
   .btn-primary:hover::after{transform:translateX(120%);}
   .btn-ghost{border-color:var(--ink);color:var(--ink);background:transparent;}
   .btn-ghost:hover{background:var(--ink);color:var(--bg);transform:translateY(-3px);}
-  .btn-turmeric{background:var(--turmeric);color:#1E1912;}
-  .btn-turmeric:hover{transform:translateY(-3px);box-shadow:0 14px 30px -14px var(--turmeric);}
 
   /* Scroll progress (scroll-driven, no JS) */
   .progress{display:none;}
@@ -185,7 +190,7 @@
     @media (prefers-reduced-motion:no-preference){
       .progress{
         display:block;position:fixed;inset:0 0 auto 0;height:4px;z-index:60;
-        background:linear-gradient(90deg,var(--turmeric),var(--chili));
+        background:var(--brand);
         transform-origin:0 50%;transform:scaleX(0);
         animation:grow linear both;animation-timeline:scroll(root);
       }
@@ -210,7 +215,7 @@
     display:block;padding:8px 13px;border-radius:999px;text-decoration:none;
     font-weight:500;font-size:.95rem;color:var(--ink-soft);transition:background .2s,color .2s;
   }
-  .nav-links a:hover{background:var(--turmeric-soft);color:var(--ink);}
+  .nav-links a:hover{background:var(--tint);color:var(--ink);}
   .nav-cta{padding:11px 20px;font-size:.92rem;}
   .menu-toggle{
     display:none;width:46px;height:46px;border-radius:50%;border:2px solid var(--ink);
@@ -244,7 +249,7 @@
   .hero h1 .line > span{display:inline-block;}
   .squiggle{position:relative;display:inline-block;color:var(--brand);}
   .squiggle svg{position:absolute;left:-2%;bottom:-.12em;width:104%;height:.32em;overflow:visible;}
-  .squiggle path{fill:none;stroke:var(--turmeric);stroke-width:9;stroke-linecap:round;}
+  .squiggle path{fill:none;stroke:var(--brand-light);stroke-width:9;stroke-linecap:round;}
   .hero-side p{font-size:1.18rem;max-width:36ch;}
   .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px;}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0;list-style:none;padding:0;}
@@ -271,7 +276,7 @@
   .badge-spin .ring{width:100%;height:100%;}
   .badge-spin text{font-size:9.5px;font-weight:600;letter-spacing:2.2px;fill:var(--ink);text-transform:uppercase;}
   .badge-spin .core{
-    position:absolute;inset:26%;border-radius:50%;background:var(--turmeric);
+    position:absolute;inset:26%;border-radius:50%;background:var(--brand-fill);color:var(--on-brand);
     display:grid;place-items:center;box-shadow:0 8px 20px -8px rgba(0,0,0,.4);
   }
   .badge-spin .core svg{width:62%;}
@@ -283,7 +288,7 @@
   }
   .sticker .ico{
     flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:1.4rem;
-    background:var(--turmeric-soft);
+    background:var(--tint);
   }
   .sticker small{display:block;font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);}
   .sticker strong{display:block;font-size:1rem;line-height:1.25;}
@@ -300,9 +305,9 @@
   /* Doodles */
   .doodle{position:absolute;pointer-events:none;z-index:0;opacity:.9;}
   .d1{width:54px;top:6%;right:4%;color:var(--basil);}
-  .d2{width:42px;top:44%;right:30%;color:var(--chili);}
-  .d3{width:30px;top:12%;right:38%;color:var(--turmeric);}
-  .d4{width:26px;top:58%;left:-6px;color:var(--brand);}
+  .d2{width:40px;top:44%;right:30%;color:var(--brand);transform:rotate(-30deg);}
+  .d3{width:26px;top:12%;right:38%;color:var(--basil);}
+  .d4{width:30px;top:58%;left:-6px;color:var(--brand-light);}
   @media (max-width:900px){ .d2,.d3{display:none;} }
   .hero .wrap{position:relative;z-index:1;}
 
@@ -314,8 +319,8 @@
   }
   .road::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;background:var(--bg-alt);}
   .rider{position:absolute;left:0;bottom:16px;width:150px;color:var(--ink);}
-  .rider .box{fill:var(--turmeric);}
-  .rider .box-band{fill:var(--chili);}
+  .rider .box{fill:var(--brand);}
+  .rider .box-band{fill:var(--on-brand);opacity:.85;}
   .rider .tyre{fill:none;stroke:currentColor;stroke-width:4;}
   .rider .spokes{stroke:currentColor;stroke-width:1.3;opacity:.7;}
   .rider .frame{fill:none;stroke:var(--brand);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
@@ -330,7 +335,9 @@
   .marquee{background:var(--dark);color:var(--on-dark);overflow:hidden;padding-block:18px;transform:rotate(-1.2deg);margin:-6px -10px 0;position:relative;z-index:2;}
   .marquee-track{display:flex;width:max-content;}
   .marquee-group{display:flex;align-items:center;gap:28px;padding-right:28px;font-weight:700;font-size:clamp(1.2rem,2.6vw,1.75rem);letter-spacing:-0.01em;white-space:nowrap;}
-  .marquee-group i{font-style:normal;color:var(--turmeric);}
+  .marquee-group i{flex:none;width:.8em;height:.8em;background:var(--brand-light);
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z'/%3E%3C/svg%3E") center/contain no-repeat;}
 
   /* Story / how it works */
   .alt{background:var(--bg-alt);}
@@ -346,9 +353,9 @@
   }
   .step:hover{transform:translateX(6px);box-shadow:var(--shadow);}
   .step-ico{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;}
-  .step:nth-child(1) .step-ico{background:var(--turmeric-soft);color:var(--brand);}
+  .step:nth-child(1) .step-ico{background:var(--tint);color:var(--brand);}
   .step:nth-child(2) .step-ico{background:var(--basil-soft);color:var(--basil);}
-  .step:nth-child(3) .step-ico{background:var(--chili-soft);color:var(--chili);}
+  .step:nth-child(3) .step-ico{background:var(--ink-tint);color:var(--ink);}
   .step-ico svg{width:42px;height:42px;}
   .step h3::before{counter-increment:step;content:"0" counter(step);display:block;font-size:.78rem;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:4px;}
   .step p{margin-top:4px;font-size:.98rem;}
@@ -370,7 +377,7 @@
   .pillar:hover{transform:translateY(-8px);box-shadow:var(--shadow);}
   .pillar::before{
     content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-60px;top:-60px;
-    background:var(--tint);opacity:.9;transition:transform .5s cubic-bezier(.2,.8,.2,1);
+    background:var(--pill);opacity:.9;transition:transform .5s cubic-bezier(.2,.8,.2,1);
   }
   .pillar:hover::before{transform:scale(1.25);}
   .pillar-ico{position:relative;width:60px;height:60px;border-radius:18px;display:grid;place-items:center;background:var(--surface);color:var(--tone);box-shadow:0 6px 18px -10px rgba(0,0,0,.35);margin-bottom:22px;}
@@ -380,10 +387,10 @@
   .pillar ul{position:relative;list-style:none;margin:14px 0 0;padding:0;display:grid;gap:6px;}
   .pillar li{display:flex;gap:8px;font-size:.92rem;font-weight:500;}
   .pillar li::before{content:"✓";color:var(--tone);font-weight:700;}
-  .p-home{--tint:var(--turmeric-soft);--tone:var(--brand);}
-  .p-health{--tint:var(--basil-soft);--tone:var(--basil);}
-  .p-hygiene{--tint:var(--sky-soft);--tone:var(--sky);}
-  .p-price{--tint:var(--chili-soft);--tone:var(--chili);}
+  .p-home{--pill:var(--tint);--tone:var(--brand);}
+  .p-health{--pill:var(--basil-soft);--tone:var(--basil);}
+  .p-hygiene{--pill:var(--ink-tint);--tone:var(--ink);}
+  .p-price{--pill:var(--tint);--tone:var(--brand);}
 
   /* Menu */
   .menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:clamp(36px,5vw,56px);}
@@ -393,18 +400,18 @@
     display:flex;flex-direction:column;transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
   }
   .dish:hover{transform:translateY(-8px) rotate(-.6deg);box-shadow:var(--shadow);}
-  .dish.is-today{border:2px solid var(--turmeric);box-shadow:0 0 0 6px color-mix(in srgb,var(--turmeric) 22%,transparent);}
+  .dish.is-today{border:2px solid var(--brand);box-shadow:0 0 0 6px color-mix(in srgb,var(--brand) 18%,transparent);}
   .dish-art{position:relative;aspect-ratio:4/3;border-radius:20px;display:grid;place-items:center;margin-bottom:20px;overflow:hidden;}
-  .dish:nth-child(1) .dish-art{background:radial-gradient(circle at 50% 60%,#FFE3A8,#F5B335);}
-  .dish:nth-child(2) .dish-art{background:radial-gradient(circle at 50% 60%,#E4F2DA,#8CC08A);}
-  .dish:nth-child(3) .dish-art{background:radial-gradient(circle at 50% 60%,#FFD3BF,#E2775A);}
+  .dish:nth-child(1) .dish-art{background:radial-gradient(circle at 50% 60%,#F6E7CC,#D9A85E);}
+  .dish:nth-child(2) .dish-art{background:radial-gradient(circle at 50% 60%,#F7EEDD,#E3C48F);}
+  .dish:nth-child(3) .dish-art{background:radial-gradient(circle at 50% 60%,#EFD9B4,#B9834A);}
   .dish-art > svg{width:78%;}
   .dish-art .plate{transform-box:fill-box;transform-origin:center;transition:transform .5s cubic-bezier(.2,.8,.2,1);}
   .dish:hover .dish-art .plate{transform:rotate(-8deg) scale(1.04);}
   .dish-art .steam path{stroke:#fff;stroke-width:4;opacity:.85;}
   .today-flag{
     position:absolute;top:14px;left:14px;z-index:1;padding:6px 12px;border-radius:999px;
-    background:var(--ink);color:var(--bg);font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;display:none;
+    background:var(--chili);color:#FBF6EC;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;display:none;
   }
   .dish.is-today .today-flag{display:inline-block;}
   .days{display:flex;gap:6px;margin-bottom:10px;}
@@ -428,20 +435,20 @@
   .segments li{padding:8px 14px;border-radius:999px;background:var(--bg-alt);font-weight:500;font-size:.92rem;}
   .bulk-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;}
   .bulk-side{
-    position:relative;padding:clamp(26px,4.5vw,52px);background:var(--turmeric);color:#1E1912;
+    position:relative;padding:clamp(26px,4.5vw,52px);background:var(--brand-fill);color:var(--on-brand);
     display:flex;flex-direction:column;justify-content:center;
   }
   .bulk-side h3{font-size:1.25rem;margin-bottom:18px;}
   .bulk-feats{list-style:none;margin:0;padding:0;display:grid;gap:14px;}
   .bulk-feats li{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;}
-  .bulk-feats .fi{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.5);display:grid;place-items:center;font-size:1.15rem;}
+  .bulk-feats .fi{width:40px;height:40px;border-radius:12px;background:rgba(251,246,236,.16);display:grid;place-items:center;font-size:1.15rem;}
   .bulk-feats strong{display:block;font-size:1rem;}
-  .bulk-feats span{display:block;font-size:.92rem;opacity:.8;}
-  .bulk-side .tiffin{position:absolute;right:-26px;bottom:-30px;width:150px;opacity:.18;color:#1E1912;}
+  .bulk-feats span{display:block;font-size:.92rem;opacity:.85;}
+  .bulk-side .tiffin{position:absolute;right:-26px;bottom:-30px;width:150px;opacity:.16;color:var(--on-brand);}
 
   /* Impact */
   .impact{background:var(--dark);color:var(--on-dark);overflow:hidden;}
-  .impact .kicker{color:var(--turmeric);}
+  .impact .kicker{color:var(--brand-light);}
   .impact h2{color:var(--on-dark);}
   .impact .section-head p{color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
   .impact-grid{display:grid;grid-template-columns:1.2fr 1fr;grid-template-rows:auto auto;gap:16px;margin-top:clamp(36px,5vw,56px);}
@@ -452,23 +459,23 @@
     border:1px solid color-mix(in srgb,var(--on-dark) 14%,transparent);
     transition:transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s;
   }
-  .impact-card:hover{transform:translateY(-6px);border-color:var(--turmeric);}
+  .impact-card:hover{transform:translateY(-6px);border-color:var(--brand-light);}
   .impact-card h3{color:var(--on-dark);font-size:clamp(1.35rem,2.1vw,1.75rem);}
   .impact-card p{margin-top:12px;color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
   .impact-card .tag{display:inline-block;margin-bottom:16px;padding:5px 12px;border-radius:999px;font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;}
-  .impact-gift{grid-row:span 2;background:var(--turmeric);border-color:var(--turmeric);display:flex;flex-direction:column;}
-  .impact-gift h3,.impact-gift p{color:#1E1912;}
+  .impact-gift{grid-row:span 2;background:var(--brand-fill);border-color:var(--brand-fill);display:flex;flex-direction:column;}
+  .impact-gift h3,.impact-gift p{color:var(--on-brand);}
   .impact-gift p{opacity:.85;}
-  .impact-gift .tag{background:#1E1912;color:var(--turmeric);}
+  .impact-gift .tag{align-self:flex-start;background:#2B2620;color:var(--brand-light);}
   .impact-gift ul{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:10px;}
-  .impact-gift li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.45);color:#1E1912;font-weight:500;}
+  .impact-gift li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(251,246,236,.14);color:var(--on-brand);font-weight:500;}
   .impact-gift li span{font-size:1.3rem;}
   .impact-gift .btn{margin-top:24px;align-self:flex-start;}
   .gift-art{position:absolute;right:18px;bottom:18px;width:clamp(90px,12vw,130px);opacity:.95;}
   .impact-gift > *:not(.gift-art){position:relative;}
-  .impact-jobs .tag{background:var(--basil);color:#fff;}
-  .impact-green .tag{background:var(--sky);color:#fff;}
-  .impact-card .big{display:block;margin-top:14px;font-size:clamp(2.1rem,4.2vw,3.1rem);font-weight:800;letter-spacing:-0.02em;line-height:1;color:var(--turmeric);}
+  .impact-jobs .tag{background:var(--brand-fill);color:var(--on-brand);}
+  .impact-green .tag{background:#3F7D4A;color:#FBF6EC;}
+  .impact-card .big{display:block;margin-top:14px;font-size:clamp(2.1rem,4.2vw,3.1rem);font-weight:800;letter-spacing:-0.02em;line-height:1;color:var(--brand-light);}
   .impact-card .big small{display:block;margin-top:8px;font-size:.36em;letter-spacing:0;color:color-mix(in srgb,var(--on-dark) 72%,transparent);font-weight:500;}
 
   /* Model / scale */
@@ -486,10 +493,9 @@
   .hub .node-ico{color:var(--ink);}
   .hub .node-new .node-ico{color:var(--brand);}
   .hub text{font-family:inherit;font-size:13px;font-weight:500;fill:var(--ink-soft);text-anchor:middle;}
-  .hub .kitchen-bg{fill:var(--turmeric);}
-  .hub .kitchen-ring{fill:none;stroke:var(--turmeric);stroke-width:2;opacity:.5;transform-box:fill-box;transform-origin:center;}
+  .hub .kitchen-bg{fill:var(--brand-fill);}
+  .hub .kitchen-ring{fill:none;stroke:var(--brand);stroke-width:2;opacity:.5;transform-box:fill-box;transform-origin:center;}
   .hub .kitchen-label{font-size:15px;font-weight:700;fill:var(--ink);}
-  .hub .dot{fill:var(--chili);}
 
   /* Find us */
   .venues{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:clamp(36px,5vw,56px);}
@@ -501,18 +507,36 @@
   }
   .venue:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
   .venue .map{position:absolute;inset:0;width:100%;height:100%;color:var(--ink);opacity:.09;}
-  .venue .pin{position:absolute;top:30px;right:34px;width:40px;height:50px;color:var(--chili);}
+  .venue .pin{position:absolute;top:30px;right:34px;width:40px;height:50px;color:var(--brand);}
   .venue h3{position:relative;font-size:1.35rem;}
   .venue p{position:relative;margin-top:6px;font-size:.95rem;}
   .venue-soon{background:transparent;border:2px dashed var(--line);}
-  .venue-soon .pin{color:var(--brand);}
+  .venue-soon .pin{color:var(--ink-soft);}
   .venue-soon a{position:relative;margin-top:14px;align-self:flex-start;font-weight:600;color:var(--brand);text-decoration:none;}
   .venue-soon a:hover{text-decoration:underline;}
+
+  /* Hiring */
+  .hire-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(32px,6vw,72px);align-items:center;}
+  @media (max-width:900px){ .hire-grid{grid-template-columns:1fr;} }
+  .hire-grid > *{min-width:0;}
+  .hire-art{position:relative;max-width:440px;margin-inline:auto;width:100%;}
+  .hire-art img{width:100%;height:auto;aspect-ratio:560/821;border-radius:28px;box-shadow:var(--shadow);background:var(--bg-alt);}
+  .hire-badge{
+    position:absolute;left:-14px;top:22px;transform:rotate(-6deg);padding:10px 18px;border-radius:14px;
+    background:var(--brand-fill);color:var(--on-brand);font-weight:800;letter-spacing:.02em;box-shadow:var(--shadow);
+  }
+  .hire-sub{margin-top:14px;font-size:1.15rem;font-weight:600;color:var(--basil);}
+  .perks{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){ .perks{grid-template-columns:1fr;} }
+  .perks li{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line);font-weight:500;}
+  .perks svg{flex:none;width:40px;height:40px;padding:9px;border-radius:12px;background:var(--tint);color:var(--brand);}
+  .hire-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px;}
+  .hire-tag{margin-top:22px;font-size:1.05rem;font-weight:600;color:var(--ink);}
 
   /* Partner */
   .wave{display:block;width:100%;height:clamp(40px,6vw,80px);color:var(--dark);}
   .partner{background:var(--dark);color:var(--on-dark);margin-top:-1px;}
-  .partner .kicker{color:var(--turmeric);}
+  .partner .kicker{color:var(--brand-light);}
   .partner h2{color:var(--on-dark);}
   .partner p{color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
   .partner-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,72px);align-items:start;}
@@ -526,7 +550,7 @@
     border:1px solid color-mix(in srgb,var(--on-dark) 14%,transparent);
     transition:background .2s, border-color .2s, transform .2s;
   }
-  .path:hover,.path[aria-pressed="true"]{background:color-mix(in srgb,var(--turmeric) 16%,transparent);border-color:var(--turmeric);transform:translateX(6px);}
+  .path:hover,.path[aria-pressed="true"]{background:color-mix(in srgb,var(--brand-light) 16%,transparent);border-color:var(--brand-light);transform:translateX(6px);}
   .path .emoji{font-size:1.6rem;flex:none;}
   .path strong{display:block;font-size:1rem;font-weight:600;}
   .path small{display:block;color:color-mix(in srgb,var(--on-dark) 65%,transparent);font-size:.88rem;}
@@ -547,12 +571,12 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235E5345' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 16px center;
   }
-  .field input:focus,.field select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--turmeric) 35%,transparent);}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 22%,transparent);}
   .field textarea{
     font:inherit;font-size:1rem;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);
     background:var(--surface);color:var(--ink);resize:vertical;min-height:88px;transition:border-color .2s, box-shadow .2s;
   }
-  .field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--turmeric) 35%,transparent);}
+  .field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 22%,transparent);}
   .field label small{font-weight:400;color:var(--ink-soft);}
   .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   @media (max-width:520px){ .field-row{grid-template-columns:1fr;} }
@@ -565,26 +589,26 @@
   /* Footer */
   footer{background:var(--dark);color:var(--on-dark);padding-block:clamp(48px,7vw,80px) 28px;border-top:1px solid color-mix(in srgb,var(--on-dark) 10%,transparent);}
   .foot-big{font-size:clamp(2.2rem,7vw,5.6rem);font-weight:800;letter-spacing:-0.025em;line-height:1.02;color:var(--on-dark);}
-  .foot-big span{color:var(--turmeric);}
+  .foot-big span{color:var(--brand-light);}
   .foot-grid{display:flex;flex-wrap:wrap;justify-content:space-between;gap:28px;margin-top:40px;padding-top:28px;border-top:1px solid color-mix(in srgb,var(--on-dark) 16%,transparent);}
   .foot-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;}
   .foot-brand img{width:40px;height:40px;border-radius:50%;}
   footer p,footer a{color:color-mix(in srgb,var(--on-dark) 72%,transparent);}
   footer a{text-decoration:none;}
-  footer a:hover{color:var(--turmeric);}
+  footer a:hover{color:var(--brand-light);}
   .foot-contact{display:grid;gap:4px;font-size:.98rem;}
   .social-row{display:flex;gap:10px;}
   .social-row a{
     display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;
     border:1px solid color-mix(in srgb,var(--on-dark) 22%,transparent);transition:transform .2s, border-color .2s, color .2s;
   }
-  .social-row a:hover{transform:translateY(-3px);border-color:var(--turmeric);}
+  .social-row a:hover{transform:translateY(-3px);border-color:var(--brand-light);}
   .copy{margin-top:28px;font-size:.85rem;}
 
   /* Floating call button (mobile) */
   .call-fab{
     position:fixed;right:16px;bottom:16px;z-index:40;display:none;align-items:center;gap:8px;
-    padding:14px 20px;border-radius:999px;background:var(--turmeric);color:#1E1912;font-weight:600;text-decoration:none;
+    padding:14px 20px;border-radius:999px;background:var(--brand-fill);color:var(--on-brand);font-weight:600;text-decoration:none;
     box-shadow:0 14px 30px -12px rgba(0,0,0,.5);
   }
   @media (max-width:900px){ .call-fab{display:inline-flex;} }
@@ -684,6 +708,7 @@
         <li><a href="#bulk">Bulk Orders</a></li>
         <li><a href="#impact">Impact</a></li>
         <li><a href="#find-us">Find Us</a></li>
+        <li><a href="#join">Careers</a></li>
         <li><a href="#partner">Partner</a></li>
       </ul>
       <a href="tel:+917699149899" class="btn btn-primary nav-cta">Call us
@@ -698,10 +723,10 @@
 
     <!-- HERO -->
     <section class="hero" data-anim>
-      <svg class="doodle d1" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z" fill="currentColor"/><path d="M10 38 34 14" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg>
-      <svg class="doodle d2" viewBox="0 0 48 48" aria-hidden="true"><path d="M10 14c10 0 16 4 22 14s6 16 2 16C24 44 6 34 6 20c0-4 1-6 4-6Z" fill="currentColor"/><path d="M10 14c0-4 2-8 6-10" stroke="#2F7A43" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
-      <svg class="doodle d3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="currentColor"/></svg>
-      <svg class="doodle d4" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="currentColor"/></svg>
+      <svg class="doodle d1" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z" fill="currentColor"/><path d="M10 38 34 14" stroke="#FBF6EC" stroke-width="2" stroke-linecap="round" opacity=".55"/></svg>
+      <svg class="doodle d2" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z" fill="currentColor"/><path d="M10 38 34 14" stroke="#FBF6EC" stroke-width="2" stroke-linecap="round" opacity=".55"/></svg>
+      <svg class="doodle d3" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z" fill="currentColor"/><path d="M10 38 34 14" stroke="#FBF6EC" stroke-width="2" stroke-linecap="round" opacity=".55"/></svg>
+      <svg class="doodle d4" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40C8 18 22 6 42 6c0 20-12 34-34 34Z" fill="currentColor"/><path d="M10 38 34 14" stroke="#FBF6EC" stroke-width="2" stroke-linecap="round" opacity=".55"/></svg>
 
       <div class="wrap">
         <div class="hero-grid">
@@ -735,9 +760,9 @@
             <svg class="ring" viewBox="0 0 160 160">
               <circle class="disc" cx="80" cy="80" r="78"/>
               <defs><path id="circlePath" d="M80,80 m-60,0 a60,60 0 1,1 120,0 a60,60 0 1,1 -120,0"/></defs>
-              <text><textPath href="#circlePath">Home food • On the move • Burdwan •</textPath></text>
+              <text><textPath href="#circlePath">Home food • On the move • Pedal Plate •</textPath></text>
             </svg>
-            <div class="core"><svg viewBox="0 0 48 48" style="color:#1E1912"><use href="#i-bike"/></svg></div>
+            <div class="core"><svg viewBox="0 0 48 48"><use href="#i-bike"/></svg></div>
           </div>
           <div class="hero-photo">
             <img src="images/hero.jpg" alt="A Pedal Plate cycle cart with insulated food boxes and umbrella, parked near Curzon Gate in Burdwan" width="1716" height="642" fetchpriority="high">
@@ -770,8 +795,8 @@
 
     <div class="marquee" aria-hidden="true">
       <div class="marquee-track">
-        <div class="marquee-group"><span>Home-made</span><i>✦</i><span>Hygienic</span><i>✦</i><span>Healthy</span><i>✦</i><span>Affordable</span><i>✦</i><span>Hyperlocal</span><i>✦</i><span>Freshly cooked</span><i>✦</i></div>
-        <div class="marquee-group"><span>Home-made</span><i>✦</i><span>Hygienic</span><i>✦</i><span>Healthy</span><i>✦</i><span>Affordable</span><i>✦</i><span>Hyperlocal</span><i>✦</i><span>Freshly cooked</span><i>✦</i></div>
+        <div class="marquee-group"><span>Home-made</span><i></i><span>Hygienic</span><i></i><span>Healthy</span><i></i><span>Affordable</span><i></i><span>Hyperlocal</span><i></i><span>Freshly cooked</span><i></i></div>
+        <div class="marquee-group"><span>Home-made</span><i></i><span>Hygienic</span><i></i><span>Healthy</span><i></i><span>Affordable</span><i></i><span>Hyperlocal</span><i></i><span>Freshly cooked</span><i></i></div>
       </div>
     </div>
 
@@ -816,7 +841,7 @@
         <div class="section-head center reveal">
           <div class="kicker">The Pedal Promise</div>
           <h2>Four things we <span class="hl">never</span> compromise on.</h2>
-          <p>Street food convenience, with the care of a home kitchen.</p>
+          <p>Freshly cooked. Thoughtfully served. For a better tomorrow.</p>
         </div>
         <div class="pillars stagger" data-anim>
           <article class="pillar p-home reveal">
@@ -863,7 +888,7 @@
                 <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
                 <g class="plate">
                   <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
-                  <ellipse cx="80" cy="90" rx="30" ry="18" fill="#FBE7A1"/><circle cx="72" cy="86" r="3" fill="#7BAA5A"/><circle cx="86" cy="92" r="3" fill="#C8402A"/><circle cx="80" cy="82" r="2.5" fill="#7BAA5A"/>
+                  <ellipse cx="80" cy="90" rx="30" ry="18" fill="#FBE7A1"/><circle cx="72" cy="86" r="3" fill="#7BAA5A"/><circle cx="86" cy="92" r="3" fill="#C0392B"/><circle cx="80" cy="82" r="2.5" fill="#7BAA5A"/>
                   <circle cx="124" cy="96" r="18" fill="#B5621F"/><circle cx="118" cy="92" r="6" fill="#E8A94B"/><circle cx="130" cy="100" r="6" fill="#E8A94B"/>
                 </g>
               </svg>
@@ -893,7 +918,7 @@
                 <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
                 <g class="plate">
                   <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
-                  <ellipse cx="78" cy="90" rx="28" ry="17" fill="#FBE7A1"/><circle cx="70" cy="86" r="2.5" fill="#7BAA5A"/><circle cx="84" cy="92" r="2.5" fill="#C8402A"/>
+                  <ellipse cx="78" cy="90" rx="28" ry="17" fill="#FBE7A1"/><circle cx="70" cy="86" r="2.5" fill="#7BAA5A"/><circle cx="84" cy="92" r="2.5" fill="#C0392B"/>
                   <circle cx="125" cy="96" r="20" fill="#8A3A16"/><path d="M114 92c4-6 14-6 18 0M116 101c4 4 12 4 16-1" stroke="#C8622B" stroke-width="5" stroke-linecap="round" fill="none"/>
                 </g>
               </svg>
@@ -947,12 +972,12 @@
       <div class="wrap">
         <div class="section-head reveal">
           <div class="kicker">More Than a Meal</div>
-          <h2>Every plate does a little <span style="color:var(--turmeric)">good</span>.</h2>
+          <h2>Local food. Local people. <span style="color:var(--brand-light)">Stronger tomorrows.</span></h2>
           <p>Pedal Plate is built to feed people well, create work close to home, and keep our streets clean.</p>
         </div>
         <div class="impact-grid stagger" data-anim>
           <article class="impact-card impact-gift reveal">
-            <svg class="gift-art" viewBox="0 0 120 120" aria-hidden="true"><rect x="18" y="48" width="84" height="60" rx="8" fill="#1E1912"/><rect x="12" y="34" width="96" height="20" rx="6" fill="#C8402A"/><rect x="54" y="34" width="12" height="74" fill="#FFF7EA"/><path d="M60 34c-10-20-34-14-26-2 4 6 26 2 26 2Zm0 0c10-20 34-14 26-2-4 6-26 2-26 2Z" fill="#C8402A"/></svg>
+            <svg class="gift-art" viewBox="0 0 120 120" aria-hidden="true"><rect x="18" y="48" width="84" height="60" rx="8" fill="#2B2620"/><rect x="12" y="34" width="96" height="20" rx="6" fill="#E3AD57"/><rect x="54" y="34" width="12" height="74" fill="#FBF6EC"/><path d="M60 34c-10-20-34-14-26-2 4 6 26 2 26 2Zm0 0c10-20 34-14 26-2-4 6-26 2-26 2Z" fill="#FBF6EC"/></svg>
             <span class="tag">Gift a Meal</span>
             <h3>Pay it forward, one plate at a time.</h3>
             <p>Buy a hot, home-made meal for someone who needs it — or sponsor meals in bulk as part of your company's CSR.</p>
@@ -962,7 +987,7 @@
               <li><span aria-hidden="true">🎒</span> Students away from home</li>
               <li><span aria-hidden="true">🏢</span> Corporate &amp; CSR meal programmes</li>
             </ul>
-            <a href="#partner" class="btn btn-primary" data-interest-link="Gifting meals / CSR partnership">Gift meals
+            <a href="#partner" class="btn btn-dark" data-interest-link="Gifting meals / CSR partnership">Gift meals
               <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
           </article>
@@ -997,7 +1022,7 @@
         </div>
         <div class="reveal" data-anim>
           <svg class="hub" viewBox="0 0 560 440" role="img" aria-labelledby="hubTitle">
-            <title id="hubTitle">Diagram: one central kitchen supplying many Pedal Plate cycle carts across Burdwan</title>
+            <title id="hubTitle">Diagram: one central kitchen supplying many Pedal Plate cycle carts across the city</title>
             <path class="spoke" d="M280 210 L90 80"/>
             <path class="spoke" d="M280 210 L470 80"/>
             <path class="spoke" d="M280 210 L70 300"/>
@@ -1006,8 +1031,8 @@
             <circle class="kitchen-ring" cx="280" cy="210" r="62"/>
             <circle class="kitchen-ring r2" cx="280" cy="210" r="62"/>
             <circle class="kitchen-bg" cx="280" cy="210" r="62"/>
-            <svg x="250" y="168" width="60" height="60" viewBox="0 0 48 48" style="color:#1E1912"><use href="#i-pot"/></svg>
-            <text class="kitchen-label" x="280" y="248" style="fill:#1E1912">Kitchen</text>
+            <svg x="250" y="168" width="60" height="60" viewBox="0 0 48 48" style="color:#FBF6EC"><use href="#i-pot"/></svg>
+            <text class="kitchen-label" x="280" y="248" style="fill:#FBF6EC">Kitchen</text>
 
             <g class="node"><circle class="node-bg" cx="90" cy="80" r="34"/><svg class="node-ico" x="68" y="58" width="44" height="44" viewBox="0 0 48 48"><use href="#i-bike"/></svg><text x="90" y="134">Court Compound</text></g>
             <g class="node"><circle class="node-bg" cx="470" cy="80" r="34"/><svg class="node-ico" x="448" y="58" width="44" height="44" viewBox="0 0 48 48"><use href="#i-bike"/></svg><text x="470" y="134">District Hospital</text></g>
@@ -1050,13 +1075,42 @@
       </div>
     </section>
 
+    <!-- HIRING -->
+    <section id="join">
+      <div class="wrap hire-grid">
+        <div class="hire-art reveal">
+          <img src="images/partner-vendor.webp" alt="Illustration of a smiling Pedal Plate partner in a green apron, holding a tiffin beside his Pedal Plate cycle cart" width="560" height="821" loading="lazy" decoding="async">
+          <span class="hire-badge">We're hiring!</span>
+        </div>
+        <div class="reveal">
+          <div class="kicker">Join the Pedal Plate Family</div>
+          <h2>Be a Pedal Plate <span class="hl">Partner</span>.</h2>
+          <p class="hire-sub">Good food. Brighter days.</p>
+          <p style="margin-top:14px;max-width:52ch;">Run your own Pedal Plate cycle cart in your neighbourhood. We cook and supply the food. You serve it to your community and earn.</p>
+          <ul class="perks">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>Earn a steady income</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Flexible working hours</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c2.8-.6 6 1.4 6 4.5"/></svg>Be part of a growing community</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20C4 10 10 4 20 4c0 10-6 16-16 16Z"/><path d="M4 20 14 10"/></svg>Serve real home food</li>
+          </ul>
+          <div class="hire-ctas">
+            <a href="#partner" class="btn btn-primary" data-interest-link="Running a Pedal Plate cycle">Apply to be a partner
+              <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
+            </a>
+            <a href="tel:+917699149899" class="btn btn-ghost">Call +91 76991 49899</a>
+          </div>
+          <p class="hire-tag">Let's take good food further.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- PARTNER -->
-    <svg class="wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" style="background:var(--bg-alt)"><path d="M0 40 C 240 90, 480 0, 720 40 S 1200 80, 1440 30 V80 H0 Z" fill="currentColor"/></svg>
+    <svg class="wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" style="background:var(--bg)"><path d="M0 40 C 240 90, 480 0, 720 40 S 1200 80, 1440 30 V80 H0 Z" fill="currentColor"/></svg>
     <section class="partner" id="partner">
       <div class="wrap partner-grid">
         <div class="reveal">
           <div class="kicker">Ride With Us</div>
-          <h2>Bring Pedal Plate to <span style="color:var(--turmeric)">your street</span>.</h2>
+          <h2>Bring Pedal Plate to <span style="color:var(--brand-light)">your street</span>.</h2>
           <p style="margin-top:18px;max-width:46ch;font-size:1.1rem;">Run a cycle, open an outlet, back our next kitchen, place a bulk order or gift meals to people who need them. Tell us what you have in mind and we'll take it from there.</p>
           <div class="paths" role="group" aria-label="Choose how you'd like to partner">
             <button type="button" class="path" data-interest="Running a Pedal Plate cycle" aria-pressed="false"><span class="emoji" aria-hidden="true">🚲</span><span><strong>Run a cycle</strong><small>Earn a livelihood on your own street</small></span></button>
@@ -1112,11 +1166,11 @@
 
   <footer>
     <div class="wrap">
-      <p class="foot-big" aria-hidden="true">Home food.<br><span>On the move.</span></p>
+      <p class="foot-big" aria-hidden="true">Good food.<br><span>Happier people.</span></p>
       <div class="foot-grid">
         <div>
           <div class="foot-brand"><img src="images/logo.png" alt="" width="40" height="40" loading="lazy">Pedal Plate</div>
-          <p style="margin-top:10px;max-width:34ch;">Fresh, hygienic, home-made combos pedaled across Burdwan, West Bengal.</p>
+          <p style="margin-top:10px;max-width:34ch;">Fresh, hygienic, home-made combos, pedaled straight to your street.</p>
         </div>
         <div class="foot-contact">
           <a href="tel:+917699149899">+91 76991 49899</a>
