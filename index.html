@@ -606,7 +606,9 @@
     border:1px solid color-mix(in srgb,var(--on-dark) 22%,transparent);transition:transform .2s, border-color .2s, color .2s;
   }
   .social-row a:hover{transform:translateY(-3px);border-color:var(--brand-light);}
-  .copy{margin-top:28px;font-size:.85rem;}
+  .copy{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px;margin-top:28px;font-size:.85rem;}
+  .copy a{text-decoration:underline;text-underline-offset:3px;}
+  .heart{color:var(--chili);}
 
   /* Floating call button (mobile) */
   .call-fab{
@@ -1192,7 +1194,7 @@
           </a>
         </div>
       </div>
-      <p class="copy">&copy; <span id="year">2026</span> Pedal Plate. Home food, on the move.</p>
+      <div class="copy"><p>&copy; <span id="year">2026</span> Pedal Plate. All rights reserved.</p><p>Made with <span class="heart" role="img" aria-label="love">&hearts;</span> and <a href="https://claude.ai" target="_blank" rel="noopener">Claude</a> in Calcutta.</p></div>
     </div>
   </footer>
 
