@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pedal Plate — Home Food. On The Move. | Fresh, Hygienic Combos in Burdwan</title>
-<meta name="description" content="Pedal Plate brings fresh, hygienic, home-made combos from ₹55 to your street in Burdwan on cycle carts — creating local jobs and letting you gift a meal to someone who needs it.">
+<meta name="description" content="Pedal Plate is a mobile QSR on cycle carts, bringing fresh, hygienic, home-made combos from ₹55 to your street in Burdwan on cycle carts — creating local jobs and letting you gift a meal to someone who needs it.">
 <link rel="canonical" href="https://pedalplate.in/">
 <meta name="theme-color" content="#96601A">
 
@@ -344,6 +344,11 @@
   .story{padding-top:clamp(80px,11vw,140px);}
   .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,80px);align-items:start;}
   .story-grid .section-head p + p{margin-top:12px;}
+  .about-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:26px 0 0;}
+  @media (max-width:520px){ .about-facts{grid-template-columns:1fr;} }
+  .about-facts div{padding:14px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);min-width:0;}
+  .about-facts dt{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);}
+  .about-facts dd{margin:4px 0 0;font-weight:500;font-size:.95rem;line-height:1.35;color:var(--ink);}
   @media (max-width:900px){ .story-grid{grid-template-columns:1fr;} }
   .steps{list-style:none;margin:0;padding:0;display:grid;gap:16px;counter-reset:step;}
   .step{
@@ -525,13 +530,11 @@
     position:absolute;left:-14px;top:22px;transform:rotate(-6deg);padding:10px 18px;border-radius:14px;
     background:var(--brand-fill);color:var(--on-brand);font-weight:800;letter-spacing:.02em;box-shadow:var(--shadow);
   }
-  .hire-sub{margin-top:14px;font-size:1.15rem;font-weight:600;color:var(--basil);}
   .perks{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   @media (max-width:520px){ .perks{grid-template-columns:1fr;} }
   .perks li{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line);font-weight:500;}
   .perks svg{flex:none;width:40px;height:40px;padding:9px;border-radius:12px;background:var(--tint);color:var(--brand);}
   .hire-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px;}
-  .hire-tag{margin-top:22px;font-size:1.05rem;font-weight:600;color:var(--ink);}
 
   /* Partner */
   .wave{display:block;width:100%;height:clamp(40px,6vw,80px);color:var(--dark);}
@@ -703,7 +706,7 @@
         <span>Pedal Plate</span>
       </a>
       <ul class="nav-links" id="navLinks">
-        <li><a href="#promise">Why Us</a></li>
+        <li><a href="#about">About</a></li>
         <li><a href="#menu">Menu</a></li>
         <li><a href="#bulk">Bulk Orders</a></li>
         <li><a href="#impact">Impact</a></li>
@@ -731,7 +734,7 @@
       <div class="wrap">
         <div class="hero-grid">
           <div>
-            <div class="kicker">Now pedaling through Burdwan</div>
+            <div class="kicker">Mobile QSR · Now pedaling through Burdwan</div>
             <h1>
               <span class="line"><span>Home Food.</span></span>
               <span class="line"><span>On The <span class="squiggle">Move.<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14 C 40 4, 70 18, 104 9 S 170 4, 196 11"/></svg></span></span></span>
@@ -805,10 +808,15 @@
       <div class="wrap">
         <div class="story-grid">
           <div class="section-head reveal">
-            <div class="kicker">Our Story</div>
+            <div class="kicker">About Us</div>
             <h2>Good food shouldn't be <span class="hl">expensive</span>, complicated, or far away.</h2>
-            <p>Pedal Plate started with a simple idea: bring the comfort of home-cooked food closer to people — one bicycle at a time.</p>
-            <p>We celebrate the everyday meals we grew up with, made with care and served fresh, locally and affordably. Because sometimes, the best food is simply home food, on the move.</p>
+            <p>Pedal Plate is a mobile QSR (quick-service restaurant) on cycle carts. We cook fresh, hygienic, home-style meals in our central kitchen, and our Pedal Partners take them straight to the streets, offices and hospitals where people need them.</p>
+            <p>We launched in Burdwan, West Bengal, and we're growing one cycle at a time: serving the everyday meals we grew up with, at prices everyone can afford.</p>
+            <dl class="about-facts">
+              <div><dt>What we are</dt><dd>A mobile QSR on cycle carts</dd></div>
+              <div><dt>What we serve</dt><dd>Home-style combos from ₹55</dd></div>
+              <div><dt>Where</dt><dd>Launched in Burdwan, growing</dd></div>
+            </dl>
           </div>
           <ol class="steps stagger" data-anim>
             <li class="step reveal">
@@ -841,7 +849,7 @@
         <div class="section-head center reveal">
           <div class="kicker">The Pedal Promise</div>
           <h2>Four things we <span class="hl">never</span> compromise on.</h2>
-          <p>Freshly cooked. Thoughtfully served. For a better tomorrow.</p>
+          <p>Street food convenience, with the care of a home kitchen.</p>
         </div>
         <div class="pillars stagger" data-anim>
           <article class="pillar p-home reveal">
@@ -972,14 +980,14 @@
       <div class="wrap">
         <div class="section-head reveal">
           <div class="kicker">More Than a Meal</div>
-          <h2>Local food. Local people. <span style="color:var(--brand-light)">Stronger tomorrows.</span></h2>
+          <h2>Every plate does a little <span style="color:var(--brand-light)">good</span>.</h2>
           <p>Pedal Plate is built to feed people well, create work close to home, and keep our streets clean.</p>
         </div>
         <div class="impact-grid stagger" data-anim>
           <article class="impact-card impact-gift reveal">
             <svg class="gift-art" viewBox="0 0 120 120" aria-hidden="true"><rect x="18" y="48" width="84" height="60" rx="8" fill="#2B2620"/><rect x="12" y="34" width="96" height="20" rx="6" fill="#E3AD57"/><rect x="54" y="34" width="12" height="74" fill="#FBF6EC"/><path d="M60 34c-10-20-34-14-26-2 4 6 26 2 26 2Zm0 0c10-20 34-14 26-2-4 6-26 2-26 2Z" fill="#FBF6EC"/></svg>
-            <span class="tag">Gift a Meal</span>
-            <h3>Pay it forward, one plate at a time.</h3>
+            <span class="tag">Share a Plate</span>
+            <h3>Gift a meal to someone who needs it.</h3>
             <p>Buy a hot, home-made meal for someone who needs it — or sponsor meals in bulk as part of your company's CSR.</p>
             <ul>
               <li><span aria-hidden="true">🏥</span> Patients' families at the hospital</li>
@@ -987,7 +995,7 @@
               <li><span aria-hidden="true">🎒</span> Students away from home</li>
               <li><span aria-hidden="true">🏢</span> Corporate &amp; CSR meal programmes</li>
             </ul>
-            <a href="#partner" class="btn btn-dark" data-interest-link="Gifting meals / CSR partnership">Gift meals
+            <a href="#partner" class="btn btn-dark" data-interest-link="Gifting meals / CSR partnership">Pedal it forward
               <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg>
             </a>
           </article>
@@ -1085,8 +1093,7 @@
         <div class="reveal">
           <div class="kicker">Join the Pedal Plate Family</div>
           <h2>Be a Pedal Plate <span class="hl">Partner</span>.</h2>
-          <p class="hire-sub">Good food. Brighter days.</p>
-          <p style="margin-top:14px;max-width:52ch;">Run your own Pedal Plate cycle cart in your neighbourhood. We cook and supply the food. You serve it to your community and earn.</p>
+          <p style="margin-top:18px;max-width:52ch;">Run your own Pedal Plate cycle cart in your neighbourhood. We cook and supply the food. You serve it to your community and earn.</p>
           <ul class="perks">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>Earn a steady income</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Flexible working hours</li>
@@ -1099,7 +1106,6 @@
             </a>
             <a href="tel:+917699149899" class="btn btn-ghost">Call +91 76991 49899</a>
           </div>
-          <p class="hire-tag">Let's take good food further.</p>
         </div>
       </div>
     </section>
@@ -1166,7 +1172,7 @@
 
   <footer>
     <div class="wrap">
-      <p class="foot-big" aria-hidden="true">Good food.<br><span>Happier people.</span></p>
+      <p class="foot-big" aria-hidden="true">Home food.<br><span>On the move.</span></p>
       <div class="foot-grid">
         <div>
           <div class="foot-brand"><img src="images/logo.png" alt="" width="40" height="40" loading="lazy">Pedal Plate</div>

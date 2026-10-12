@@ -26,7 +26,9 @@ Follow these for every change to the site. Ask before deviating.
 ## Copy
 
 - Use "combo", not "thali". Don't use "ghar ka khana".
-- Brand taglines: "Home Food. On The Move.", "Good Food. Happier People.", "Freshly Cooked. Thoughtfully Served. For a Better Tomorrow.", "Local Food. Local People. Stronger Tomorrows.", "Good Food. Brighter Days.", "Let's take good food further."
+- **One brand tagline only: "Home Food. On The Move."** Do not add other taglines or slogans.
+- Position as a **mobile QSR** (quick-service restaurant) on cycle carts. Brand copy is location-neutral (launched in Burdwan, but the brand is not Burdwan-specific).
+- Meal-gifting programme: label "Share a Plate", headline "Gift a meal to someone who needs it.", button "Pedal it forward".
 - Visual motif: green and turmeric leaves, soft waves (from the brand banner).
 
 ## Engineering
