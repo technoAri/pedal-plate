@@ -16,7 +16,7 @@ done
   grep -oE '(srcset|imagesrcset)="[^"]+"' index.html | sed -E 's/^[a-z]+="([^"]+)"$/\1/' | tr ',' '\n' | awk '{print $1}'
   grep -oE 'url\(/[^)]+\)' index.html | sed -E 's/^url\(\/?([^)]+)\)$/\1/'
 } | sed -E 's#^/##' | sort -u |
-  grep -vE '^(https?:|//|#|mailto:|tel:)' |
+  grep -vE '^(https?:|//|#|mailto:|tel:|_vercel/|privacy$)' |
   while read -r path; do
     [ -f "$path" ] || { echo "Missing asset referenced in index.html: $path"; exit 1; }
   done || fail=1
