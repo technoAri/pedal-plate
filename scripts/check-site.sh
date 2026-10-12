@@ -11,8 +11,11 @@ for tag in '<!DOCTYPE html>' '<html lang=' '<head>' '</head>' '<body>' '</body>'
   grep -qi -- "$tag" index.html || { echo "index.html: missing $tag"; fail=1; }
 done
 
-# Local src/href targets (skip absolute URLs, anchors, mailto/tel).
-grep -oE '(src|href)="[^"]+"' index.html | sed -E 's/^(src|href)="([^"]+)"$/\2/' | sort -u |
+# Local src/href/srcset targets (skip absolute URLs, anchors, mailto/tel).
+{ grep -oE '(src|href)="[^"]+"' index.html | sed -E 's/^(src|href)="([^"]+)"$/\2/'
+  grep -oE '(srcset|imagesrcset)="[^"]+"' index.html | sed -E 's/^[a-z]+="([^"]+)"$/\1/' | tr ',' '\n' | awk '{print $1}'
+  grep -oE 'url\(/[^)]+\)' index.html | sed -E 's/^url\(\/?([^)]+)\)$/\1/'
+} | sed -E 's#^/##' | sort -u |
   grep -vE '^(https?:|//|#|mailto:|tel:)' |
   while read -r path; do
     [ -f "$path" ] || { echo "Missing asset referenced in index.html: $path"; exit 1; }

@@ -32,10 +32,9 @@
 <meta name="twitter:description" content="Fresh, hygienic, home-made combos from ₹55, pedaled to your street in Burdwan.">
 <meta name="twitter:image" content="https://pedalplate.in/images/hero.jpg">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="image" href="images/hero.jpg" fetchpriority="high">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=optional">
+<link rel="preload" as="image" href="images/hero-1280.webp" imagesrcset="images/hero-640.webp 640w, images/hero-960.webp 960w, images/hero-1280.webp 1280w, images/hero-1716.webp 1716w" imagesizes="(max-width: 1180px) calc(100vw - 40px), 1100px" type="image/webp" fetchpriority="high">
+<link rel="preload" as="font" href="/fonts/poppins-400.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="/fonts/poppins-800.woff2" type="font/woff2" crossorigin>
 
 <script>document.documentElement.classList.add('js');</script>
 
@@ -81,6 +80,18 @@
 }
 </script>
 <style>
+  /* Poppins, self-hosted (SIL Open Font License). Latin + latin-ext (for ₹). */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:optional;src:url(/fonts/poppins-400-ext.woff2) format("woff2");unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:optional;src:url(/fonts/poppins-400.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:optional;src:url(/fonts/poppins-500-ext.woff2) format("woff2");unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:optional;src:url(/fonts/poppins-500.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:optional;src:url(/fonts/poppins-600-ext.woff2) format("woff2");unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:optional;src:url(/fonts/poppins-600.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:700;font-display:optional;src:url(/fonts/poppins-700-ext.woff2) format("woff2");unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:700;font-display:optional;src:url(/fonts/poppins-700.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:800;font-display:optional;src:url(/fonts/poppins-800-ext.woff2) format("woff2");unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:800;font-display:optional;src:url(/fonts/poppins-800.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
   /* Brand palette (corrected): Deep turmeric #96601A primary, Basil green #3F7D4A secondary,
      Warm cream #FBF6EC background, Charcoal ink #2B2620 text, Chili red #C0392B accent (<10%, never next to green).
      Tints below are lighter/darker shades of those five, not new colours. */
@@ -704,7 +715,7 @@
   <header id="siteHeader">
     <nav class="wrap nav" aria-label="Main">
       <a href="#top" class="brand">
-        <img src="images/logo.png" alt="" width="42" height="42">
+        <img src="images/logo-96.webp" alt="" width="42" height="42">
         <span>Pedal Plate</span>
       </a>
       <ul class="nav-links" id="navLinks">
@@ -770,7 +781,7 @@
             <div class="core"><svg viewBox="0 0 48 48"><use href="#i-bike"/></svg></div>
           </div>
           <div class="hero-photo">
-            <img src="images/hero.jpg" alt="A Pedal Plate cycle cart with insulated food boxes and umbrella, parked near Curzon Gate in Burdwan" width="1716" height="642" fetchpriority="high">
+            <img src="images/hero-1280.webp" srcset="images/hero-640.webp 640w, images/hero-960.webp 960w, images/hero-1280.webp 1280w, images/hero-1716.webp 1716w" sizes="(max-width: 1180px) calc(100vw - 40px), 1100px" alt="A Pedal Plate cycle cart with insulated food boxes and umbrella, parked near Curzon Gate in Burdwan" width="1716" height="642" fetchpriority="high">
           </div>
           <div class="sticker sticker-today">
             <span class="ico" aria-hidden="true">🍛</span>
@@ -1177,7 +1188,7 @@
       <p class="foot-big" aria-hidden="true">Home food.<br><span>On the move.</span></p>
       <div class="foot-grid">
         <div>
-          <div class="foot-brand"><img src="images/logo.png" alt="" width="40" height="40" loading="lazy">Pedal Plate</div>
+          <div class="foot-brand"><img src="images/logo-96.webp" alt="" width="40" height="40" loading="lazy">Pedal Plate</div>
           <p style="margin-top:10px;max-width:34ch;">Fresh, hygienic, home-made combos, pedaled straight to your street.</p>
         </div>
         <div class="foot-contact">

@@ -17,7 +17,7 @@ Follow these for every change to the site. Ask before deviating.
 
 ## Typography
 
-- **Poppins only** (one family). Google Fonts, `display=optional`.
+- **Poppins only** (one family), self-hosted in `fonts/` (latin + latin-ext for ₹), `font-display: optional`. Don't add Google Fonts links.
 - Headings: Poppins Bold / ExtraBold
 - Body: Poppins Regular / Medium
 - Buttons: Poppins SemiBold
@@ -35,3 +35,5 @@ Follow these for every change to the site. Ask before deviating.
 
 - Static site: `index.html` + `images/`. Run `./scripts/check-site.sh` before committing.
 - Keep Core Web Vitals: animate only `transform`/`opacity`, respect `prefers-reduced-motion`, give images explicit `width`/`height`.
+- Images: serve WebP; large images get `srcset` sizes (see `images/hero-*.webp`). Keep `hero.jpg` and `logo.png` only for social previews and structured data.
+- **Never push to GitHub (any branch) or update the preview artifact without the owner's explicit approval.** `main` deploys straight to pedalplate.in.
