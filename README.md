@@ -7,6 +7,7 @@ Landing page for Pedal Plate — home-style food, cooked fresh and pedaled strai
 ## Structure
 
 ```
+404.html                    Branded "page not found" page
 index.html                  Single-page site (inline CSS + JS, Poppins via Google Fonts)
 images/                     Hero, logo, favicons and app icons
 site.webmanifest            PWA manifest (name, icons, theme colour)
