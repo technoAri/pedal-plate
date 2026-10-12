@@ -48,7 +48,7 @@ python3 -m http.server 8000     # then open http://localhost:8000
 
 ## Design & performance notes
 
-- One font family (Bricolage Grotesque, variable) with `display=optional`, so text never reflows after first paint (CLS 0).
+- Brand font Poppins only (Bold/ExtraBold headings, Regular/Medium body, SemiBold buttons) with `display=optional`, so text never reflows after first paint (CLS 0).
 - All motion is CSS `transform`/`opacity`, paused off-screen, and disabled under `prefers-reduced-motion`.
 - Hero image is preloaded with `fetchpriority="high"` and has explicit dimensions; all graphics are inline SVG (no extra requests).
 - Structured data: `FoodEstablishment` + `Menu` (JSON-LD), Open Graph and Twitter cards.
