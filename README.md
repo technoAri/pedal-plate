@@ -12,6 +12,7 @@ card.html                   /card: link page opened by the visiting-card QR code
 pedal-plate.vcf             "Save contact" file used on /card
 index.html                  Single-page site (inline CSS + JS, Poppins via Google Fonts)
 images/                     Hero, logo, favicons and app icons
+images/streets/             "From the Streets" photos (WebP, 400/720/1080w)
 site.webmanifest            PWA manifest (name, icons, theme colour)
 robots.txt, sitemap.xml     Crawler directives + sitemap for SEO
 vercel.json                 Vercel config (clean URLs, caching + security headers)
@@ -44,6 +45,7 @@ Vercel project settings: Framework Preset **Other**, no build command, output di
 - Brand font Poppins only (Bold/ExtraBold headings, Regular/Medium body, SemiBold buttons) with `display=optional`, so text never reflows after first paint (CLS 0).
 - All motion is CSS `transform`/`opacity`, paused off-screen, and disabled under `prefers-reduced-motion`.
 - Hero image is preloaded with `fetchpriority="high"` and has explicit dimensions; all graphics are inline SVG (no extra requests).
+- Street photos (`images/streets/`): cropped to 4:5, lightly graded, metadata stripped, WebP quality 70 at 400/720/1080px wide (about 25 / 60–100 / 110–180 KB). Served with `srcset`/`sizes`, `loading="lazy"` and explicit `width`/`height`, so they add nothing to first load or LCP. Blur any payment QR codes before adding a photo. Keep originals out of the repo; host videos on Instagram, not here.
 - Structured data: `FoodEstablishment` + `Menu` (JSON-LD), Open Graph and Twitter cards.
 
 ## Notes
