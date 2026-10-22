@@ -3,6 +3,19 @@
   "cleanUrls": true,
   "headers": [
     {
+      "source": "/pedal-plate.vcf",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/vcard; charset=utf-8"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment; filename=\"Pedal Plate.vcf\""
+        }
+      ]
+    },
+    {
       "source": "/fonts/(.*)",
       "headers": [
         {

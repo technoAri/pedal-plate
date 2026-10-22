@@ -31,6 +31,9 @@ Follow these for every change to the site. Ask before deviating.
 - Meal-gifting programme: label "Share a Plate", headline "Gift a meal to someone who needs it.", button "Pedal it forward".
 - Visual motif: green and turmeric leaves, soft waves (from the brand banner).
 
+- Business contact: phone +91 76991 49899, email pedalplate.food@gmail.com, Instagram @pedalplate.in.
+- Visiting card QR points to https://pedalplate.in/card (card.html). Keep that URL working; printed cards depend on it.
+
 ## Engineering
 
 - Static site: `index.html` + `images/`. Run `./scripts/check-site.sh` before committing.

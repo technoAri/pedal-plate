@@ -8,6 +8,8 @@ Landing page for Pedal Plate — home-style food, cooked fresh and pedaled strai
 
 ```
 404.html                    Branded "page not found" page
+card.html                   /card: link page opened by the visiting-card QR code
+pedal-plate.vcf             "Save contact" file used on /card
 index.html                  Single-page site (inline CSS + JS, Poppins via Google Fonts)
 images/                     Hero, logo, favicons and app icons
 site.webmanifest            PWA manifest (name, icons, theme colour)
