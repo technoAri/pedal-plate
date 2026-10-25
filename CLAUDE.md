@@ -54,6 +54,7 @@ Follow these for every change to the site. Ask before deviating.
 - Visiting card: 3.5 x 2 in + 0.125 in bleed, 600 dpi PNG + PDF, keep text 0.125 in inside the trim, minimum 6 pt text.
 - One QR per card, at least 20 mm, with a quiet zone of 4 modules, pointing to https://pedalplate.in/card. Scan-test every export.
 - Company card = brand-led (bulk printing for the carts). A personal (co-founder) card puts the name at 11-12 pt Bold, not ExtraBold, so the name doesn't overpower the phone number and QR.
+- Posters (festivals, hiring, announcements): flat, illustration-based (SVG shapes in the brand palette: leaves, waves, alpana, cart, pot), like the Bijoya and Lakshmi Pujo posters. Don't use photos as poster backgrounds or hero images unless the owner asks for one.
 - Bengali text in print uses Hind Siliguri (Poppins has no Bengali glyphs). The website stays Poppins-only.
 
 ## Engineering
