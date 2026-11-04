@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 fail=0
-for page in index.html card.html; do
+for page in index.html card.html sales.html; do
   [ -f "$page" ] || { echo "$page missing"; fail=1; continue; }
 
   for tag in '<!DOCTYPE html>' '<html lang=' '<head>' '</head>' '<body>' '</body>' '</html>' '<title>'; do
@@ -17,7 +17,7 @@ for page in index.html card.html; do
     grep -oE '(srcset|imagesrcset)="[^"]+"' "$page" | sed -E 's/^[a-z]+="([^"]+)"$/\1/' | tr ',' '\n' | awk '{print $1}'
     grep -oE 'url\(/[^)]+\)' "$page" | sed -E 's/^url\(\/?([^)]+)\)$/\1/'
   } | sed -E 's#^/##; s/[?#].*$//' | sort -u |
-    grep -vE '^(https?:|//|mailto:|tel:|_vercel/|privacy$|card$|$)' |
+    grep -vE '^(https?:|//|mailto:|tel:|_vercel/|privacy$|card$|sales$|$)' |
     while read -r path; do
       [ -f "$path" ] || { echo "Missing asset referenced in $page: $path"; exit 1; }
     done || fail=1

@@ -57,6 +57,15 @@ Follow these for every change to the site. Ask before deviating.
 - Posters (festivals, hiring, announcements): flat, illustration-based (SVG shapes in the brand palette: leaves, waves, alpana, cart, pot), like the Bijoya and Lakshmi Pujo posters. Don't use photos as poster backgrounds or hero images unless the owner asks for one.
 - Bengali text in print uses Hind Siliguri (Poppins has no Bengali glyphs). The website stays Poppins-only.
 
+## Sales counter (`/sales`)
+
+- `sales.html` + `sales/apps-script/Code.gs` (Google Sheet backend). Setup and limits: `sales/SETUP.md`.
+- Menu, prices, carts, floats and partners live in the Sheet; never hard-code them in the page.
+- Partners record each plate with a Cash or UPI button (no toggle to forget). Cash is checked per partner with a fixed daily float; UPI is checked for the whole business against the bank, because all carts share one QR.
+- Each sale has a client-made `sale_id`, so resending after a bad signal never double-counts. Sales are queued on the phone and sent with the login that recorded them.
+- New features: add an action in `Code.gs` ACTIONS, the same action in `DemoApi` in `sales.html`, and a view in `VIEWS`. Run `setup()` again after adding columns; it only adds, never deletes.
+- `/sales` is noindex and not in the sitemap. It must not load anything on the homepage.
+
 ## Engineering
 
 - Static site: `index.html` + `images/`. Run `./scripts/check-site.sh` before committing.

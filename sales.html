@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pedal Plate Sales</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FBF6EC">
+<link rel="icon" href="/images/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<style>
+  @font-face{font-family:"Poppins";font-weight:400;font-display:optional;src:url(/fonts/poppins-400.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F;}
+  @font-face{font-family:"Poppins";font-weight:600;font-display:optional;src:url(/fonts/poppins-600.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F;}
+  @font-face{font-family:"Poppins";font-weight:700;font-display:optional;src:url(/fonts/poppins-700.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F;}
+  @font-face{font-family:"Poppins";font-weight:800;font-display:optional;src:url(/fonts/poppins-800.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F;}
+  @font-face{font-family:"Poppins";font-weight:600;font-display:optional;src:url(/fonts/poppins-600-ext.woff2) format("woff2");unicode-range:U+20A0-20C4;}
+  @font-face{font-family:"Poppins";font-weight:800;font-display:optional;src:url(/fonts/poppins-800-ext.woff2) format("woff2");unicode-range:U+20A0-20C4;}
+
+  /* Brand palette: deep turmeric primary, basil green secondary, cream background, charcoal ink. */
+  :root{
+    --bg:#FBF6EC; --surface:#FFFFFF; --ink:#2B2620; --soft:#6B5F51; --line:rgba(43,38,32,.13);
+    --brand:#96601A; --tint:#F3E3C6; --basil:#3F7D4A; --basil-tint:#E3EFE2;
+    --nv:#7A4D15; --warn:#C0392B; --warn-tint:#F6DEDA; --chip:#ECE5DA; --on:#FBF6EC;
+    --font:"Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root{
+    --bg:#1E1A15; --surface:#2A241D; --ink:#F3EAD9; --soft:#C9BBA6; --line:rgba(243,234,217,.14);
+    --brand:#E3AD57; --tint:#3B2E1B; --basil:#7BC787; --basil-tint:#22301F;
+    --nv:#E3AD57; --warn:#E5695C; --warn-tint:#3A1E18; --chip:#332C24; --on:#1E1A15; color-scheme:dark; } }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;padding-top:env(safe-area-inset-top,0px)}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:10}
+  .wrap{max-width:460px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 104px}
+  button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+  h1,h2{margin:0;line-height:1.2;text-wrap:balance}
+  h1{font-size:1.35rem;font-weight:800} h2{font-size:1.08rem;font-weight:800}
+  p{margin:0}
+  .muted{color:var(--soft)} .num{font-variant-numeric:tabular-nums}
+  .demo{margin:12px 0 0;font-size:.78rem;text-align:center;padding:8px 12px;border-radius:10px;background:var(--tint)}
+
+  .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:0 -16px 14px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .who{display:flex;align-items:center;gap:10px;min-width:0}
+  .av{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--tint);color:var(--brand);font-weight:800}
+  .who b{display:block;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .who small{display:block;font-size:.76rem;color:var(--soft)}
+  .link{background:none;border:0;padding:6px 8px;border-radius:8px;font-size:.8rem;font-weight:700;color:var(--brand)}
+  .net{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;color:var(--basil);white-space:nowrap}
+  .net::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .net.off{color:var(--warn)}
+
+  .totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+  .tot{padding:10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);min-width:0}
+  .tot small{display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+  .tot b{display:block;font-size:1.2rem;font-weight:800}
+  .tot.main{background:var(--brand);border-color:var(--brand);color:var(--on)} .tot.main small{color:var(--on);opacity:.85}
+  .hint{font-size:.8rem;color:var(--soft)}
+
+  .items{display:grid;gap:10px}
+  .item{padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:grid;gap:10px}
+  .ihead{display:flex;align-items:center;gap:10px}
+  .ihead b{font-weight:700;line-height:1.25}
+  .mark{flex:none;width:18px;height:18px;border:2px solid;border-radius:3px;display:grid;place-items:center}
+  .mark.veg{border-color:var(--basil)} .mark.veg i{width:8px;height:8px;border-radius:50%;background:var(--basil)}
+  .mark.nonveg{border-color:var(--nv)} .mark.nonveg i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:8px solid var(--nv)}
+  .size{display:grid;gap:8px;padding:10px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+  .size .row1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .size .lbl{font-size:.8rem;color:var(--soft);font-weight:600}
+  .size .pr{font-weight:800}
+  .size .cnt{font-size:.76rem;color:var(--brand);font-weight:700}
+  .paybtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .paybtn{min-height:54px;border-radius:12px;border:0;font-weight:800;font-size:1rem}
+  .paybtn.cash{background:var(--basil);color:var(--on)} .paybtn.upi{background:var(--brand);color:var(--on)}
+  .paybtn:active{transform:scale(.95)}
+
+  .row{display:flex;gap:8px;margin-top:12px}
+  .btn{flex:1;min-height:46px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:700}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:var(--on)}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .card{padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:grid;gap:12px}
+  .stack{display:grid;gap:12px}
+  label{display:grid;gap:4px;font-size:.82rem;font-weight:600;color:var(--soft)}
+  input,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:1rem}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .seg button{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-weight:700}
+  .seg button[aria-pressed="true"]{background:var(--tint);border-color:var(--brand);color:var(--brand)}
+  .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.92rem}
+  .kv > :nth-child(even){font-weight:700;text-align:right}
+  .diff{padding:12px 14px;border-radius:12px;text-align:center;font-weight:700}
+  .diff.ok{background:var(--basil-tint);color:var(--basil)} .diff.bad{background:var(--warn-tint);color:var(--warn)} .diff.note{background:var(--tint);color:var(--ink)}
+  pre{margin:0;padding:12px;border-radius:12px;background:var(--bg);border:1px solid var(--line);white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:.8rem}
+
+  .feed{display:grid;gap:6px;margin-top:16px}
+  .feed h3{margin:0;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+  .fe{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:.84rem}
+  .tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:.66rem;font-weight:700;background:var(--chip);margin-left:6px;vertical-align:1px}
+  .tag.m{background:var(--tint);color:var(--brand)} .tag.p{background:var(--warn-tint);color:var(--warn)}
+
+  .login{min-height:78vh;display:grid;align-content:center;gap:16px;text-align:center}
+  .logo{width:84px;height:84px;margin:0 auto;border-radius:50%;background:var(--surface);box-shadow:0 8px 20px -10px rgba(70,40,10,.5)}
+  .dots{display:flex;justify-content:center;gap:12px}
+  .dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--brand)} .dots i.on{background:var(--brand)}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;width:100%;margin:0 auto}
+  .pad button{height:62px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:1.45rem;font-weight:700}
+  .err{color:var(--warn);font-weight:600;font-size:.88rem;min-height:1.4em}
+
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .tabs .in{max-width:460px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+  .tabs button{border:0;background:none;padding:10px 4px;font-size:.72rem;font-weight:700;color:var(--soft);display:grid;justify-items:center;gap:3px}
+  .tabs button[aria-current="page"]{color:var(--brand)}
+  .tabs svg{width:22px;height:22px}
+
+  .plist{display:grid;gap:8px}
+  .pp{display:grid;gap:8px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+  .pp .line{display:flex;align-items:center;gap:10px}
+  .pp .meta{flex:1;min-width:0} .pp .meta b{display:block}
+  .pp small{color:var(--soft);font-size:.78rem}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
+  .pill.act{background:var(--basil-tint);color:var(--basil)} .pill.off{background:var(--chip);color:var(--soft)} .pill.bk{background:var(--tint);color:var(--brand)}
+  .mini{min-height:36px;padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-size:.76rem;font-weight:700}
+  .pin{font-size:2.2rem;font-weight:800;letter-spacing:.3em;text-align:center;color:var(--brand)}
+  .bar{height:8px;border-radius:999px;background:var(--chip);overflow:hidden} .bar i{display:block;height:100%;background:var(--brand)}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:.86rem}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);background:var(--bg)}
+  td.r,th.r{text-align:right} tr:last-child td{border-bottom:0}
+  .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.88rem;z-index:20;max-width:calc(100% - 32px);text-align:center}
+  .spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;vertical-align:-2px;margin-right:6px}
+  @media (prefers-reduced-motion:no-preference){.spin{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}}
+</style>
+</head>
+<body>
+<div class="wrap"><div id="demo" class="demo" hidden><b>Demo mode.</b> Sample data on this phone only. Try PIN <b>1111</b> (partner) or <b>9999</b> (founder).</div><main id="app" aria-live="polite"></main></div>
+<nav class="tabs" id="tabs" hidden aria-label="Founder menu"><div class="in" id="tabsIn"></div></nav>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+/* =====================================================================
+   Pedal Plate sales counter.
+   Front end for the Google Sheet backend in sales/apps-script/Code.gs.
+   - API_URL: paste the Apps Script web app URL (see sales/SETUP.md).
+     While it is empty, or with #demo in the address, the page runs in
+     demo mode with sample data stored only on this phone.
+   - Menu, prices, carts, floats and partners all come from the Sheet.
+   - Sales are queued on the phone first, so taps work without signal.
+   To add a feature: add a backend action in Code.gs, the same action
+   in DemoApi below, and a screen in VIEWS.
+   ===================================================================== */
+const API_URL = '';
+
+const DEMO = !API_URL || location.hash === '#demo';
+const $ = s => document.querySelector(s), app = $('#app');
+const rs = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const hm = t => new Date(t).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit'});
+const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+
+/* ---------- storage (wrapped: private windows can block it) ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('pp_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('pp_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('pp_' + k); } catch (e) {} },
+};
+
+/* ---------- demo backend (same actions and replies as Code.gs) ---------- */
+const DemoApi = (() => {
+  const db = store.get('demo_db', null) || seed();
+  function seed() {
+    const d = {
+      carts: [{cart_id:'C1',name:'Cart 1',float:500},{cart_id:'C2',name:'Cart 2',float:500}],
+      menu: [
+        {item_id:'RPCK',name:'Reshmi Polao + Chicken Kosha',type:'nonveg',sizes:[{size:'Half',price:50},{size:'Full',price:80}]},
+        {item_id:'PMP',name:'Polao + Matar Paneer',type:'veg',sizes:[{size:'Full',price:70}]},
+      ],
+      partners: [
+        {partner_id:'P1',name:'Raju',role:'partner',cart_id:'C1',pin:'1111',active:true,backup:false},
+        {partner_id:'P2',name:'Bapi',role:'partner',cart_id:'C2',pin:'2222',active:true,backup:false},
+        {partner_id:'P3',name:'Sujoy',role:'partner',cart_id:'C1',pin:'3333',active:true,backup:true},
+        {partner_id:'F1',name:'Arindam',role:'founder',cart_id:'',pin:'9999',active:true,backup:false},
+      ],
+      sales: [], closes: [], bank: [], log: [{at:new Date().toISOString(),by:'Setup',action:'demo',details:'Sample data created'}], sessions: {},
+    };
+    const t = Date.now(), add = (pid, item, size, price, pay, mins, src) => d.sales.push({sale_id:uid(),created_at:new Date(t-mins*6e4).toISOString(),date:todayKey(),partner_id:pid,partner_name:'Bapi',cart_id:'C2',item_id:item,item_name:item==='RPCK'?'Reshmi Polao + Chicken Kosha':'Polao + Matar Paneer',size,price,qty:1,amount:price,pay,source:src||'tap',status:'ok'});
+    for (let i = 0; i < 18; i++) add('P2','RPCK','Full',80,i%3?'UPI':'Cash',180-i*8);
+    for (let i = 0; i < 7; i++) add('P2','PMP','Full',70,i%2?'Cash':'UPI',150-i*10);
+    return d;
+  }
+  const save = () => store.set('demo_db', db);
+  const pub = (p, cart) => ({partner_id:p.partner_id,name:p.name,role:p.role,cart_id:cart!=null?cart:p.cart_id,backup:!!p.backup,active:!!p.active});
+  const cfg = () => ({menu:db.menu,carts:db.carts,settings:{undo_minutes:'2'},date:todayKey()});
+  const sess = tok => { const s = db.sessions[tok]; if (!s) throw new Error('Your login has expired. Enter your PIN again.'); const p = db.partners.find(x=>x.partner_id===s.pid); if (!p||!p.active) throw new Error('Your login has expired. Enter your PIN again.'); return {p, cart:s.cart}; };
+  const tot = list => { const t={plates:0,total:0,cash:0,upi:0,manualPlates:0}; list.forEach(r=>{t.plates+=r.qty;t.total+=r.amount;r.pay==='UPI'?t.upi+=r.amount:t.cash+=r.amount;if(r.source==='manual')t.manualPlates+=r.qty;}); return t; };
+  const live = () => db.sales.filter(r => r.date === todayKey() && r.status !== 'void');
+  const founder = s => { if (s.p.role !== 'founder') throw new Error('Only founders can do this.'); };
+  const log = (by, action, details) => db.log.push({at:new Date().toISOString(),by,action,details});
+  const newPin = () => { let p; do { p = String(Math.floor(1000 + Math.random()*9000)); } while (db.partners.some(x => x.pin === p)); return p; };
+  const A = {
+    login({pin}) { const p = db.partners.find(x => x.pin === String(pin)); if (!p) throw new Error("That PIN isn't recognised. Try again."); if (!p.active) throw new Error(p.name + "'s PIN is switched off. Ask a founder."); const token = uid(); db.sessions[token] = {pid:p.partner_id, cart:p.cart_id}; save(); return {token, me:pub(p), config:cfg()}; },
+    config({token}) { const s = sess(token); return {config:cfg(), me:pub(s.p, s.cart)}; },
+    setCart({token, cart_id}) { const s = sess(token); db.sessions[token].cart = cart_id; save(); return {me:pub(s.p, cart_id)}; },
+    record({token, sales}) { const s = sess(token); const ids = new Set(db.sales.map(r => r.sale_id)); const saved = [];
+      (sales||[]).forEach(x => { if (ids.has(x.sale_id)) { saved.push(x.sale_id); return; } const it = db.menu.find(m => m.item_id === x.item_id); const sz = it && it.sizes.find(z => z.size === x.size);
+        const price = x.source === 'manual' && x.price > 0 ? +x.price : sz ? sz.price : 0; if (!price || !x.pay) return;
+        db.sales.push({sale_id:x.sale_id,created_at:x.created_at,date:todayKey(),partner_id:s.p.partner_id,partner_name:s.p.name,cart_id:s.cart,item_id:x.item_id,item_name:it?it.name:x.item_id,size:x.size,price,qty:x.qty||1,amount:price*(x.qty||1),pay:x.pay,source:x.source,status:'ok'}); saved.push(x.sale_id); });
+      save(); return {saved}; },
+    void({token, sale_id}) { const s = sess(token); const r = db.sales.find(x => x.sale_id === sale_id); if (r && (s.p.role === 'founder' || r.partner_id === s.p.partner_id)) { r.status = 'void'; save(); } return {voided:!!r}; },
+    mine({token}) { const s = sess(token); return {totals:tot(live().filter(r => r.partner_id === s.p.partner_id)), close:db.closes.filter(c=>c.date===todayKey()&&c.partner_id===s.p.partner_id).pop()||null}; },
+    close({token, spent, pouch_counted, boxes_out, boxes_back}) { const s = sess(token); const t = tot(live().filter(r => r.partner_id === s.p.partner_id)); const cart = db.carts.find(c => c.cart_id === s.cart); const float = cart ? cart.float : 0; const exp = float + t.cash - (+spent||0);
+      const row = {date:todayKey(),partner_id:s.p.partner_id,partner_name:s.p.name,cart_id:s.cart,plates:t.plates,sales_total:t.total,cash_sales:t.cash,upi_sales:t.upi,float,spent:+spent||0,pouch_expected:exp,pouch_counted:+pouch_counted,difference:(+pouch_counted)-exp,handed_over:Math.max(0,(+pouch_counted)-float),boxes_out,boxes_back,closed_at:new Date().toISOString()};
+      db.closes.push(row); save(); return {close:row, totals:t}; },
+    today({token}) { founder(sess(token)); const sales = live(); const by = {}; sales.forEach(r => (by[r.partner_id] = by[r.partner_id] || []).push(r));
+      const per = db.partners.filter(p => by[p.partner_id] || (p.active && p.role !== 'founder' && !p.backup)).map(p => Object.assign({partner:pub(p), close:db.closes.filter(c=>c.date===todayKey()&&c.partner_id===p.partner_id).pop()||null}, tot(by[p.partner_id]||[])));
+      const byItem = {}; sales.forEach(r => { const k = r.item_name + ' · ' + r.size; byItem[k] = (byItem[k]||0) + r.qty; });
+      return {date:todayKey(), totals:tot(sales), perPartner:per, byItem, bank:db.bank.filter(b=>b.date===todayKey()).pop()||null}; },
+    bankUpi({token, amount}) { const s = sess(token); founder(s); const tapped = tot(live()).upi; const row = {date:todayKey(),amount:+amount,upi_tapped:tapped,difference:(+amount)-tapped,entered_by:s.p.name}; db.bank.push(row); save(); return {bank:row}; },
+    partnersList({token}) { founder(sess(token)); return {partners:db.partners.map(p => pub(p))}; },
+    partnersAdd({token, name, cart_id, backup}) { const s = sess(token); founder(s); const pin = newPin(); const p = {partner_id:'P'+Date.now().toString(36),name,role:'partner',cart_id,pin,active:true,backup:!!backup}; db.partners.push(p); log(s.p.name,'added partner',name+' ('+cart_id+')'); save(); return {partner:pub(p), pin}; },
+    partnersUpdate({token, partner_id, active, cart_id, backup}) { const s = sess(token); founder(s); const p = db.partners.find(x => x.partner_id === partner_id); if (active != null) p.active = !!active; if (cart_id != null) p.cart_id = cart_id; if (backup != null) p.backup = !!backup; log(s.p.name,'updated partner',p.name); save(); return {partner:pub(p)}; },
+    partnersResetPin({token, partner_id}) { const s = sess(token); founder(s); const p = db.partners.find(x => x.partner_id === partner_id); if (p.partner_id === s.p.partner_id) throw new Error('Ask another founder to reset your PIN.'); p.pin = newPin(); log(s.p.name,'reset PIN',p.name); save(); return {pin:p.pin, partner:pub(p)}; },
+    logList({token}) { founder(sess(token)); return {log:db.log.slice(-60).reverse()}; },
+    logout({token}) { delete db.sessions[token]; save(); return {}; },
+  };
+  return {call: (action, body) => new Promise((res, rej) => setTimeout(() => { try { res(A[action](body)); } catch (e) { rej(e); } }, 150))};
+})();
+
+/* ---------- API ---------- */
+async function api(action, payload) {
+  const body = Object.assign({action, token: S.session && S.session.token}, payload || {});
+  if (DEMO) return DemoApi.call(action, body);
+  const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body), redirect:'follow'});
+  const j = await r.json();
+  if (!j.ok) { const e = new Error(j.error || 'Something went wrong.'); if (/expired/i.test(j.error || '')) e.expired = true; throw e; }
+  return j;
+}
+
+/* ---------- state ---------- */
+const S = {
+  session: store.get('session', null),          // {token, me, config, at}
+  queue: store.get('queue', []),                // sales not yet saved to the Sheet
+  local: store.get('local', []),                // this phone's sales since the last refresh (for the feed)
+  base: store.get('base', null),                // today's totals from the Sheet at the last refresh
+  view: 'sell', entered: '', err: '', busy: false, online: navigator.onLine, newPin: null, founderData: null,
+};
+const persist = () => { store.set('session', S.session); store.set('queue', S.queue); store.set('local', S.local); store.set('base', S.base); };
+const me = () => S.session && S.session.me;
+const cfg = () => (S.session && S.session.config) || {menu:[], carts:[], settings:{}};
+const cartOf = id => cfg().carts.find(c => c.cart_id === id);
+const cartName = id => (cartOf(id) || {}).name || (id ? id : 'No cart');
+const isFounder = () => me() && me().role === 'founder';
+const pend = () => S.queue.filter(x => S.session && x._t === S.session.token).length;
+
+// A new day starts clean on this phone.
+(function rollDay() {
+  const d = todayKey();
+  if (store.get('day', d) !== d) { S.local = []; S.base = null; }
+  store.set('day', d);
+})();
+
+let toastT;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 1900); }
+
+function handleError(e) {
+  if (e && e.expired) { S.session = null; persist(); S.err = e.message; render(); return; }
+  toast(e && e.message ? e.message : (S.online ? 'Something went wrong. Try again.' : 'No signal. Try again when you are online.'));
+}
+
+/* ---------- sync ---------- */
+let syncing = false;
+async function flush() {
+  if (syncing || !S.session || !S.queue.length || !navigator.onLine) return;
+  syncing = true;
+  try {
+    // Each sale is sent with the login that recorded it, so a partner switch never re-labels sales.
+    const groups = {};
+    S.queue.forEach(x => (groups[x._t] = groups[x._t] || []).push(x));
+    for (const tok of Object.keys(groups)) {
+      try {
+        const res = await api('record', {token: tok, sales: groups[tok].slice(0, 100).map(({_t, ...rest}) => rest)});
+        const saved = new Set(res.saved || []);
+        S.queue = S.queue.filter(x => !saved.has(x.sale_id));
+        S.local.forEach(x => { if (saved.has(x.sale_id)) x.synced = true; });
+        persist();
+      } catch (e) { if (e && e.expired && S.session && tok === S.session.token) { handleError(e); return; } }
+    }
+    if (!S.queue.some(x => S.session && x._t === S.session.token)) await refreshMine();
+  } catch (e) {}
+  finally { syncing = false; if (S.view === 'sell') renderTop(); }
+}
+async function refreshMine() {
+  try {
+    const r = await api('mine', {});
+    S.base = r.totals; S.closeToday = r.close;
+    // Synced sales are now inside base. Keep recent ones for the feed and Undo, but stop counting them.
+    S.local.forEach(x => { if (x.synced) x.inBase = true; });
+    S.local = S.local.filter(x => !x.inBase || Date.now() - x.at < 15 * 60000);
+    persist();
+  } catch (e) { if (e && e.expired) handleError(e); }
+}
+window.addEventListener('online', () => { S.online = true; flush(); renderTop(); });
+window.addEventListener('offline', () => { S.online = false; renderTop(); });
+setInterval(flush, 20000);
+
+function myTotals() {
+  const t = Object.assign({plates:0,total:0,cash:0,upi:0,manualPlates:0}, S.base || {});
+  S.local.forEach(x => { if (x.inBase) return; t.plates += x.qty; t.total += x.price * x.qty; x.pay === 'UPI' ? t.upi += x.price * x.qty : t.cash += x.price * x.qty; if (x.source === 'manual') t.manualPlates += x.qty; });
+  return t;
+}
+
+/* ---------- views ---------- */
+function topbar() {
+  const u = me(), q = S.queue.length;
+  return `<div class="top" id="top"><div class="who"><span class="av">${esc(u.name[0])}</span><div><b>${esc(u.name)}</b><small>${u.role==='founder'?'Founder':esc(cartName(u.cart_id))} · ${new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</small></div></div>
+    <div style="display:flex;align-items:center;gap:4px"><span class="net ${S.online?'':'off'}">${S.online?(q?q+' to send':'Saved'):(q?q+' waiting':'Offline')}</span><button class="link" data-a="logout">Switch partner</button></div></div>`;
+}
+function renderTop() { const el = $('#top'); if (el && me()) el.outerHTML = topbar(); }
+
+function vLogin() {
+  const d = [0,1,2,3].map(i => `<i class="${i < S.entered.length ? 'on' : ''}"></i>`).join('');
+  app.innerHTML = `<div class="login"><img class="logo" src="/images/logo-96.webp" width="84" height="84" alt="Pedal Plate">
+    <div><h1>Pedal Plate sales</h1><p class="muted">Enter your PIN</p></div>
+    <div class="dots" aria-label="${S.entered.length} of 4 digits entered">${d}</div><div class="err" role="alert">${esc(S.err)}</div>
+    <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n => `<button data-k="${n}">${n}</button>`).join('')}<button data-k="c" aria-label="Clear">C</button><button data-k="0">0</button><button data-k="b" aria-label="Delete">⌫</button></div>
+    ${S.busy ? '<p class="muted"><span class="spin"></span>Checking…</p>' : ''}</div>`;
+}
+async function key(k) {
+  if (S.busy) return;
+  if (k === 'c') S.entered = ''; else if (k === 'b') S.entered = S.entered.slice(0, -1); else if (S.entered.length < 4) S.entered += k;
+  S.err = '';
+  if (S.entered.length === 4) {
+    S.busy = true; render();
+    try {
+      const r = await api('login', {pin: S.entered});
+      S.session = {token: r.token, me: r.me, config: r.config, at: Date.now()};
+      S.base = null; S.view = r.me.role === 'founder' ? 'today' : 'sell'; persist();
+      refreshMine().then(render);
+    } catch (e) { S.err = e.message || "That PIN isn't recognised. Try again."; }
+    S.entered = ''; S.busy = false;
+  }
+  render();
+}
+
+function vSell() {
+  const t = myTotals();
+  const undoMin = Number(cfg().settings.undo_minutes || 2);
+  const last = S.local[S.local.length - 1], canUndo = last && Date.now() - last.at < undoMin * 60000;
+  const cart = me().cart_id;
+  app.innerHTML = topbar() + `
+    ${!cart || !cartOf(cart) ? `<div class="diff bad" style="margin-bottom:12px">Choose your cart before selling.</div>` : ''}
+    <div class="totals"><div class="tot main"><small>Sold today</small><b class="num">${rs(t.total)}</b></div><div class="tot"><small>Plates</small><b class="num">${t.plates}</b></div><div class="tot"><small>Cash / UPI</small><b class="num" style="font-size:.92rem">${rs(t.cash)} / ${rs(t.upi)}</b></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px"><p class="hint">One tap per plate: press how the customer paid.</p><button class="mini" data-v="cart">${esc(cartName(cart))} ▾</button></div>
+    <div class="items">${cfg().menu.map(it => `<div class="item"><div class="ihead"><span class="mark ${it.type}" aria-label="${it.type==='veg'?'Veg':'Non-veg'}"><i></i></span><b>${esc(it.name)}</b></div>
+      ${it.sizes.map(z => `<div class="size"><div class="row1"><span><span class="lbl">${esc(z.size)}</span> <span class="pr num">${rs(z.price)}</span></span></div>
+        <div class="paybtns"><button class="paybtn cash" data-sell="${esc(it.item_id)}|${esc(z.size)}|Cash" ${cart&&cartOf(cart)?'':'disabled'} aria-label="One ${esc(z.size)} ${esc(it.name)}, paid cash">💵 Cash</button><button class="paybtn upi" data-sell="${esc(it.item_id)}|${esc(z.size)}|UPI" ${cart&&cartOf(cart)?'':'disabled'} aria-label="One ${esc(z.size)} ${esc(it.name)}, paid UPI">📱 UPI</button></div></div>`).join('')}</div>`).join('') || '<p class="muted">No combos are switched on in the Menu tab yet.</p>'}</div>
+    <div class="row"><button class="btn" data-a="undo" ${canUndo?'':'disabled'}>↶ Undo last</button><button class="btn" data-v="missed">+ Missed sale</button></div>
+    <div class="row"><button class="btn primary" data-v="close">Close my day</button></div>
+    <div class="feed"><h3>Recent on this phone</h3>${S.local.slice(-6).reverse().map(x => `<div class="fe"><span>${x.qty} × ${esc(x.item_name)} · ${esc(x.size)}${x.source==='manual'?'<span class="tag m">Added later</span>':''}${x.synced?'':'<span class="tag p">Not sent</span>'}</span><span class="num">${x.pay} · ${hm(x.at)}</span></div>`).join('') || '<p class="muted">No sales yet. Tap Cash or UPI after each plate.</p>'}</div>`;
+}
+
+function addSale(item_id, size, pay, qty, price, source) {
+  const it = cfg().menu.find(m => m.item_id === item_id); const z = it && it.sizes.find(s => s.size === size);
+  if (!it || !z) return;
+  const sale = {sale_id: uid(), created_at: new Date().toISOString(), at: Date.now(), item_id, item_name: it.name, size, pay, qty: qty || 1, price: price || z.price, source: source || 'tap', synced: false};
+  S.local.push(sale);
+  S.queue.push({_t: S.session.token, sale_id: sale.sale_id, created_at: sale.created_at, item_id, size, pay, qty: sale.qty, price: sale.source === 'manual' ? sale.price : undefined, source: sale.source});
+  persist(); flush();
+  return sale;
+}
+
+async function undoLast() {
+  const last = S.local[S.local.length - 1]; if (!last) return;
+  if (!last.synced) { S.local.pop(); S.queue = S.queue.filter(x => x.sale_id !== last.sale_id); persist(); toast('Last sale removed'); render(); return; }
+  try { await api('void', {sale_id: last.sale_id}); S.local.pop(); await refreshMine(); toast('Last sale removed'); render(); } catch (e) { handleError(e); }
+}
+
+function vMissed() {
+  const menu = cfg().menu;
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">Add a missed sale</h1><p class="muted" style="margin-bottom:14px">For plates sold without tapping. These are marked "added later".</p>
+  <form class="card" id="mf"><label>Combo<select id="mItem">${menu.map(m => `<option value="${esc(m.item_id)}">${esc(m.name)}</option>`).join('')}</select></label>
+   <div class="grid2"><label>Size<select id="mSize"></select></label><label>Price per plate (₹)<input id="mPrice" type="number" inputmode="numeric" min="1"></label></div>
+   <div class="grid2"><label>Number of plates<input id="mQty" type="number" inputmode="numeric" min="1" value="1"></label><div><span style="display:block;font-size:.82rem;font-weight:600;color:var(--soft);margin-bottom:4px">Paid by</span><div class="seg" id="mPay"><button type="button" data-mp="Cash" aria-pressed="false">Cash</button><button type="button" data-mp="UPI" aria-pressed="false">UPI</button></div></div></div>
+   <div class="kv"><span>Total</span><span id="mTot" class="num">—</span></div>
+   <div class="row" style="margin:0"><button type="button" class="btn ghost" data-v="sell">Cancel</button><button class="btn primary">Add sale</button></div></form>`;
+  const it = $('#mItem'), sz = $('#mSize'), pr = $('#mPrice'), q = $('#mQty'); let mp = null;
+  const tot = () => $('#mTot').textContent = (+pr.value > 0 && +q.value > 0) ? `${q.value} × ${rs(pr.value)} = ${rs(q.value * pr.value)}` : '—';
+  const fill = () => { const m = menu.find(x => x.item_id === it.value); if (!m) return; sz.innerHTML = m.sizes.map(z => `<option data-p="${z.price}">${esc(z.size)}</option>`).join(''); pr.value = m.sizes[0].price; tot(); };
+  it.onchange = fill; sz.onchange = () => { pr.value = sz.selectedOptions[0].dataset.p; tot(); }; pr.oninput = tot; q.oninput = tot; fill();
+  $('#mPay').onclick = e => { const b = e.target.closest('[data-mp]'); if (!b) return; mp = b.dataset.mp; $('#mPay').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+  $('#mf').onsubmit = e => { e.preventDefault(); if (!(+q.value > 0 && +pr.value > 0)) { toast('Enter plates and price'); return; } if (!mp) { toast('Choose Cash or UPI'); return; }
+    addSale(it.value, sz.value, mp, Math.round(+q.value), +pr.value, 'manual'); S.view = 'sell'; render(); toast(`Added ${q.value} plates`); };
+}
+
+function vCart() {
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">Which cart are you on?</h1><div class="stack">${cfg().carts.map(c => `<button class="btn ${c.cart_id===me().cart_id?'primary':''}" data-cart="${esc(c.cart_id)}">${esc(c.name)}</button>`).join('')}<button class="btn ghost" data-v="sell">Cancel</button></div>`;
+}
+
+function vClose() {
+  const t = myTotals(), cart = cartOf(me().cart_id), float = cart ? cart.float : 0, done = S.closeToday;
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">Close my day</h1>
+   ${pend() ? `<div class="diff bad" style="margin-bottom:12px">${pend()} sale${pend()>1?'s':''} not sent yet. Close needs signal.</div>` : ''}
+   <div class="card"><div class="kv"><span>Plates</span><span class="num">${t.plates}${t.manualPlates?` <small class="muted">(${t.manualPlates} added later)</small>`:''}</span><span>Cash sales</span><span class="num">${rs(t.cash)}</span><span>UPI sales</span><span class="num">${rs(t.upi)}</span><span>Total</span><span class="num">${rs(t.total)}</span></div></div>
+   <form class="card" id="cf" style="margin-top:12px">
+    <div class="kv"><span>Change float in the pouch this morning</span><span class="num">${rs(float)}</span></div>
+    <label>1 · Cash spent from the pouch today (₹) <span class="muted" style="font-weight:500">water, ice… keep the bill</span><input id="cSpent" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+    <div class="kv" id="cExp"></div>
+    <label>2 · Count the whole pouch, float included (₹)<input id="cCash" type="number" inputmode="numeric" min="0" required></label>
+    <div class="grid2"><label>Boxes sent out<input id="cOut" type="number" inputmode="numeric" min="0"></label><label>Boxes returned<input id="cBack" type="number" inputmode="numeric" min="0"></label></div>
+    <div id="cRes" class="stack"></div>
+    <button class="btn primary" ${pend()||S.busy?'disabled':''}>${S.busy?'<span class="spin"></span>Saving…':done?'Close again (replaces earlier close)':'Submit day close'}</button>
+   </form>
+   ${done ? `<div class="card" style="margin-top:12px"><h2>Founders' update</h2><pre id="cPre">${esc(closeMsg(done))}</pre><button class="btn" data-a="copy">Copy for WhatsApp</button></div>` : ''}
+   <div class="row"><button class="btn ghost" data-v="sell">Back to selling</button></div>`;
+  const f = () => { const sp = +$('#cSpent').value || 0, cc = $('#cCash').value, o = $('#cOut').value, b = $('#cBack').value, exp = float + t.cash - sp; let h = '';
+    $('#cExp').innerHTML = `<span>So the pouch should have</span><span class="num">${rs(exp)}<small class="muted" style="display:block;font-weight:500;font-size:.74rem">float ${rs(float)} + cash ${rs(t.cash)}${sp?' − spent '+rs(sp):''}</small></span>`;
+    if (cc !== '') { const d = (+cc) - exp; h += `<div class="diff ${d===0?'ok':'bad'}">${d===0?'✓ Money matches':d<0?rs(-d)+' short':rs(d)+' over'}</div><div class="diff note">Keep ${rs(float)} in the pouch · hand over ${rs(Math.max(0,(+cc)-float))}</div>`; }
+    if (o !== '' && b !== '') { const sold = o - b, gap = sold - t.plates; h += `<div class="diff ${gap===0?'ok':'bad'}">${gap===0?'✓ Boxes match: '+sold+' sold':'Boxes say '+sold+', app says '+t.plates+' ('+(gap>0?gap+' not recorded':(-gap)+' extra')+')'}</div>`; }
+    $('#cRes').innerHTML = h; };
+  ['cSpent','cCash','cOut','cBack'].forEach(i => $('#'+i).oninput = f); f();
+  $('#cf').onsubmit = async e => { e.preventDefault(); if (pend()) { flush(); return; }
+    const form = {spent: +$('#cSpent').value || 0, pouch_counted: +$('#cCash').value, boxes_out: $('#cOut').value, boxes_back: $('#cBack').value};
+    S.busy = true; vClose();
+    try { const r = await api('close', form); S.closeToday = r.close; toast('Day closed and saved'); }
+    catch (err) { handleError(err); }
+    S.busy = false; render(); };
+}
+function closeMsg(c) {
+  const d = Number(c.difference) || 0;
+  return `📍 ${cartName(c.cart_id)} · ${c.partner_name}\n🍱 Plates: ${c.plates}\n💰 Sales ${rs(c.sales_total)} = Cash ${rs(c.cash_sales)} + UPI ${rs(c.upi_sales)}\n🧾 Spent from pouch: ${rs(c.spent)}\n🧮 Pouch ${rs(c.pouch_counted)} (${d===0?'matches':rs(Math.abs(d))+(d<0?' short':' over')}) · handed over ${rs(c.handed_over)}, float ${rs(c.float)} kept` + (c.boxes_out !== '' && c.boxes_out != null ? `\n📦 Boxes: ${c.boxes_out} out, ${c.boxes_back} back` : '');
+}
+
+/* ----- founder views ----- */
+function tabs() {
+  const t = [['today','Today','M4 19V9M10 19V5M16 19v-7M22 19H2'],['partners','Partners','M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 10c0-4 3-6 7-6s7 2 7 6M17 11a3 3 0 1 0 0-6M22 21c0-3-2-5-5-5'],['sell','Sell','M12 5v14M5 12h14'],['log','Changes','M4 6h16M4 12h16M4 18h10']];
+  $('#tabs').hidden = false;
+  $('#tabsIn').innerHTML = t.map(([v,l,d]) => `<button data-v="${v}" ${S.view===v||(v==='partners'&&S.view==='add')?'aria-current="page"':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>${l}</button>`).join('');
+}
+async function load(action, payload) { try { S.founderData = await api(action, payload); } catch (e) { S.founderData = {error: e.message}; handleError(e); } render(); }
+
+function vToday() {
+  const d = S.founderData;
+  if (!d || !d.perPartner) { app.innerHTML = topbar() + '<p class="muted"><span class="spin"></span>Loading today…</p>'; if (!d) load('today'); return; }
+  const max = Math.max(1, ...d.perPartner.map(r => r.total));
+  const bank = d.bank;
+  app.innerHTML = topbar() + `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h1>Today</h1><button class="mini" data-a="refresh">Refresh</button></div>
+   <div class="totals"><div class="tot main"><small>Total</small><b class="num">${rs(d.totals.total)}</b></div><div class="tot"><small>Plates</small><b class="num">${d.totals.plates}</b></div><div class="tot"><small>Cash / UPI</small><b class="num" style="font-size:.92rem">${rs(d.totals.cash)} / ${rs(d.totals.upi)}</b></div></div>
+   <form class="card" id="bf" style="margin-bottom:14px"><h2>UPI check, whole business</h2><p class="muted" style="font-size:.84rem">All carts share one QR, so check the day's UPI once: tapped by all partners against what reached the bank.</p>
+     <div class="kv"><span>UPI tapped, all carts</span><span class="num">${rs(d.totals.upi)}</span></div>
+     <label>UPI received in the bank today (₹)<input id="bUpi" type="number" inputmode="numeric" min="0" value="${bank?bank.amount:''}"></label>
+     ${bank?`<div class="diff ${bank.difference===0?'ok':'bad'}">${bank.difference===0?'✓ UPI matches':bank.difference<0?rs(-bank.difference)+' less in the bank than tapped: a cash sale may have been tapped as UPI':rs(bank.difference)+' more in the bank than tapped: a UPI sale may have been tapped as cash'}</div>`:''}
+     <button class="btn">Save UPI check</button></form>
+   <h2 style="margin-bottom:8px">By partner</h2>
+   <div class="plist">${d.perPartner.map(r => { const c = r.close, df = c ? Number(c.difference) : 0; return `<div class="pp"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(r.partner.name)} <small style="font-weight:500">· ${esc(cartName(r.partner.cart_id))}</small></b><b class="num">${rs(r.total)}</b></div><div class="bar"><i style="width:${r.total/max*100}%"></i></div>
+     <small class="num">${r.plates} plates · Cash ${rs(r.cash)} · UPI ${rs(r.upi)}${r.manualPlates?` · <span style="color:var(--brand)">${r.manualPlates} added later</span>`:''}</small>
+     <small class="num">${c?`Closed · handed over ${rs(c.handed_over)} · <span style="color:${df===0?'var(--basil)':'var(--warn)'}">${df===0?'matches':rs(Math.abs(df))+(df<0?' short':' over')}</span>`:'Not closed yet'}</small></div>`; }).join('') || '<p class="muted">No sales yet today.</p>'}</div>
+   <h2 style="margin:18px 0 8px">By combo</h2>
+   <div class="table-wrap"><table><thead><tr><th>Combo</th><th class="r">Plates</th></tr></thead><tbody>${Object.keys(d.byItem).map(k => `<tr><td>${esc(k)}</td><td class="r num">${d.byItem[k]}</td></tr>`).join('') || '<tr><td colspan="2" class="muted">—</td></tr>'}</tbody></table></div>
+   <p class="hint" style="margin-top:12px">Full history, weekly and monthly totals are in the Google Sheet.</p>`;
+  $('#bf').onsubmit = async e => { e.preventDefault(); const v = $('#bUpi').value; if (v === '') { toast('Enter the UPI amount'); return; } try { await api('bankUpi', {amount: +v}); toast('UPI check saved'); load('today'); } catch (err) { handleError(err); } };
+}
+
+function vPartners() {
+  const d = S.founderData;
+  if (!d || !d.partners) { app.innerHTML = topbar() + '<p class="muted"><span class="spin"></span>Loading partners…</p>'; if (!d) load('partnersList'); return; }
+  const list = d.partners.filter(p => p.role !== 'founder').sort((a,b) => (b.active - a.active) || a.name.localeCompare(b.name));
+  app.innerHTML = topbar() + `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h1>Partners</h1><button class="btn primary" style="flex:none" data-v="add">+ Add partner</button></div>
+   ${S.newPin ? `<div class="card" style="margin-bottom:12px;border-color:var(--brand)"><h2>${esc(S.newPin.name)}'s PIN</h2><div class="pin num">${esc(S.newPin.pin)}</div><p class="muted" style="font-size:.85rem">Shown once. Send it to ${esc(S.newPin.name)} now.</p><div class="row" style="margin:0"><button class="btn" data-a="copypin">Copy PIN</button><button class="btn ghost" data-a="hidepin">Done</button></div></div>` : ''}
+   <div class="plist">${list.map(p => `<div class="pp"><div class="line"><span class="av">${esc(p.name[0])}</span><div class="meta"><b>${esc(p.name)}</b><small>${esc(cartName(p.cart_id))} · <span class="pill ${p.active?'act':'off'}">${p.active?'Active':'Switched off'}</span>${p.backup?' <span class="pill bk">Backup</span>':''}</small></div></div>
+     <div style="display:flex;flex-wrap:wrap;gap:6px">${p.active?`<select class="mini" data-cartfor="${esc(p.partner_id)}" aria-label="Cart for ${esc(p.name)}" style="width:auto">${cfg().carts.map(c => `<option value="${esc(c.cart_id)}" ${c.cart_id===p.cart_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select><button class="mini" data-reset="${esc(p.partner_id)}">Reset PIN</button><button class="mini" data-toggle="${esc(p.partner_id)}" data-on="0">Switch off</button>`:`<button class="mini" data-toggle="${esc(p.partner_id)}" data-on="1">Switch on</button>`}</div></div>`).join('') || '<p class="muted">No partners yet.</p>'}</div>
+   <p class="hint" style="margin-top:14px">Partners are never deleted, so past sales stay linked to them.</p>`;
+}
+function vAdd() {
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">Add partner</h1><form class="card" id="af">
+   <label>First name<input id="aName" required maxlength="40" autocomplete="off"></label>
+   <div class="grid2"><label>Usual cart<select id="aCart">${cfg().carts.map(c => `<option value="${esc(c.cart_id)}">${esc(c.name)}</option>`).join('')}</select></label><label>Start date<input id="aDate" type="date" value="${todayKey()}"></label></div>
+   <label>Phone (optional)<input id="aPhone" type="tel" inputmode="tel" maxlength="20"></label>
+   <label style="display:flex;align-items:center;gap:10px;font-size:.92rem;color:var(--ink)"><input id="aBk" type="checkbox" style="width:auto"> Backup partner (called in when needed)</label>
+   <div class="row" style="margin:0"><button type="button" class="btn ghost" data-v="partners">Cancel</button><button class="btn primary">Save and create PIN</button></div></form>`;
+  $('#af').onsubmit = async e => { e.preventDefault(); const name = $('#aName').value.trim(); if (!name) return;
+    try { const r = await api('partnersAdd', {name, cart_id: $('#aCart').value, start_date: $('#aDate').value, phone: $('#aPhone').value, backup: $('#aBk').checked}); S.newPin = {name, pin: r.pin}; S.view = 'partners'; S.founderData = null; render(); }
+    catch (err) { handleError(err); } };
+}
+function vLog() {
+  const d = S.founderData;
+  if (!d || !d.log) { app.innerHTML = topbar() + '<p class="muted"><span class="spin"></span>Loading…</p>'; if (!d) load('logList'); return; }
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">Changes</h1><div class="feed" style="margin:0">${d.log.map(l => `<div class="fe"><span><b>${esc(l.by)}</b> ${esc(l.action)} · ${esc(l.details)}</span><span class="num muted">${new Date(l.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span></div>`).join('') || '<p class="muted">No changes yet.</p>'}</div>`;
+}
+
+const VIEWS = {sell: vSell, missed: vMissed, cart: vCart, close: vClose, today: vToday, partners: vPartners, add: vAdd, log: vLog};
+function render() {
+  $('#demo').hidden = !DEMO;
+  if (!S.session) { $('#tabs').hidden = true; vLogin(); return; }
+  if (isFounder()) tabs(); else $('#tabs').hidden = true;
+  if (!isFounder() && ['today','partners','add','log'].includes(S.view)) S.view = 'sell';
+  (VIEWS[S.view] || vSell)();
+}
+
+async function copy(text) { try { await navigator.clipboard.writeText(text); toast('Copied'); } catch (e) { toast('Copy not available. Press and hold to select the text.'); } }
+
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.k !== undefined) { key(b.dataset.k); return; }
+  if (b.dataset.sell) { const [item, size, pay] = b.dataset.sell.split('|'); const s = addSale(item, size, pay); if (s) { render(); toast(`+1 ${size} · ${rs(s.price)} · ${pay}`); } return; }
+  if (b.dataset.v) { S.view = b.dataset.v; if (['today','partners','log'].includes(S.view)) S.founderData = null; if (S.view !== 'partners') S.newPin = null; render(); window.scrollTo(0, 0); return; }
+  if (b.dataset.cart) { try { const r = await api('setCart', {cart_id: b.dataset.cart}); S.session.me = r.me; persist(); S.view = 'sell'; render(); toast('Selling on ' + cartName(r.me.cart_id)); } catch (err) { handleError(err); } return; }
+  if (b.dataset.reset) { try { const r = await api('partnersResetPin', {partner_id: b.dataset.reset}); S.newPin = {name: r.partner.name, pin: r.pin}; S.founderData = null; render(); } catch (err) { handleError(err); } return; }
+  if (b.dataset.toggle) { try { await api('partnersUpdate', {partner_id: b.dataset.toggle, active: b.dataset.on === '1'}); S.founderData = null; render(); toast(b.dataset.on === '1' ? 'Switched on' : 'Switched off'); } catch (err) { handleError(err); } return; }
+  const a = b.dataset.a;
+  if (a === 'logout') { const mine = S.queue.filter(x => S.session && x._t === S.session.token).length; if (mine) toast(mine + ' sales still waiting for signal. They will send automatically.'); else { try { await api('logout', {}); } catch (err) {} } S.session = null; S.base = null; S.local = []; S.closeToday = null; S.view = 'sell'; S.newPin = null; persist(); render(); }
+  else if (a === 'undo') undoLast();
+  else if (a === 'copy') copy($('#cPre').textContent);
+  else if (a === 'copypin' && S.newPin) copy(S.newPin.pin);
+  else if (a === 'hidepin') { S.newPin = null; render(); }
+  else if (a === 'refresh') { S.founderData = null; render(); }
+});
+document.addEventListener('change', async e => {
+  const s = e.target.closest('[data-cartfor]'); if (!s) return;
+  try { await api('partnersUpdate', {partner_id: s.dataset.cartfor, cart_id: s.value}); toast('Cart updated'); } catch (err) { handleError(err); }
+});
+
+render();
+if (S.session) { flush(); if (!isFounder()) refreshMine().then(() => { if (S.view === 'sell') render(); }); }
+</script>
+</body>
+</html>

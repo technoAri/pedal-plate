@@ -10,6 +10,8 @@ Landing page for Pedal Plate — home-style food, cooked fresh and pedaled strai
 404.html                    Branded "page not found" page
 card.html                   /card: link page opened by the visiting-card QR code
 pedal-plate.vcf             "Save contact" file used on /card
+sales.html                  /sales: sales counter for cart partners (noindex; demo mode until connected)
+sales/                      Google Apps Script backend (apps-script/Code.gs) and SETUP.md
 index.html                  Single-page site (inline CSS + JS, Poppins via Google Fonts)
 images/                     Hero, logo, favicons and app icons
 images/streets/             "From the Streets" photos (WebP, 400/720/1080w)
