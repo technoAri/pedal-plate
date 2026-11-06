@@ -50,7 +50,7 @@
   "image": "https://pedalplate.in/images/hero.jpg",
   "telephone": "+91-7699149899",
   "email": "pedalplate.food@gmail.com",
-  "priceRange": "₹55-₹75",
+  "priceRange": "₹55-₹80",
   "currenciesAccepted": "INR",
   "servesCuisine": ["Bengali", "Home-style Indian"],
   "areaServed": "Burdwan, West Bengal",
@@ -62,14 +62,14 @@
   },
   "hasMenu": {
     "@type": "Menu",
-    "name": "Weekly combos",
+    "name": "Combos",
     "hasMenuSection": {
       "@type": "MenuSection",
-      "name": "Rotating combos",
+      "name": "Combos (rice: Fried Rice, Reshmi Polao or Kashmiri Polao)",
       "hasMenuItem": [
-        { "@type": "MenuItem", "name": "Polao & Aloo Dum", "description": "Served Monday and Saturday", "offers": { "@type": "Offer", "price": "65", "priceCurrency": "INR" } },
-        { "@type": "MenuItem", "name": "Khichdi & Mixed Veg", "description": "Served Tuesday and Thursday", "offers": { "@type": "Offer", "price": "55", "priceCurrency": "INR" } },
-        { "@type": "MenuItem", "name": "Polao & Chicken Kosha", "description": "Served Wednesday and Friday", "offers": { "@type": "Offer", "price": "75", "priceCurrency": "INR" } }
+        { "@type": "MenuItem", "name": "Rice + Chicken Kosha", "offers": { "@type": "Offer", "price": "80", "priceCurrency": "INR" } },
+        { "@type": "MenuItem", "name": "Rice + Matar Paneer", "suitableForDiet": "https://schema.org/VegetarianDiet", "offers": { "@type": "Offer", "price": "70", "priceCurrency": "INR" } },
+        { "@type": "MenuItem", "name": "Dal Khichdi + Aloo Dum", "suitableForDiet": "https://schema.org/VegetarianDiet", "offers": { "@type": "Offer", "price": "55", "priceCurrency": "INR" } }
       ]
     }
   },
@@ -431,6 +431,14 @@
   }
   .dish.is-today .today-flag{display:inline-block;}
   .days{display:flex;gap:6px;margin-bottom:10px;}
+  .days .ast{align-self:center;font-style:normal;font-weight:800;color:var(--brand);font-size:.9rem;}
+  .dish h3 .ast{color:var(--brand);font-size:.7em;margin-left:1px;}
+  .menu-notes{display:grid;gap:10px;margin-top:22px;}
+  .menu-notes p{margin:0;padding:12px 16px;border-radius:14px;font-size:.98rem;}
+  .menu-notes .rice-opt{background:var(--tint);color:var(--ink);}
+  .menu-notes .rice-opt b{color:var(--brand);}
+  .menu-notes .tentative{background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);}
+  .menu-notes .tentative b{color:var(--ink);}
   .days span{padding:4px 10px;border-radius:999px;background:var(--basil-soft);color:var(--basil);font-size:.74rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
   .dish-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:auto;padding-top:14px;}
   .dish h3{font-size:1.3rem;}
@@ -558,7 +566,9 @@
   .hub .kitchen-label{font-size:15px;font-weight:700;fill:var(--ink);}
 
   /* Find us */
-  .venues{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:clamp(36px,5vw,56px);}
+  .venues{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:clamp(36px,5vw,56px);}
+  @media (min-width:1101px){ .venues .venue{min-height:262px;} }
+  @media (max-width:1100px){ .venues{grid-template-columns:repeat(2,1fr);} }
   @media (max-width:900px){ .venues{grid-template-columns:1fr;} }
   .venue{
     position:relative;overflow:hidden;min-height:220px;padding:24px;border-radius:28px;
@@ -570,6 +580,8 @@
   .venue .pin{position:absolute;top:30px;right:34px;width:40px;height:50px;color:var(--brand);}
   .venue h3{position:relative;font-size:1.35rem;}
   .venue p{position:relative;margin-top:6px;font-size:.95rem;}
+  .venue .slot{position:relative;align-self:flex-start;margin-bottom:10px;padding:4px 12px;border-radius:999px;background:var(--brand-fill);color:var(--on-brand);font-size:.8rem;font-weight:600;letter-spacing:.02em}
+  .venue .slot.eve{background:var(--dark);color:var(--on-dark)}
   .venue-soon{background:transparent;border:2px dashed var(--line);}
   .venue-soon .pin{color:var(--ink-soft);}
   .venue-soon a{position:relative;margin-top:14px;align-self:flex-start;font-weight:600;color:var(--brand);text-decoration:none;}
@@ -946,37 +958,7 @@
           <p>Familiar comfort food at honest prices. Here's what's rotating on the plate this week.</p>
         </div>
         <div class="menu-grid stagger" data-anim>
-          <article class="dish reveal" data-days="1,6">
-            <span class="today-flag">Today</span>
-            <div class="dish-art" aria-hidden="true">
-              <svg viewBox="0 0 200 150">
-                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
-                <g class="plate">
-                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
-                  <ellipse cx="80" cy="90" rx="30" ry="18" fill="#FBE7A1"/><circle cx="72" cy="86" r="3" fill="#7BAA5A"/><circle cx="86" cy="92" r="3" fill="#C0392B"/><circle cx="80" cy="82" r="2.5" fill="#7BAA5A"/>
-                  <circle cx="124" cy="96" r="18" fill="#B5621F"/><circle cx="118" cy="92" r="6" fill="#E8A94B"/><circle cx="130" cy="100" r="6" fill="#E8A94B"/>
-                </g>
-              </svg>
-            </div>
-            <div class="days"><span>Mon</span><span>Sat</span></div>
-            <div class="dish-foot"><h3>Polao &amp; Aloo Dum</h3><span class="price"><sup>₹</sup>65</span></div>
-          </article>
-          <article class="dish reveal" data-days="2,4">
-            <span class="today-flag">Today</span>
-            <div class="dish-art" aria-hidden="true">
-              <svg viewBox="0 0 200 150">
-                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
-                <g class="plate">
-                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
-                  <ellipse cx="82" cy="93" rx="32" ry="19" fill="#E9C46A"/><circle cx="74" cy="90" r="2.5" fill="#fff" opacity=".7"/><circle cx="90" cy="96" r="2.5" fill="#fff" opacity=".7"/>
-                  <circle cx="126" cy="94" r="17" fill="#6FA35C"/><rect x="118" y="88" width="7" height="7" rx="2" fill="#F08A3C"/><rect x="128" y="96" width="6" height="6" rx="2" fill="#F7E3A0"/><circle cx="132" cy="88" r="3" fill="#3C7D3A"/>
-                </g>
-              </svg>
-            </div>
-            <div class="days"><span>Tue</span><span>Thu</span></div>
-            <div class="dish-foot"><h3>Khichdi &amp; Mixed Veg</h3><span class="price"><sup>₹</sup>55</span></div>
-          </article>
-          <article class="dish reveal" data-days="3,5">
+          <article class="dish reveal" data-days="1,3,5">
             <span class="today-flag">Today</span>
             <div class="dish-art" aria-hidden="true">
               <svg viewBox="0 0 200 150">
@@ -988,9 +970,43 @@
                 </g>
               </svg>
             </div>
-            <div class="days"><span>Wed</span><span>Fri</span></div>
-            <div class="dish-foot"><h3>Polao &amp; Chicken Kosha</h3><span class="price"><sup>₹</sup>75</span></div>
+            <div class="days"><span>Mon</span><span>Wed</span><span>Fri</span><i class="ast" aria-hidden="true">**</i></div>
+            <div class="dish-foot"><h3>Rice<sup class="ast">*</sup> + Chicken Kosha</h3><span class="price"><sup>₹</sup>80</span></div>
           </article>
+          <article class="dish reveal" data-days="2">
+            <span class="today-flag">Today</span>
+            <div class="dish-art" aria-hidden="true">
+              <svg viewBox="0 0 200 150">
+                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
+                <g class="plate">
+                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
+                  <ellipse cx="80" cy="90" rx="30" ry="18" fill="#FBE7A1"/><circle cx="72" cy="86" r="3" fill="#7BAA5A"/><circle cx="86" cy="92" r="3" fill="#C0392B"/><circle cx="80" cy="82" r="2.5" fill="#7BAA5A"/>
+                  <circle cx="124" cy="96" r="18" fill="#B5621F"/><circle cx="118" cy="92" r="6" fill="#E8A94B"/><circle cx="130" cy="100" r="6" fill="#E8A94B"/>
+                </g>
+              </svg>
+            </div>
+            <div class="days"><span>Tue</span><i class="ast" aria-hidden="true">**</i></div>
+            <div class="dish-foot"><h3>Rice<sup class="ast">*</sup> + Matar Paneer</h3><span class="price"><sup>₹</sup>70</span></div>
+          </article>
+          <article class="dish reveal" data-days="4,6">
+            <span class="today-flag">Today</span>
+            <div class="dish-art" aria-hidden="true">
+              <svg viewBox="0 0 200 150">
+                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
+                <g class="plate">
+                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
+                  <ellipse cx="82" cy="93" rx="32" ry="19" fill="#E9C46A"/><circle cx="74" cy="90" r="2.5" fill="#fff" opacity=".7"/><circle cx="90" cy="96" r="2.5" fill="#fff" opacity=".7"/>
+                  <circle cx="126" cy="94" r="17" fill="#6FA35C"/><rect x="118" y="88" width="7" height="7" rx="2" fill="#F08A3C"/><rect x="128" y="96" width="6" height="6" rx="2" fill="#F7E3A0"/><circle cx="132" cy="88" r="3" fill="#3C7D3A"/>
+                </g>
+              </svg>
+            </div>
+            <div class="days"><span>Thu</span><span>Sat</span><i class="ast" aria-hidden="true">**</i></div>
+            <div class="dish-foot"><h3>Dal Khichdi + Aloo Dum</h3><span class="price"><sup>₹</sup>55</span></div>
+          </article>
+        </div>
+        <div class="menu-notes reveal">
+          <p class="rice-opt"><b>* Available rice options:</b> Fried Rice · Reshmi Polao · Kashmiri Polao. The rice is the chef's choice and depends on what's available that day.</p>
+          <p class="tentative"><b>** Tentative menu.</b> Check our mobile cart for that day's actual menu. Lunch and dinner menus may differ.</p>
         </div>
         <p class="menu-note reveal">Sunday is our day off — we're back on the pedal Monday.</p>
       </div>
@@ -1242,12 +1258,21 @@
           <article class="venue reveal">
             <svg class="map" aria-hidden="true"><use href="#i-map"/></svg>
             <svg class="pin" viewBox="0 0 24 30" aria-hidden="true"><use href="#i-pin"/></svg>
+            <span class="slot">Lunch · 12 – 3 pm</span>
             <h3>Court Compound</h3>
-            <p>Burdwan</p>
+            <p>Near Sanskriti Metro Ticket Counter, Burdwan</p>
+          </article>
+          <article class="venue reveal">
+            <svg class="map" aria-hidden="true"><use href="#i-map"/></svg>
+            <svg class="pin" viewBox="0 0 24 30" aria-hidden="true"><use href="#i-pin"/></svg>
+            <span class="slot eve">Evening · 6:30 – 10 pm</span>
+            <h3>Badamtala</h3>
+            <p>Near Bata showroom, opposite City Tower, Burdwan</p>
           </article>
           <article class="venue reveal">
             <svg class="map" aria-hidden="true" style="transform:scaleX(-1)"><use href="#i-map"/></svg>
             <svg class="pin" viewBox="0 0 24 30" aria-hidden="true"><use href="#i-pin"/></svg>
+            <span class="slot">Lunch · 12 – 3 pm</span>
             <h3>District Hospital Area</h3>
             <p>Burdwan</p>
           </article>
@@ -1408,7 +1433,7 @@
     label.textContent = 'Sunday — day off'; dishEl.textContent = 'Back on the pedal Monday';
   } else {
     document.querySelectorAll('.dish').forEach(function(card){
-      if (card.dataset.days.split(',').indexOf(String(day)) > -1){
+      if (card.dataset.days && card.dataset.days.split(',').indexOf(String(day)) > -1){
         card.classList.add('is-today');
         label.textContent = "Today's plate";
         dishEl.textContent = card.querySelector('h3').textContent + ' · ' + card.querySelector('.price').textContent;
