@@ -41,7 +41,7 @@ Follow these for every change to the site. Ask before deviating.
 - Never change the font, palette or copy rules on your own. If something seems to need it, ask first.
 - **Never change any wording (copy) the owner approved, not even to make it fit.** Resize or re-layout instead, and ask before rewording.
 - Print footers: two lines at most. Drop lower-priority items (e.g. Facebook) before adding a third line.
-- Lighthouse before and after every site change: mobile 96 / desktop 100, CLS 0, and no extra first-load weight. A change must not lower these.
+- **After every code change, run a Core Web Vitals check (Lighthouse, mobile and desktop, before vs after) and report it to the owner** with LCP, CLS, TBT (lab stand-in for INP), FCP, Speed Index and the scores. Targets: performance ≥ 90 (keep mobile 96 / desktop 100), LCP ≤ 2.5 s, CLS ≤ 0.1 (keep 0), TBT ≤ 200 ms, FCP ≤ 1.8 s, Speed Index ≤ 3.4 s, no extra first-load weight. If anything is below the standard, propose and make the fix (preview first).
 
 ## Photos on the site ("From the Streets", `#streets`)
 
