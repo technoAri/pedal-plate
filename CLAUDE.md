@@ -39,6 +39,8 @@ Follow these for every change to the site. Ask before deviating.
 - **Show a visual preview before any code or design change**, and wait for an OK. Explain trade-offs briefly, with a recommendation.
 - **Never redraw, trace or "clean up" the logo.** Use the supplied logo files as they are. Logo text colours: "Pedal" `#1B3E1E`, "Plate" `#96601A`.
 - Never change the font, palette or copy rules on your own. If something seems to need it, ask first.
+- **Never change any wording (copy) the owner approved, not even to make it fit.** Resize or re-layout instead, and ask before rewording.
+- Print footers: two lines at most. Drop lower-priority items (e.g. Facebook) before adding a third line.
 - Lighthouse before and after every site change: mobile 96 / desktop 100, CLS 0, and no extra first-load weight. A change must not lower these.
 
 ## Photos on the site ("From the Streets", `#streets`)
