@@ -422,6 +422,8 @@
   .dish:nth-child(2) .dish-art{background:radial-gradient(circle at 50% 60%,#F7EEDD,#E3C48F);}
   .dish:nth-child(3) .dish-art{background:radial-gradient(circle at 50% 60%,#EFD9B4,#B9834A);}
   .dish-art > svg{width:78%;}
+  .dish-art > img{display:block;width:100%;height:100%;object-fit:cover;}
+  @media (prefers-reduced-motion:no-preference){ .dish-art > img{transition:transform .5s cubic-bezier(.2,.8,.2,1);} .dish:hover .dish-art > img{transform:scale(1.04);} }
   .dish-art .plate{transform-box:fill-box;transform-origin:center;transition:transform .5s cubic-bezier(.2,.8,.2,1);}
   .dish:hover .dish-art .plate{transform:rotate(-8deg) scale(1.04);}
   .dish-art .steam path{stroke:#fff;stroke-width:4;opacity:.85;}
@@ -960,46 +962,19 @@
         <div class="menu-grid stagger" data-anim>
           <article class="dish reveal" data-days="1,3,5">
             <span class="today-flag">Today</span>
-            <div class="dish-art" aria-hidden="true">
-              <svg viewBox="0 0 200 150">
-                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
-                <g class="plate">
-                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
-                  <ellipse cx="78" cy="90" rx="28" ry="17" fill="#FBE7A1"/><circle cx="70" cy="86" r="2.5" fill="#7BAA5A"/><circle cx="84" cy="92" r="2.5" fill="#C0392B"/>
-                  <circle cx="125" cy="96" r="20" fill="#8A3A16"/><path d="M114 92c4-6 14-6 18 0M116 101c4 4 12 4 16-1" stroke="#C8622B" stroke-width="5" stroke-linecap="round" fill="none"/>
-                </g>
-              </svg>
-            </div>
+            <div class="dish-art"><img src="/images/menu/polao-chicken-600.webp" srcset="/images/menu/polao-chicken-400.webp 400w, /images/menu/polao-chicken-600.webp 600w, /images/menu/polao-chicken-800.webp 800w" sizes="(max-width:900px) 90vw, 340px" width="600" height="450" loading="lazy" decoding="async" alt="Polao with chicken kosha"></div>
             <div class="days"><span>Mon</span><span>Wed</span><span>Fri</span><i class="ast" aria-hidden="true">**</i></div>
             <div class="dish-foot"><h3>Rice<sup class="ast">*</sup> + Chicken Kosha</h3><span class="price"><sup>₹</sup>80</span></div>
           </article>
           <article class="dish reveal" data-days="2">
             <span class="today-flag">Today</span>
-            <div class="dish-art" aria-hidden="true">
-              <svg viewBox="0 0 200 150">
-                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
-                <g class="plate">
-                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
-                  <ellipse cx="80" cy="90" rx="30" ry="18" fill="#FBE7A1"/><circle cx="72" cy="86" r="3" fill="#7BAA5A"/><circle cx="86" cy="92" r="3" fill="#C0392B"/><circle cx="80" cy="82" r="2.5" fill="#7BAA5A"/>
-                  <circle cx="124" cy="96" r="18" fill="#B5621F"/><circle cx="118" cy="92" r="6" fill="#E8A94B"/><circle cx="130" cy="100" r="6" fill="#E8A94B"/>
-                </g>
-              </svg>
-            </div>
+            <div class="dish-art"><img src="/images/menu/rice-paneer-600.webp" srcset="/images/menu/rice-paneer-400.webp 400w, /images/menu/rice-paneer-600.webp 600w, /images/menu/rice-paneer-800.webp 800w" sizes="(max-width:900px) 90vw, 340px" width="600" height="450" loading="lazy" decoding="async" alt="Polao with matar paneer"></div>
             <div class="days"><span>Tue</span><i class="ast" aria-hidden="true">**</i></div>
             <div class="dish-foot"><h3>Rice<sup class="ast">*</sup> + Matar Paneer</h3><span class="price"><sup>₹</sup>70</span></div>
           </article>
           <article class="dish reveal" data-days="4,6">
             <span class="today-flag">Today</span>
-            <div class="dish-art" aria-hidden="true">
-              <svg viewBox="0 0 200 150">
-                <g class="steam" transform="translate(70 4)"><path d="M14 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M30 28c-4-6 4-9 0-16s3-10 0-12"/><path d="M46 28c-4-6 4-9 0-16s3-10 0-12"/></g>
-                <g class="plate">
-                  <ellipse cx="100" cy="95" rx="78" ry="44" fill="#fff"/><ellipse cx="100" cy="95" rx="62" ry="34" fill="#F4EEE2"/>
-                  <ellipse cx="82" cy="93" rx="32" ry="19" fill="#E9C46A"/><circle cx="74" cy="90" r="2.5" fill="#fff" opacity=".7"/><circle cx="90" cy="96" r="2.5" fill="#fff" opacity=".7"/>
-                  <circle cx="126" cy="94" r="17" fill="#6FA35C"/><rect x="118" y="88" width="7" height="7" rx="2" fill="#F08A3C"/><rect x="128" y="96" width="6" height="6" rx="2" fill="#F7E3A0"/><circle cx="132" cy="88" r="3" fill="#3C7D3A"/>
-                </g>
-              </svg>
-            </div>
+            <div class="dish-art"><img src="/images/menu/khichdi-aloo-600.webp" srcset="/images/menu/khichdi-aloo-400.webp 400w, /images/menu/khichdi-aloo-600.webp 600w, /images/menu/khichdi-aloo-800.webp 800w" sizes="(max-width:900px) 90vw, 340px" width="600" height="450" loading="lazy" decoding="async" alt="Dal khichdi with aloo dum"></div>
             <div class="days"><span>Thu</span><span>Sat</span><i class="ast" aria-hidden="true">**</i></div>
             <div class="dish-foot"><h3>Dal Khichdi + Aloo Dum</h3><span class="price"><sup>₹</sup>55</span></div>
           </article>
