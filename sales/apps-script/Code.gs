@@ -21,7 +21,7 @@ const SCHEMA = {
   Partners: ['partner_id', 'name', 'role', 'cart_id', 'phone', 'backup', 'active', 'start_date', 'pin_hash', 'salt', 'created_at'],
   Sessions: ['token', 'partner_id', 'cart_id', 'expires_at'],
   Sales:    ['sale_id', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'item_id', 'item_name', 'size', 'price', 'qty', 'amount', 'pay', 'source', 'status', 'void_by', 'void_at'],
-  Closes:   ['close_id', 'date', 'partner_id', 'partner_name', 'cart_id', 'plates', 'sales_total', 'cash_sales', 'upi_sales', 'float', 'spent', 'pouch_expected', 'pouch_counted', 'difference', 'handed_over', 'boxes_out', 'boxes_back', 'note', 'closed_at'],
+  Closes:   ['close_id', 'date', 'partner_id', 'partner_name', 'cart_id', 'plates', 'sales_total', 'cash_sales', 'upi_sales', 'float', 'spent', 'pouch_expected', 'pouch_counted', 'difference', 'handed_over', 'boxes_out', 'boxes_back', 'note', 'closed_at', 'leftover'],
   BankUpi:  ['date', 'amount', 'upi_tapped', 'difference', 'entered_by', 'entered_at'],
   Log:      ['at', 'by', 'action', 'details'],
 };
@@ -35,7 +35,7 @@ const DEFAULT_SETTINGS = [
 
 // Edit these two lines before running setup() the first time, then change the PIN from the app.
 const FIRST_FOUNDER_NAME = 'Arindam';
-const FIRST_FOUNDER_PIN = '9999';
+const FIRST_FOUNDER_PIN = '9999';   // set back to '0000' after setup() and change your PIN from the app (tap your name)
 
 /* ---------- entry points ---------- */
 
@@ -70,6 +70,7 @@ const ACTIONS = {
   record: { fn: recordSales },
   void: { fn: voidSale },
   mine: { fn: mineToday },
+  changePin: { fn: changePin },
   close: { fn: closeDay },
   today: { founder: true, fn: founderToday },
   bankUpi: { founder: true, fn: saveBankUpi },
@@ -78,6 +79,10 @@ const ACTIONS = {
   partnersUpdate: { founder: true, fn: updatePartner },
   partnersResetPin: { founder: true, fn: resetPin },
   logList: { founder: true, fn: () => ({ log: rowsTail('Log', 60).reverse() }) },
+  menuList: { founder: true, fn: () => ({ menu: menuAll() }) },
+  menuUpdate: { founder: true, fn: menuUpdate },
+  menuAdd: { founder: true, fn: menuAdd },
+  report: { founder: true, fn: report },
   logout: { fn: (req, s) => { deleteWhere('Sessions', r => r.token === req.token); return {}; } },
   setCart: { fn: (req, s) => {
     const cart = rows('Carts').find(c => String(c.cart_id) === String(req.cart_id) && truthy(c.active));
@@ -150,7 +155,7 @@ function recordSales(req, s) {
 function voidSale(req, s) {
   const id = String(req.sale_id || '');
   const undoMin = Number(setting('undo_minutes', 2));
-  let done = false;
+  let done = false, logged = null;
   withLock(() => {
     const sh = sheet('Sales'); const data = sh.getDataRange().getValues(); const h = data[0];
     const ci = name => h.indexOf(name);
@@ -161,10 +166,11 @@ function voidSale(req, s) {
       const age = (Date.now() - new Date(data[i][ci('created_at')]).getTime()) / 60000;
       if (!isFounder && (!own || age > undoMin + 1)) fail('This sale can no longer be undone. Ask a founder to correct it.');
       sh.getRange(i + 1, ci('status') + 1, 1, 3).setValues([['void', s.partner.name, new Date().toISOString()]]);
-      if (isFounder && !own) logAction(s.partner.name, 'void sale', id + ' (' + data[i][ci('partner_name')] + ')');
+      if (isFounder && !own) logged = id + ' (' + data[i][ci('partner_name')] + ')';
       done = true; break;
     }
   });
+  if (logged) logAction(s.partner.name, 'void sale', logged);   // outside the lock: logAction takes the lock itself
   return { voided: done };
 }
 
@@ -172,7 +178,7 @@ function mineToday(req, s) {
   const d = dateKey(new Date());
   const sales = todaysSales(d).filter(r => String(r.partner_id) === String(s.partner.partner_id));
   const close = rows('Closes').filter(r => r.date === d && String(r.partner_id) === String(s.partner.partner_id)).pop() || null;
-  return { date: d, totals: totalsOf(sales), close };
+  return { date: d, totals: totalsOf(sales), close, config: getConfig(), me: publicPartner(s.partner, s.cart_id) };
 }
 
 function closeDay(req, s) {
@@ -192,6 +198,7 @@ function closeDay(req, s) {
     boxes_out: req.boxes_out === '' || req.boxes_out == null ? '' : Number(req.boxes_out),
     boxes_back: req.boxes_back === '' || req.boxes_back == null ? '' : Number(req.boxes_back),
     note: String(req.note || '').slice(0, 300), closed_at: new Date().toISOString(),
+    leftover: req.leftover === '' || req.leftover == null ? '' : Math.max(0, Math.round(Number(req.leftover)) || 0),
   };
   withLock(() => append('Closes', row));   // a second close the same day is kept too; the latest one counts
   return { close: row, totals: t };
@@ -213,7 +220,7 @@ function founderToday(req) {
 }
 
 function saveBankUpi(req, s) {
-  const d = dateKey(new Date());
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(req.date || '') ? req.date : dateKey(new Date());
   const amount = Number(req.amount);
   if (!(amount >= 0)) fail('Enter the UPI amount.');
   const tapped = totalsOf(todaysSales(d)).upi;
@@ -228,7 +235,7 @@ function addPartner(req, s) {
   const pin = newPin();
   const salt = Utilities.getUuid();
   const p = {
-    partner_id: 'P' + Date.now().toString(36).toUpperCase(), name, role: 'partner', cart_id: String(req.cart_id || ''),
+    partner_id: newId('P'), name, role: 'partner', cart_id: String(req.cart_id || ''),
     phone: String(req.phone || '').slice(0, 20), backup: req.backup ? 'yes' : 'no', active: 'yes',
     start_date: String(req.start_date || dateKey(new Date())), pin_hash: hashPin(pin, salt), salt, created_at: new Date().toISOString(),
   };
@@ -242,11 +249,11 @@ function updatePartner(req, s) {
   if (req.cart_id != null) changes.cart_id = String(req.cart_id);
   if (req.active != null) changes.active = req.active ? 'yes' : 'no';
   if (req.backup != null) changes.backup = req.backup ? 'yes' : 'no';
+  if (changes.active === 'no' && String(req.partner_id) === String(s.partner.partner_id)) fail("You can't switch off your own login.");   // check before changing anything
   let target;
   withLock(() => {
     target = updateWhere('Partners', r => String(r.partner_id) === String(req.partner_id), changes);
     if (!target) fail('Partner not found.');
-    if (target.role === 'founder' && changes.active === 'no' && String(target.partner_id) === String(s.partner.partner_id)) fail("You can't switch off your own login.");
     if (changes.active === 'no') deleteWhere('Sessions', r => String(r.partner_id) === String(req.partner_id));
   });
   logAction(s.partner.name, 'updated partner', target.name + ': ' + Object.keys(changes).map(k => k + '=' + changes[k]).join(', '));
@@ -264,6 +271,96 @@ function resetPin(req, s) {
   });
   logAction(s.partner.name, 'reset PIN', p.name);
   return { pin, partner: publicPartner(p) };
+}
+
+function changePin(req, s) {
+  const oldPin = String(req.old_pin || ''), pin = String(req.new_pin || '');
+  if (s.partner.pin_hash !== hashPin(oldPin, s.partner.salt)) fail('Your current PIN is not right.');
+  if (!/^\d{4,6}$/.test(pin)) fail('The new PIN must be 4 to 6 digits.');
+  if (/^(\d)\1+$/.test(pin)) fail('Choose a PIN that is harder to guess.');
+  if (pinTaken(pin, s.partner.partner_id)) fail('That PIN is already in use. Choose another.');
+  const salt = Utilities.getUuid();
+  withLock(() => updateWhere('Partners', r => String(r.partner_id) === String(s.partner.partner_id), { pin_hash: hashPin(pin, salt), salt }));
+  logAction(s.partner.name, 'changed own PIN', '');
+  return {};
+}
+
+/* ----- menu (founders change today's combos and prices from the app) ----- */
+
+function menuAll() {
+  const items = {};
+  rows('Menu').sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0)).forEach(r => {
+    const it = items[r.item_id] = items[r.item_id] || { item_id: String(r.item_id), name: r.name, type: String(r.type).toLowerCase().indexOf('non') === 0 ? 'nonveg' : 'veg', active: false, sizes: [] };
+    it.sizes.push({ size: r.size || 'Full', price: Number(r.price) });
+    if (truthy(r.active)) it.active = true;
+  });
+  return Object.keys(items).map(k => items[k]);
+}
+
+function menuUpdate(req, s) {
+  const id = String(req.item_id || '');
+  const prices = req.prices && typeof req.prices === 'object' ? req.prices : null;
+  if (prices) Object.keys(prices).forEach(z => { if (!(Number(prices[z]) > 0)) fail('Enter a price for ' + z + '.'); });
+  let found = false;
+  withLock(() => {
+    const sh = sheet('Menu'); const data = sh.getDataRange().getValues(); const h = data[0];
+    const c = k => h.indexOf(k);
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][c('item_id')]) !== id) continue;
+      found = true;
+      if (req.active != null) sh.getRange(i + 1, c('active') + 1).setValue(req.active ? 'yes' : 'no');
+      const z = data[i][c('size')] || 'Full';
+      if (prices && prices[z] != null) sh.getRange(i + 1, c('price') + 1).setValue(Number(prices[z]));
+    }
+  });
+  if (!found) fail('That combo is not in the Menu tab.');
+  logAction(s.partner.name, 'menu', id + (req.active != null ? (req.active ? ' on' : ' off') : '') + (prices ? ' prices ' + JSON.stringify(prices) : ''));
+  return { menu: menuAll() };
+}
+
+function menuAdd(req, s) {
+  const name = String(req.name || '').trim().slice(0, 60);
+  if (!name) fail('Enter the combo name.');
+  const type = req.type === 'nonveg' ? 'nonveg' : 'veg';
+  const sizes = (Array.isArray(req.sizes) ? req.sizes : []).map(z => ({ size: String(z.size || 'Full').slice(0, 12), price: Number(z.price) })).filter(z => z.price > 0);
+  if (!sizes.length) fail('Enter at least one price.');
+  const all = rows('Menu');
+  if (all.some(r => String(r.name).toLowerCase() === name.toLowerCase())) fail('That combo already exists. Switch it on instead.');
+  const id = newId('M');
+  const sort = all.reduce((m, r) => Math.max(m, Number(r.sort) || 0), 0) + 1;
+  withLock(() => appendMany('Menu', sizes.map(z => ({ item_id: id, name, type, size: z.size, price: z.price, active: 'yes', sort }))));
+  logAction(s.partner.name, 'menu', 'added ' + name);
+  return { menu: menuAll() };
+}
+
+/* ----- reports and export ----- */
+
+function report(req) {
+  const ok = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '');
+  const to = ok(req.to) ? req.to : dateKey(new Date());
+  const from = ok(req.from) ? req.from : to;
+  if (from > to) fail('The start date is after the end date.');
+  if ((new Date(to) - new Date(from)) / 864e5 > 92) fail('Choose up to 3 months at a time.');
+  const sales = rows('Sales').filter(r => r.date >= from && r.date <= to && r.status !== 'void');
+  const closes = rows('Closes').filter(r => r.date >= from && r.date <= to);
+  const lastClose = {}; closes.forEach(c => lastClose[c.date + '|' + c.partner_id] = c);
+  const days = {}, items = {}, partners = {};
+  sales.forEach(r => {
+    (days[r.date] = days[r.date] || []).push(r);
+    const k = r.item_name + (r.size ? ' · ' + r.size : '');
+    const it = items[k] = items[k] || { plates: 0, total: 0 }; it.plates += Number(r.qty) || 0; it.total += Number(r.amount) || 0;
+    (partners[r.partner_name] = partners[r.partner_name] || []).push(r);
+  });
+  const leftoverBy = {}; Object.keys(lastClose).forEach(k => { const c = lastClose[k]; if (c.leftover !== '' && c.leftover != null) leftoverBy[c.date] = (leftoverBy[c.date] || 0) + Number(c.leftover); });
+  const bank = {}; rows('BankUpi').filter(r => r.date >= from && r.date <= to).forEach(b => bank[b.date] = b);
+  const perDay = Object.keys(days).concat(Object.keys(leftoverBy)).filter((d, i, a) => a.indexOf(d) === i).sort().map(d =>
+    Object.assign({ date: d, leftover: leftoverBy[d] == null ? '' : leftoverBy[d], bank_upi: bank[d] ? Number(bank[d].amount) : '' }, totalsOf(days[d] || [])));
+  return {
+    from, to, totals: totalsOf(sales), perDay,
+    byItem: Object.keys(items).map(k => Object.assign({ item: k }, items[k])).sort((a, b) => b.plates - a.plates),
+    byPartner: Object.keys(partners).map(n => Object.assign({ name: n }, totalsOf(partners[n]))).sort((a, b) => b.total - a.total),
+    sales: req.withSales ? sales.map(r => ({ date: r.date, time: r.created_at, partner: r.partner_name, cart: r.cart_id, item: r.item_name, size: r.size, qty: Number(r.qty), price: Number(r.price), amount: Number(r.amount), pay: r.pay, source: r.source, sale_id: r.sale_id })) : undefined,
+  };
 }
 
 /* ---------- business helpers ---------- */
@@ -327,6 +424,13 @@ function newPin() {
     used.add(pin);
   }
   fail('Could not create a PIN. Try again.');
+}
+
+// Time plus a random part, so two IDs made in the same millisecond never clash.
+function newId(prefix) { return prefix + Date.now().toString(36).toUpperCase() + Utilities.getUuid().slice(0, 4).toUpperCase(); }
+
+function pinTaken(pin, exceptId) {
+  return rows('Partners').some(p => String(p.partner_id) !== String(exceptId || '') && p.pin_hash && p.pin_hash === hashPin(pin, p.salt));
 }
 
 function hashPin(pin, salt) {
@@ -459,8 +563,9 @@ function addFounder() {
   const name = ui.prompt('Founder first name').getResponseText().trim();
   const pin = ui.prompt('PIN for ' + name + ' (4–6 digits)').getResponseText().trim();
   if (!name || !/^\d{4,6}$/.test(pin)) { ui.alert('Name and a 4–6 digit PIN are required.'); return; }
+  if (pinTaken(pin)) { ui.alert('That PIN is already used by someone else. Choose another.'); return; }
   const salt = Utilities.getUuid();
-  append('Partners', { partner_id: 'F' + Date.now().toString(36).toUpperCase(), name, role: 'founder', cart_id: '', phone: '', backup: 'no', active: 'yes',
+  append('Partners', { partner_id: newId('F'), name, role: 'founder', cart_id: '', phone: '', backup: 'no', active: 'yes',
     start_date: dateKey(new Date()), pin_hash: hashPin(pin, salt), salt, created_at: new Date().toISOString() });
   ui.alert(name + ' added as a founder.');
 }

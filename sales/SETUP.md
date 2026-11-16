@@ -19,7 +19,8 @@ Setup takes about 10 minutes and is done once.
    (it only needs access to this Sheet). This creates the tabs, a sample menu, two carts
    with a ₹500 float, and your founder login.
 6. Change `FIRST_FOUNDER_PIN` back to `'0000'` in the code and save, so the PIN isn't left in
-   the script.
+   the script. Once the app is connected (step 3), log in, tap your initial at the top, and set a
+   new PIN there.
 
 ## 2. Publish the script as a web app
 
@@ -43,7 +44,7 @@ for training.
 
 | Tab | What to edit |
 |---|---|
-| **Menu** | One row per combo **and size**. Same `item_id` for the Half and Full rows of one combo. `type` is `veg` or `nonveg`. Set `active` to `no` to hide a combo. Prices here are what taps use. |
+| **Menu** | Easiest from the app: founder → **Menu** to switch today's combos on or off, change prices, or add a combo. In the Sheet: one row per combo **and size**, same `item_id` for the Half and Full rows, `type` is `veg` or `nonveg`, `active` `yes`/`no`. Prices here are what taps use. Partners' phones pick up changes within a minute. |
 | **Carts** | One row per cart: `cart_id` (e.g. `C3`), name, `float` (₹ kept in the pouch every morning), `active`. |
 | **Settings** | `undo_minutes`, `session_hours`, `pin_length`, `timezone`. |
 | **Partners** | Add partners from the app (founder → Partners → Add partner). Add more founders by running `addFounder` from the Apps Script editor. Never delete rows: switch people off instead. |
@@ -51,10 +52,20 @@ for training.
 The other tabs (**Sales, Closes, BankUpi, Sessions, Log**) are written by the app. Read them,
 build charts or pivot tables from them, but don't edit their columns.
 
+## Daily use
+
+- **Partners:** log in with the PIN, tap **Cash** or **UPI** after every plate, **Close my day**
+  at the end (pouch count, boxes, plates left over). Tap your initial at the top to change your PIN.
+- **Founders:** **Today** (any day with the date picker, plus the UPI check against the bank),
+  **Menu** (today's combos and prices), **Reports** (any date range up to 3 months, with
+  **Daily summary** and **Every sale** CSV downloads that open in Excel or Google Sheets),
+  **Partners** (add, reset PIN, switch off, recent changes), **Sell**.
+
 ## Updating the script later
 
 1. Paste the new `Code.gs` over the old one and save.
-2. Run **setup** again. It only adds missing tabs and columns; it never deletes data.
+2. Run **setup** again. It only adds missing tabs and columns (for example the `leftover`
+   column in **Closes**); it never deletes data.
 3. **Deploy → Manage deployments → Edit → Version: New version → Deploy.** The URL stays the same.
 
 ## How the money check works
