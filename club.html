@@ -56,6 +56,22 @@
   .hist div{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:3px 0}
   .fine{font-size:12px;color:var(--soft)}
   a{color:var(--brand);font-weight:600}
+  .qr{display:flex;align-items:center;gap:14px;background:#FBF6EC;color:#2B2620;border-radius:16px;padding:10px 14px 10px 10px}
+  .qr .box{flex:none;width:112px;height:112px;background:#fff;border-radius:10px;padding:4px}
+  .qr .box svg{width:100%;height:100%;display:block}
+  .qr p{font-size:13px;line-height:1.4}
+  .qr b{display:block;font-size:14px}
+  form.join{display:grid;gap:12px}
+  label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--soft)}
+  input[type=text],input[type=tel]{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;width:100%}
+  label.chk{display:flex;gap:10px;align-items:flex-start;font-weight:500}
+  label.chk input{width:20px;height:20px;flex:none;margin-top:2px;accent-color:var(--brand)}
+  .btn{display:block;width:100%;text-align:center;font:inherit;font-weight:700;font-size:16px;border:0;border-radius:14px;padding:14px 18px;background:#96601A;color:#FBF6EC;cursor:pointer;text-decoration:none}
+  .btn:disabled{opacity:.6}
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .err{color:#C0392B;font-weight:600;font-size:14px}
+  @media (prefers-color-scheme: dark){.err{color:#E5695C}}
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
   .spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;vertical-align:-2px;margin-right:6px}
   @media (prefers-reduced-motion:no-preference){.spin{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}}
 </style>
@@ -67,9 +83,9 @@
   <section class="card" id="how">
     <h2>How Pedal Club works</h2>
     <ol>
-      <li>Ask for your bill on WhatsApp at any Pedal Plate cart. Your card link comes with it.</li>
+      <li>Join here, or ask for your bill on WhatsApp at any Pedal Plate cart. Your card link comes with your bill.</li>
       <li>Every combo you buy at the cart adds a stamp, up to <span data-r="cap">2</span> a day.</li>
-      <li>After <span data-r="stamps">9</span> stamps, your <span data-r="nth">10th</span> combo is free. Show the 4-digit code on this card to claim it.</li>
+      <li>After <span data-r="stamps">9</span> stamps, your <span data-r="nth">10th</span> combo is free. Show this card at the cart to claim it: the rider scans the QR or you read out the 4-digit code.</li>
     </ol>
     <p class="fine">Free to join. A card is valid for <span data-r="days">30</span> days from its first stamp; after that, or after your free meal, the next plate starts a new card on the same number. Not for corporate, bulk or home delivery orders. Keep your card link to yourself: anyone with it can see your code. To stop messages or delete your number, WhatsApp us on +91 76991 49899.</p>
   </section>
@@ -101,7 +117,7 @@ function passHtml(p, d) {
   const cls = p.state === 'ready' ? 'ready' : p.state === 'active' ? '' : 'old';
   const status = {
     active: [`${p.stamps} of ${p.need} stamps. ${p.need - p.stamps} more and your next combo is free.`, ''],
-    ready: [`Your free meal is ready! Show this card at any Pedal Plate cart by ${nice(p.claim_till)} and read out your code.`, 'ok'],
+    ready: [`Your free meal is ready! Show this card at any Pedal Plate cart by ${nice(p.claim_till)}.`, 'ok'],
     redeemed: ['Free meal enjoyed. Your next plate starts a new card.', ''],
     expired: [`This card ended on ${nice(p.claim_till || p.valid_till)}. Your next plate starts a new card.`, ''],
   }[p.state];
@@ -110,6 +126,7 @@ function passHtml(p, d) {
       <div><div class="who">${esc(d.name || 'Pedal Club member')}</div><div class="sm">${esc(d.masked)} · card from ${nice(p.issued)}</div></div>
       <div class="dots" aria-label="${p.stamps} of ${p.need} stamps">${dots}</div>
       ${p.code ? `<div class="code">Card code<b>${esc(p.code)}</b>Read it out only at the cart</div>` : ''}
+      ${p.code ? `<div class="qr"><div class="box" data-qr aria-label="Your Pedal Club QR"></div><p><b>Show this at the cart</b>The rider scans it to add your stamp or give your free meal.</p></div>` : ''}
     </div>
     <div class="status ${status[1]}">${status[0]}</div>
     ${p.dates.length ? `<details class="card"><summary style="font-weight:700;cursor:pointer">Stamp dates on this card</summary><div class="hist" style="margin-top:8px">${p.dates.slice().sort().map((x, i) => `<div><span>Stamp ${i + 1}</span><span>${nice(x)}</span></div>`).join('')}</div></details>` : ''}`;
@@ -126,6 +143,56 @@ function show(d) {
     ${live.length ? live.map(p => passHtml(p, d)).join('') : `<div class="status">No card running right now. Your next combo at the cart starts a new one.</div>`}
     ${old.length ? `<details class="card"><summary style="font-weight:700;cursor:pointer">Earlier cards</summary><div style="display:grid;gap:10px;margin-top:10px">${old.map(p => passHtml(p, d)).join('')}</div></details>` : ''}
   </div>`;
+  drawQr();
+}
+
+// The QR is the card's own link, so the rider's scanner (or any phone camera) recognises it.
+// The QR library loads only when a card is shown.
+function drawQr() {
+  const boxes = document.querySelectorAll('[data-qr]'); if (!boxes.length) return;
+  const link = 'https://pedalplate.in/club#' + location.hash.slice(1);
+  const paint = () => { const q = qrcode(0, 'M'); q.addData(link); q.make(); const svg = q.createSvgTag({cellSize: 4, margin: 2, scalable: true}); boxes.forEach(b => b.innerHTML = svg); };
+  if (window.qrcode) return paint();
+  const s = document.createElement('script'); s.src = '/vendor/qrcode.js'; s.onload = paint; document.head.appendChild(s);
+}
+
+// Join online: saves name, number and consent. The card link comes with the first WhatsApp bill.
+function joinForm(msg) {
+  app.innerHTML = `<div style="display:grid;gap:14px">
+    <h1>Join Pedal Club</h1>
+    <p class="muted">Free. Every <span data-r="nth">10th</span> combo at our carts is on us.</p>
+    <form class="join card" id="jf" novalidate>
+      <label for="jn">Your name<input type="text" id="jn" autocomplete="given-name" maxlength="40" required></label>
+      <label for="jp">WhatsApp number<input type="tel" id="jp" inputmode="numeric" autocomplete="tel" maxlength="14" placeholder="10-digit mobile" required></label>
+      <div class="hp" aria-hidden="true"><label for="jw">Leave empty<input type="text" id="jw" tabindex="-1" autocomplete="off"></label></div>
+      <label class="chk" for="jc"><input type="checkbox" id="jc"><span>Pedal Plate may save my name and number to send my bills and Pedal Club updates on WhatsApp. I can ask to delete them anytime.</span></label>
+      <p class="err" id="je" role="alert">${esc(msg || '')}</p>
+      <button class="btn" id="jb">Join Pedal Club</button>
+    </form>
+  </div>`;
+  $('#jf').oninput = () => { $('#je').textContent = ''; };
+  $('#jf').onsubmit = async e => {
+    e.preventDefault();
+    const name = $('#jn').value.trim(), phone = $('#jp').value, consent = $('#jc').checked, er = $('#je');
+    if (!name) { er.textContent = 'Type your name.'; return; }
+    if (phone.replace(/\D/g, '').length < 10) { er.textContent = 'Type your 10-digit WhatsApp number.'; return; }
+    if (!consent) { er.textContent = 'Tick the box so we can save your number.'; return; }
+    $('#jb').disabled = true; $('#jb').textContent = 'Joining…'; er.textContent = '';
+    try {
+      const j = API_URL ? await (await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubJoin', name, phone, consent, website:$('#jw').value})})).json() : {ok:true};
+      if (!j.ok) { er.textContent = j.error || 'Something went wrong. Try again.'; $('#jb').disabled = false; $('#jb').textContent = 'Join Pedal Club'; return; }
+      app.innerHTML = `<div class="status ok" style="display:grid;gap:6px"><b style="font-size:18px">You're in, ${esc(name.split(' ')[0])}!</b><span>Next time at a Pedal Plate cart, ask for your bill on WhatsApp and tell the rider this number. Your Pedal Club card comes with that bill, and every combo adds a stamp.</span></div>`;
+    } catch (err) { er.textContent = navigator.onLine ? 'Something went wrong. Try again.' : 'No internet. Try again when you are online.'; $('#jb').disabled = false; $('#jb').textContent = 'Join Pedal Club'; }
+  };
+}
+
+function landing() {
+  app.innerHTML = `<div style="display:grid;gap:14px">
+    <h1>Every <span data-r="nth">10th</span> meal is on us.</h1>
+    <p class="muted">Pedal Club is free. No app, no fee. Join in a few seconds and start collecting stamps at our carts.</p>
+    <a class="btn" href="#join">Join Pedal Club</a>
+    <p class="fine">Already a member? Your card opens from the link in your WhatsApp bill.</p>
+  </div>`;
 }
 
 function fail(msg) { app.innerHTML = `<div class="status">${esc(msg)}</div>`; }
@@ -133,7 +200,8 @@ function fail(msg) { app.innerHTML = `<div class="status">${esc(msg)}</div>`; }
 (async () => {
   const key = location.hash.slice(1);
   if (!API_URL || key === 'demo') { show(sample()); app.insertAdjacentHTML('afterbegin', '<p class="fine" style="margin-bottom:8px">Sample card. Your own card opens from the link in your WhatsApp bill.</p>'); return; }
-  if (!key) { app.innerHTML = '<h1>Pedal Club</h1><p class="muted" style="margin-top:6px">Your card opens from the link in your WhatsApp bill. New here? Ask for your bill on WhatsApp at the cart.</p>'; return; }
+  if (key === 'join') return joinForm();
+  if (!key) return landing();
   try {
     const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubCard', t:key}), redirect:'follow'});
     const j = await r.json();

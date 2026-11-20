@@ -111,6 +111,7 @@ const ACTIONS = {
   clubFlagOk: { founder: true, fn: clubFlagOk },
   clubManual: { founder: true, fn: clubManual },
   menuPublic: { public: true, fn: menuPublic },
+  clubJoin: { public: true, fn: clubJoin },
   logout: { fn: (req, s) => { deleteWhere('Sessions', r => r.token === req.token); return {}; } },
   setCart: { fn: (req, s) => {
     const cart = rows('Carts').find(c => String(c.cart_id) === String(req.cart_id) && truthy(c.active));
@@ -523,8 +524,17 @@ function partnerSafe(c, card, R) {
     ready: card.ready.map(v => ({ pass_id: v.pass_id, claim_till: v.claim_till })), capLeft: card.capLeft };
 }
 
+// The QR on a customer's card is their card link (pedalplate.in/club#<key>). Scanning it finds them.
+function cardKey(v) { const m = String(v || '').match(/([a-f0-9]{32,48})\s*$/i); return m ? m[1].toLowerCase() : ''; }
+
 function clubFind(req, s) {
   const R = clubRules(), today = dateKey(new Date()), D = clubLoad();
+  if (req.card != null) {
+    const k = cardKey(req.card);
+    const c = k ? D.customers.find(x => !x.deleted_at && x.card_token === k) : null;
+    if (!c) fail('This is not a Pedal Club card, or it was replaced. Type the number instead.');
+    return { matches: [Object.assign(partnerSafe(c, customerCard(c, D, R, today), R), { scanned: true })], isNew: false, club_on: R.on };
+  }
   const q = String(req.q || '').replace(/\D/g, '');
   if (q.length === 4) {
     const list = D.customers.filter(c => !c.deleted_at && c.phone && c.phone.slice(-4) === q).slice(0, 5);
@@ -592,6 +602,34 @@ function clubManual(req, s) {
   });
   logAction(s.partner.name, 'club: stamps by hand', phoneMasked + ' +' + n + ' · ' + reason);
   return out;
+}
+
+// Join online (public form at pedalplate.in/club). This only saves the name, number and consent:
+// the card link still goes to that WhatsApp number with the first bill at the cart, which proves
+// the number is theirs. The reply is the same whether or not the number was already in, so the form
+// can't be used to check who is a member.
+function clubJoin(req) {
+  const cache = CacheService.getScriptCache();
+  const n = Number(cache.get('club_joins') || 0);
+  if (n >= 60) fail('Lots of people are joining right now. Please try again in a few minutes.');
+  if (String(req.website || '') !== '') return { joined: true };   // hidden field: filled only by bots
+  const phone = normPhone(req.phone);
+  if (!phone) fail('Type your 10-digit WhatsApp number.');
+  if (req.consent !== true) fail('Tick the box so we can save your number.');
+  const name = String(req.name || '').trim().replace(/\s+/g, ' ').slice(0, 40);
+  if (!name) fail('Type your name.');
+  cache.put('club_joins', String(n + 1), 3600);
+  let added = false;
+  withLock(() => {
+    const D = clubLoad();
+    const c = findCustomer(D, phone);
+    if (c) { if (!c.name) updateWhere('Customers', r => String(r.customer_id) === c.customer_id, { name }); return; }
+    append('Customers', { customer_id: newId('CU'), phone, name, card_token: Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8),
+      consent_at: new Date().toISOString(), consent_by: 'website', created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '' });
+    added = true;
+  });
+  if (added) logAction('Website', 'club: joined online', maskPhone(phone));
+  return { joined: true };
 }
 
 function newCode() { let c; do { c = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); } while (/^(\d)\1+$/.test(c)); return c; }
@@ -693,9 +731,11 @@ function clubRedeem(req, s) {
     if (!ready.length) fail('No free meal is ready on this number.');
     const code = padCode(req.code);
     const override = req.override === true && s.partner.role === 'founder';
+    const scanned = !override && req.card != null && cardKey(req.card) !== '' && cardKey(req.card) === c.card_token;   // scanning their card counts as the code
+    if (req.card != null && !scanned && !override) fail('That card belongs to someone else. Scan the right card or type the code.');
     if (req.override === true && !override) fail('Only founders can give a free meal without the code.');
     if (override && String(req.reason || '').trim().length < 3) fail('Write why the code is not available.');
-    const pv = override ? ready[0] : ready.find(v => v.code === code && String(req.code || '').replace(/\D/g, '').length === 4);
+    const pv = override || scanned ? ready[0] : ready.find(v => v.code === code && String(req.code || '').replace(/\D/g, '').length === 4);
     if (!pv) {
       cache.put(key, String(wrong + 1), 21600);
       if (wrong + 1 >= 5) lockout = maskPhone(c.phone);

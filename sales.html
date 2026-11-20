@@ -145,6 +145,10 @@
   .flag.info{border-left-color:var(--brand);background:var(--tint)}
   a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none;color:inherit}
   a.btn.primary{color:var(--on)}
+  .scan{position:fixed;inset:0;z-index:30;background:#000;display:grid;grid-template-rows:1fr auto}
+  .scan video{width:100%;height:100%;object-fit:cover}
+  .scan .frame{position:absolute;left:50%;top:42%;width:min(70vw,300px);aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #FBF6EC;border-radius:24px;box-shadow:0 0 0 999px rgba(0,0,0,.45)}
+  .scan .bar{padding:16px max(16px,env(safe-area-inset-left,0px)) calc(16px + env(safe-area-inset-bottom,0px));background:#14110D;color:#FBF6EC;display:grid;gap:10px;text-align:center}
   .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.88rem;z-index:20;max-width:calc(100% - 32px);text-align:center}
   .spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;vertical-align:-2px;margin-right:6px}
   @media (prefers-reduced-motion:no-preference){.spin{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}}
@@ -265,7 +269,9 @@ const DemoApi = (() => {
       save(); return {saved}; },
     void({token, sale_id}) { const s = sess(token); const r = db.sales.find(x => x.sale_id === sale_id); if (r && (s.p.role === 'founder' || r.partner_id === s.p.partner_id)) { r.status = 'void';
       db.stamps.forEach(x => { if (x.sale_id === sale_id) x.status = 'void'; }); if (r.ref && r.ref.startsWith('club:')) { const p = db.passes.find(x => x.pass_id === r.ref.slice(5)); if (p) p.status = 'open'; } save(); } return {voided:!!r}; },
-    clubFind({token, q}) { sess(token); q = String(q||'').replace(/\D/g,'');
+    clubFind({token, q, card}) { sess(token);
+      if (card != null) { const m = String(card).match(/([a-f0-9]{32,48})\s*$/i); const c = m ? liveC().find(x => x.card_token === m[1].toLowerCase()) : null; if (!c) throw new Error('This is not a Pedal Club card, or it was replaced. Type the number instead.'); return {matches:[Object.assign(psafe(c), {scanned:true})], isNew:false, club_on:CR.on}; }
+      q = String(q||'').replace(/\D/g,'');
       if (q.length === 4) return {matches:liveC().filter(c => c.phone.endsWith(q)).slice(0,5).map(psafe), isNew:false, club_on:CR.on};
       const ph = norm(q); if (!ph) throw new Error('Type the 10-digit number, or the last 4 digits for a regular.');
       const c = liveC().find(x => x.phone === ph); return c ? {matches:[psafe(c)], isNew:false, club_on:CR.on} : {matches:[], isNew:true, masked:mask(ph), club_on:CR.on}; },
@@ -299,11 +305,13 @@ const DemoApi = (() => {
         db.stamps.push({stamp_id:'ST'+uid().slice(0,8), pass_id:act.pass_id, customer_id:c.customer_id, sale_id:'manual', date:today, created_at:new Date(Date.now()+i).toISOString(), partner_name:s.p.name+' (by hand)', cart_id:'', status:'ok'}); act.stamps++; }
       log(s.p.name, 'club: stamps by hand', mask(c.phone)+' +'+n+' · '+reason); save(); const k = ccard(c);
       return {given:n, newPass, stamps:k.active?k.active.stamps:0, need:CR.stamps, ready:k.ready.length, link:CR.site+'/club#'+c.card_token, wa_phone:'91'+c.phone, name:c.name||'', cid:c.customer_id}; },
-    clubRedeem({token, cid, code, item_id, override, reason}) { const s = sess(token); const c = liveC().find(x => x.customer_id === cid); if (!c) throw new Error('Customer not found. Type the number again.');
+    clubRedeem({token, cid, code, item_id, override, reason, card}) { const s = sess(token); const c = liveC().find(x => x.customer_id === cid); if (!c) throw new Error('Customer not found. Type the number again.');
       if (override === true && s.p.role !== 'founder') throw new Error('Only founders can give a free meal without the code.'); if (override === true && String(reason||'').trim().length < 3) throw new Error('Write why the code is not available.');
       if (c.blocked) throw new Error('Pedal Club is on hold for this number. Ask a founder.'); if ((wrong[cid]||0) >= 5) throw new Error('Too many wrong codes for this number. Try again later or ask a founder.');
       const ready = ccard(c).ready; if (!ready.length) throw new Error('No free meal is ready on this number.');
-      const p = override === true ? ready[0] : ready.find(v => v.code === String(code||'')); if (!p) { wrong[cid] = (wrong[cid]||0) + 1; throw new Error("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code."); }
+      const km = card != null ? String(card).match(/([a-f0-9]{32,48})\s*$/i) : null; const scanned = !!(km && km[1].toLowerCase() === c.card_token);
+      if (card != null && !scanned && override !== true) throw new Error('That card belongs to someone else. Scan the right card or type the code.');
+      const p = override === true || scanned ? ready[0] : ready.find(v => v.code === String(code||'')); if (!p) { wrong[cid] = (wrong[cid]||0) + 1; throw new Error("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code."); }
       const it = db.menu.find(m => m.item_id === item_id && m.active !== false); if (!it) throw new Error("Choose one of today's combos.");
       const z = it.sizes.slice().sort((a,b) => b.price - a.price)[0];
       const sale = {sale_id:'CLUB'+uid().slice(0,8), created_at:new Date().toISOString(), date:todayKey(), partner_id:s.p.partner_id, partner_name:s.p.name, cart_id:s.cart, item_id, item_name:it.name, size:z.size, price:0, qty:1, amount:0, pay:'Free', source:'club', status:'ok', order_type:'walkin', ref:'club:'+p.pass_id};
@@ -570,6 +578,26 @@ function closeMsg(c) {
   return `📍 ${cartName(c.cart_id)} · ${c.partner_name}\n🍱 Plates: ${c.plates}\n💰 Sales ${rs(c.sales_total)} = Cash ${rs(c.cash_sales)} + UPI ${rs(c.upi_sales)}\n🧾 Spent from pouch: ${rs(c.spent)}\n🧮 Pouch ${rs(c.pouch_counted)} (${d===0?'matches':rs(Math.abs(d))+(d<0?' short':' over')}) · handed over ${rs(c.handed_over)}, float ${rs(c.float)} kept` + (c.boxes_out !== '' && c.boxes_out != null ? `\n📦 Boxes: ${c.boxes_out} out, ${c.boxes_back} back` : '') + (c.leftover !== '' && c.leftover != null ? `\n🍲 Left over: ${c.leftover} plates` : '') + (Number(c.free_plates) ? `\n🎁 Free meals (Pedal Club): ${c.free_plates}` : '');
 }
 
+/* ----- Scan a customer's Pedal Club card (phone's built-in QR reader; Chrome on Android) ----- */
+const canScan = () => 'BarcodeDetector' in window && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+let scanStop = null;
+async function scanCard(onCode) {
+  const box = document.createElement('div'); box.className = 'scan';
+  box.innerHTML = '<video playsinline muted></video><div class="frame" aria-hidden="true"></div><div class="bar"><b>Point at the QR on the customer\'s Pedal Club card</b><button class="btn" data-a="scanClose">Cancel, type the number instead</button></div>';
+  document.body.appendChild(box);
+  let stream, timer, done = false;
+  scanStop = () => { done = true; clearInterval(timer); if (stream) stream.getTracks().forEach(t => t.stop()); box.remove(); scanStop = null; };
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
+    const v = box.querySelector('video'); v.srcObject = stream; await v.play();
+    const det = new BarcodeDetector({formats: ['qr_code']});
+    timer = setInterval(async () => {
+      if (done || v.readyState < 2) return;
+      try { const r = await det.detect(v); if (r.length && !done) { const raw = r[0].rawValue; scanStop(); if (navigator.vibrate) navigator.vibrate(60); onCode(raw); } } catch (e) {}
+    }, 250);
+  } catch (e) { if (scanStop) scanStop(); toast('Camera not available. Type the number instead.'); }
+}
+
 /* ----- WhatsApp bill and Pedal Club (partner) ----- */
 // The plates most likely to be this customer's: the latest run of unbilled taps, each within 3 minutes of the next.
 function lastRun(list) {
@@ -603,7 +631,7 @@ function vBill() {
     <div class="kv" style="margin-top:6px"><span>Bill total</span><span class="num">${sel.length} plate${sel.length === 1 ? '' : 's'} · ${rs(total)}</span></div></div>
    <div class="card" style="margin-top:12px">
     <label>Customer's WhatsApp number<input id="bPh" type="tel" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="10 digits, or last 4 for a regular" value="${esc(B.q)}"></label>
-    <button class="btn" data-a="billFind" ${S.busy ? 'disabled' : ''}>${S.busy && !ready ? '<span class="spin"></span>Finding…' : 'Find'}</button>
+    <div class="row" style="margin:0"><button class="btn" data-a="billFind" ${S.busy ? 'disabled' : ''}>${S.busy && !ready ? '<span class="spin"></span>Finding…' : 'Find'}</button>${canScan() ? `<button class="btn" data-a="billScan" ${S.busy ? 'disabled' : ''}>📷 Scan card</button>` : ''}</div>
     ${who}
     ${ready && clubOn() && anyStampable && !(B.pick && B.pick.blocked) ? `<label class="chk"><input type="checkbox" id="bSt" ${B.stamp ? 'checked' : ''}><span>Add Pedal Club stamps<small>One per walk-in plate, up to ${esc(cfg().settings.club_daily_cap || 2)} a day. Every ${ord(clubNeed() + 1)} meal is free.</small></span></label>` : ''}
     ${ready ? `<button class="btn primary" data-a="billSend" ${S.busy || !sel.length ? 'disabled' : ''}>${S.busy ? '<span class="spin"></span>Saving…' : 'Make bill'}</button>` : ''}
@@ -623,6 +651,14 @@ async function billFind() {
     B.stamp = clubOn() && !(B.pick && B.pick.blocked); }
   catch (e) { handleError(e); }
   S.busy = false; render();
+}
+function billScan() {
+  scanCard(async raw => {
+    const B = S.bill; S.busy = true; vBill();
+    try { const r = await api('clubFind', {card: raw}); B.matches = r.matches; B.isNew = false; B.pick = r.matches[0]; B.phone = ''; B.q = ''; B.stamp = clubOn() && !B.pick.blocked; toast('Card scanned: ' + (B.pick.name || B.pick.masked)); }
+    catch (e) { handleError(e); }
+    S.busy = false; render();
+  });
 }
 async function billSend() {
   const B = S.bill;
@@ -678,7 +714,7 @@ function vBillDone() {
 }
 
 function vFree() {
-  const F = S.free || (S.free = {q: '', matches: null, pick: null, code: '', item: '', done: null, override: false, reason: ''});
+  const F = S.free || (S.free = {q: '', matches: null, pick: null, code: '', item: '', done: null, override: false, reason: '', card: ''});
   if (F.done) {
     app.innerHTML = topbar() + `<div class="card club ready" style="text-align:center"><h1>🎁 Free meal saved</h1><p>${esc(F.done.sale.item_name)} · ${esc(F.done.sale.size)} for ${esc(F.done.customer.name || 'the customer')} (${esc(F.done.customer.masked)}).</p><p class="muted" style="font-size:.86rem">Hand over the plate. It counts as a plate in today's total, at ₹0.</p></div><div class="row"><button class="btn primary" data-v="sell">Back to selling</button></div>`;
     return;
@@ -690,12 +726,12 @@ function vFree() {
   else if (m && m.blocked) body = `<div class="diff bad">Pedal Club is on hold for this number. Ask a founder.</div>`;
   else if (m && !m.ready.length) body = `<div class="card club" style="gap:8px"><b>${esc(m.name || 'Customer')} · ${esc(m.masked)}</b>${clubLine(m)}<p class="muted" style="font-size:.86rem">No free meal yet. ${m.need - m.stamps} more stamp${m.need - m.stamps === 1 ? '' : 's'} to go.</p></div>`;
   else if (m) body = `<div class="card club ready" style="gap:10px"><b>${esc(m.name || 'Customer')} · ${esc(m.masked)}</b><p style="font-size:.88rem">Free meal ready. Ask the customer to open their Pedal Club card and read you the 4-digit card code.</p>
-     ${F.override ? `<label>Why there's no code (founders only, logged)<input id="fWhy" maxlength="120" value="${esc(F.reason)}" placeholder="e.g. customer lost their phone"></label>` : `<label>Card code<input id="fCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" value="${esc(F.code)}" style="font-size:1.4rem;letter-spacing:.3em;text-align:center"></label>`}
+     ${F.card && !F.override ? `<div class="diff ok">✓ Card scanned: no code needed</div>` : F.override ? `<label>Why there's no code (founders only, logged)<input id="fWhy" maxlength="120" value="${esc(F.reason)}" placeholder="e.g. customer lost their phone"></label>` : `<label>Card code<input id="fCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" value="${esc(F.code)}" style="font-size:1.4rem;letter-spacing:.3em;text-align:center"></label>`}
      ${isFounder() ? `<label class="chk"><input type="checkbox" id="fOv" ${F.override ? 'checked' : ''}><span>Customer can't show the code<small>Founder override. Saved in the log with your name.</small></span></label>` : ''}
      <label>Free combo<select id="fItem">${menu.map(x => `<option value="${esc(x.item_id)}" ${x.item_id === F.item ? 'selected' : ''}>${esc(x.name)}${x.sizes.length > 1 ? ' (' + esc(x.sizes.slice().sort((a, b) => b.price - a.price)[0].size) + ')' : ''}</option>`).join('')}</select></label>
      <button class="btn primary" data-a="freeGive" ${S.busy ? 'disabled' : ''}>${S.busy ? '<span class="spin"></span>Saving…' : 'Give free meal'}</button></div>`;
   app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">Free meal</h1><p class="muted" style="margin-bottom:12px">Every ${ord(clubNeed() + 1)} meal is free for Pedal Club members.</p>
-   <div class="card"><label>Customer's number<input id="fPh" type="tel" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="10 digits, or last 4" value="${esc(F.q)}"></label><button class="btn" data-a="freeFind" ${S.busy ? 'disabled' : ''}>Find</button>${body}</div>
+   <div class="card"><label>Customer's number<input id="fPh" type="tel" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="10 digits, or last 4" value="${esc(F.q)}"></label><div class="row" style="margin:0"><button class="btn" data-a="freeFind" ${S.busy ? 'disabled' : ''}>Find</button>${canScan() ? `<button class="btn" data-a="freeScan" ${S.busy ? 'disabled' : ''}>📷 Scan card</button>` : ''}</div>${body}</div>
    <div class="row"><button class="btn ghost" data-v="sell">Back to selling</button></div>`;
   $('#fPh').oninput = e => F.q = e.target.value; $('#fPh').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); freeFind(); } };
   if ($('#fCode')) $('#fCode').oninput = e => F.code = e.target.value.replace(/\D/g, '');
@@ -703,8 +739,16 @@ function vFree() {
   if ($('#fOv')) $('#fOv').onchange = e => { F.override = e.target.checked; vFree(); };
   if ($('#fItem')) { F.item = $('#fItem').value; $('#fItem').onchange = e => F.item = e.target.value; }
 }
+function freeScan() {
+  scanCard(async raw => {
+    const F = S.free; S.busy = true; vFree();
+    try { const r = await api('clubFind', {card: raw}); F.matches = r.matches; F.pick = r.matches[0]; F.card = raw; F.q = ''; F.code = ''; toast('Card scanned: ' + (F.pick.name || F.pick.masked)); }
+    catch (e) { handleError(e); }
+    S.busy = false; render();
+  });
+}
 async function freeFind() {
-  const F = S.free, q = ($('#fPh').value || '').replace(/\D/g, ''); F.q = q;
+  const F = S.free, q = ($('#fPh').value || '').replace(/\D/g, ''); F.q = q; F.card = '';
   if (q.length !== 4 && q.length < 10) { toast('Type 10 digits, or the last 4'); return; }
   S.busy = true; vFree();
   try { const r = await api('clubFind', {q}); F.matches = r.matches; F.pick = r.matches.length === 1 ? r.matches[0] : null; } catch (e) { handleError(e); }
@@ -713,9 +757,9 @@ async function freeFind() {
 async function freeGive() {
   const F = S.free;
   if (F.override) { if (F.reason.trim().length < 3) { toast("Write why there's no code"); return; } }
-  else if (!/^\d{4}$/.test(F.code)) { toast('Type the 4-digit card code'); return; }
+  else if (!F.card && !/^\d{4}$/.test(F.code)) { toast('Type the 4-digit card code'); return; }
   S.busy = true; vFree();
-  try { F.done = await api('clubRedeem', F.override ? {cid: F.pick.cid, override: true, reason: F.reason.trim(), item_id: F.item} : {cid: F.pick.cid, code: F.code, item_id: F.item}); await refreshMine(); }
+  try { F.done = await api('clubRedeem', F.override ? {cid: F.pick.cid, override: true, reason: F.reason.trim(), item_id: F.item} : F.card ? {cid: F.pick.cid, card: F.card, item_id: F.item} : {cid: F.pick.cid, code: F.code, item_id: F.item}); await refreshMine(); }
   catch (e) { handleError(e); F.code = ''; }
   S.busy = false; render();
 }
@@ -992,6 +1036,9 @@ document.addEventListener('click', async e => {
   else if (a === 'billCopy') copy(S.bill && S.bill.text || '');
   else if (a === 'freeFind') freeFind();
   else if (a === 'freeGive') freeGive();
+  else if (a === 'billScan') billScan();
+  else if (a === 'freeScan') freeScan();
+  else if (a === 'scanClose') { if (scanStop) scanStop(); }
   else if (a === 'clubSearch') { const q = $('#cq').value.trim(); if (!q) return; S.clubQ = {q}; S.view = 'clubc'; S.founderData = null; render(); }
 });
 document.addEventListener('change', async e => {
