@@ -55,7 +55,7 @@ const FIRST_FOUNDER_PIN = '9999';   // set back to '0000' after setup() and chan
 
 function doPost(e) {
   let req = {};
-  SETTINGS_CACHE = null;
+  SETTINGS_CACHE = null; READ = {};
   try {
     req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     const handler = ACTIONS[req.action];
@@ -112,11 +112,12 @@ const ACTIONS = {
   clubManual: { founder: true, fn: clubManual },
   menuPublic: { public: true, fn: menuPublic },
   clubJoin: { public: true, fn: clubJoin },
-  logout: { fn: (req, s) => { deleteWhere('Sessions', r => r.token === req.token); return {}; } },
+  logout: { fn: (req, s) => { withLock(() => deleteWhere('Sessions', r => r.token === req.token)); CacheService.getScriptCache().remove('sess_' + req.token); return {}; } },
   setCart: { fn: (req, s) => {
     const cart = rows('Carts').find(c => String(c.cart_id) === String(req.cart_id) && truthy(c.active));
     if (!cart) fail('That cart is not active.');
     withLock(() => updateWhere('Sessions', r => r.token === req.token, { cart_id: String(cart.cart_id) }));
+    rememberSession({ token: req.token, partner_id: s.partner.partner_id, cart_id: String(cart.cart_id), expires_at: s.expires_at }, s.partner.salt);
     return { me: publicPartner(s.partner, String(cart.cart_id)) };
   } },
 };
@@ -134,16 +135,18 @@ function login(req) {
   const cache = CacheService.getScriptCache();
   const fails = Number(cache.get('login_fails') || 0);
   if (fails >= 12) fail('Too many wrong PINs. Wait 10 minutes and try again.');
-  const p = rows('Partners').find(r => r.pin_hash && r.pin_hash === hashPin(pin, r.salt));
+  const p = partnersCached().find(r => r.pin_hash && r.pin_hash === hashPin(pin, r.salt));
   if (!p) { cache.put('login_fails', String(fails + 1), 600); fail("That PIN isn't recognised. Try again."); }
   if (!truthy(p.active)) fail(p.name + "'s PIN is switched off. Ask a founder.");
   const cart = String(req.cart_id || p.cart_id || '');
   const token = Utilities.getUuid() + Utilities.getUuid().slice(0, 8);
   const hours = Number(setting('session_hours', 18));
+  const sess = { token, partner_id: p.partner_id, cart_id: cart, expires_at: new Date(Date.now() + hours * 3600e3).toISOString() };
   withLock(() => {
-    deleteWhere('Sessions', r => new Date(r.expires_at) < new Date());
-    append('Sessions', { token, partner_id: p.partner_id, cart_id: cart, expires_at: new Date(Date.now() + hours * 3600e3).toISOString() });
+    if (Math.random() < 0.05) deleteWhere('Sessions', r => new Date(r.expires_at) < new Date());   // tidy up now and then, not on every login
+    append('Sessions', sess);
   });
+  rememberSession(sess, p.salt);
   return { token, me: publicPartner(p, cart), config: getConfig(), expires_in_hours: hours };
 }
 
@@ -273,6 +276,7 @@ function addPartner(req, s) {
     start_date: String(req.start_date || dateKey(new Date())), pin_hash: hashPin(pin, salt), salt, created_at: new Date().toISOString(),
   };
   withLock(() => append('Partners', p));
+  partnersChanged();
   logAction(s.partner.name, 'added partner', name + ' (' + (p.cart_id || 'no cart') + (p.backup === 'yes' ? ', backup' : '') + ')');
   return { partner: publicPartner(p), pin };
 }
@@ -289,6 +293,7 @@ function updatePartner(req, s) {
     if (!target) fail('Partner not found.');
     if (changes.active === 'no') deleteWhere('Sessions', r => String(r.partner_id) === String(req.partner_id));
   });
+  partnersChanged();
   logAction(s.partner.name, 'updated partner', target.name + ': ' + Object.keys(changes).map(k => k + '=' + changes[k]).join(', '));
   return { partner: publicPartner(Object.assign(target, changes)) };
 }
@@ -302,6 +307,7 @@ function resetPin(req, s) {
     updateWhere('Partners', r => String(r.partner_id) === String(p.partner_id), { pin_hash: hashPin(pin, salt), salt });
     deleteWhere('Sessions', r => String(r.partner_id) === String(p.partner_id));
   });
+  partnersChanged();   // cached logins check the PIN salt, so the old logins stop at once
   logAction(s.partner.name, 'reset PIN', p.name);
   return { pin, partner: publicPartner(p) };
 }
@@ -314,6 +320,8 @@ function changePin(req, s) {
   if (pinTaken(pin, s.partner.partner_id)) fail('That PIN is already in use. Choose another.');
   const salt = Utilities.getUuid();
   withLock(() => updateWhere('Partners', r => String(r.partner_id) === String(s.partner.partner_id), { pin_hash: hashPin(pin, salt), salt }));
+  partnersChanged();
+  rememberSession({ token: req.token, partner_id: s.partner.partner_id, cart_id: s.cart_id, expires_at: s.expires_at }, salt);   // stay logged in on this phone
   logAction(s.partner.name, 'changed own PIN', '');
   return {};
 }
@@ -357,7 +365,7 @@ function menuPublic() {
   cache.put('menu_public', JSON.stringify(out), 300);
   return out;
 }
-function menuChanged() { CacheService.getScriptCache().remove('menu_public'); }
+function menuChanged() { const c = CacheService.getScriptCache(); c.remove('menu_public'); c.remove('config_v1'); }
 
 // Change a combo: switch on/off, prices (a new size such as Half adds a row), name, type, website fields.
 function menuUpdate(req, s) {
@@ -794,6 +802,7 @@ function clubCard(req) {
   const bad = Number(cache.get('club_bad_tokens') || 0);
   if (bad > 300) fail('Too many requests. Try again in a few minutes.');
   if (!/^[a-f0-9]{32,48}$/i.test(t)) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('This card link is not complete. Open the link from your WhatsApp bill.'); }
+  if (!rows('Customers').some(x => x.card_token === t && !x.deleted_at)) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('This card link has changed or was removed. Open the latest link from your WhatsApp bill, or join again.'); }
   const R = clubRules(), today = dateKey(new Date()), D = clubLoad();
   const c = D.customers.find(x => x.card_token === t && !x.deleted_at);
   if (!c) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('This card link has changed or was removed. Open the latest link from your WhatsApp bill, or join again.'); }
@@ -919,6 +928,11 @@ function clubFlagOk(req, s) {
 /* ---------- business helpers ---------- */
 
 function getConfig() {
+  const c = cached('config_v1', 60, buildConfig);
+  c.date = dateKey(new Date());
+  return c;
+}
+function buildConfig() {
   const items = {};
   rows('Menu').filter(r => truthy(r.active)).sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0)).forEach(r => {
     const it = items[r.item_id] = items[r.item_id] || { item_id: r.item_id, name: r.name, type: String(r.type).toLowerCase().indexOf('non') === 0 ? 'nonveg' : 'veg', sizes: [] };
@@ -958,13 +972,37 @@ function publicPartner(p, cartOverride) {
     cart_id: String(cartOverride != null ? cartOverride : p.cart_id || ''), backup: truthy(p.backup), active: truthy(p.active), start_date: p.start_date || '' };
 }
 
+// Logins are remembered for a few hours so most requests skip the Sessions tab. The PIN salt is
+// stored with them: a PIN reset or change makes the old logins stop at once.
 function getSession(token) {
   if (!token) return null;
-  const s = rows('Sessions').find(r => r.token === token);
-  if (!s || new Date(s.expires_at) < new Date()) return null;
-  const p = rows('Partners').find(r => String(r.partner_id) === String(s.partner_id));
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('sess_' + token);
+  let s = hit ? JSON.parse(hit) : null;
+  if (!s) { const r = rows('Sessions').find(x => x.token === token); if (!r) return null; s = { token, partner_id: String(r.partner_id), cart_id: String(r.cart_id || ''), expires_at: r.expires_at }; }
+  if (new Date(s.expires_at) < new Date()) return null;
+  const p = partnersCached().find(r => String(r.partner_id) === String(s.partner_id));
   if (!p || !truthy(p.active)) return null;
-  return { partner: p, cart_id: String(s.cart_id || p.cart_id || '') };
+  if (s.salt && s.salt !== p.salt) return null;
+  if (!hit) rememberSession(s, p.salt);
+  return { partner: p, cart_id: String(s.cart_id || p.cart_id || ''), expires_at: s.expires_at };
+}
+function rememberSession(s, salt) {
+  const left = Math.floor((new Date(s.expires_at) - new Date()) / 1000);
+  if (left > 0) try { CacheService.getScriptCache().put('sess_' + s.token, JSON.stringify({ token: s.token, partner_id: String(s.partner_id), cart_id: String(s.cart_id || ''), expires_at: s.expires_at, salt }), Math.min(21600, left)); } catch (e) {}
+}
+function partnersCached() { return cached('partners_v1', 60, () => rows('Partners')); }
+function partnersChanged() { CacheService.getScriptCache().remove('partners_v1'); }
+
+// Short-term memory shared by all requests (Apps Script cache). Changes made in the app clear it;
+// edits typed straight into the Sheet show within a minute.
+function cached(key, seconds, build) {
+  const c = CacheService.getScriptCache();
+  const hit = c.get(key);
+  if (hit) return JSON.parse(hit);
+  const v = build();
+  try { c.put(key, JSON.stringify(v), seconds); } catch (e) {}
+  return v;
 }
 
 function newPin() {
@@ -996,7 +1034,7 @@ function logAction(by, action, details) { withLock(() => append('Log', { at: new
 
 let SETTINGS_CACHE = null;   // reset at the start of every request
 function setting(key, fallback) {
-  if (!SETTINGS_CACHE) { SETTINGS_CACHE = {}; rows('Settings').forEach(x => SETTINGS_CACHE[x.key] = x.value); }
+  if (!SETTINGS_CACHE) SETTINGS_CACHE = cached('settings_v1', 60, () => { const o = {}; rows('Settings').forEach(x => o[x.key] = x.value); return o; });
   const v = SETTINGS_CACHE[key]; return v !== undefined && v !== '' ? v : fallback;
 }
 
@@ -1036,7 +1074,19 @@ function toObjects(values) {
   });
 }
 
-function rows(name) { return toObjects(sheet(name).getDataRange().getValues()); }
+// Each tab is read at most once per request (writes clear it).
+let READ = {};
+function rows(name) {
+  if (!READ[name]) READ[name] = toObjects(sheet(name).getDataRange().getValues());
+  return READ[name].map(o => Object.assign({}, o));
+}
+function changed(name) {
+  delete READ[name];
+  const c = CacheService.getScriptCache();
+  if (name === 'Settings') { c.remove('settings_v1'); c.remove('config_v1'); SETTINGS_CACHE = null; }
+  if (name === 'Menu' || name === 'Carts') { c.remove('config_v1'); c.remove('menu_public'); }
+  if (name === 'Partners') c.remove('partners_v1');
+}
 
 function rowsTail(name, n) {
   const sh = sheet(name); const last = sh.getLastRow(); const cols = sh.getLastColumn();
@@ -1054,6 +1104,7 @@ function appendMany(name, objs) {
   if (!objs.length) return;
   const sh = sheet(name); const h = headerOf(sh);
   sh.getRange(sh.getLastRow() + 1, 1, objs.length, h.length).setValues(objs.map(o => h.map(k => o[k] == null ? '' : o[k])));
+  changed(name);
 }
 
 function updateWhere(name, test, changes) {
@@ -1062,6 +1113,7 @@ function updateWhere(name, test, changes) {
     const o = {}; h.forEach((k, j) => o[k] = data[i][j]);
     if (!test(o)) continue;
     Object.keys(changes).forEach(k => { const j = h.indexOf(k); if (j >= 0) sh.getRange(i + 1, j + 1).setValue(changes[k]); });
+    changed(name);
     return o;
   }
   return null;
@@ -1071,14 +1123,15 @@ function deleteWhere(name, test) {
   const sh = sheet(name); const data = sh.getDataRange().getValues(); const h = data[0];
   for (let i = data.length - 1; i >= 1; i--) {
     const o = {}; h.forEach((k, j) => o[k] = data[i][j] instanceof Date ? data[i][j].toISOString() : data[i][j]);
-    if (test(o)) sh.deleteRow(i + 1);
+    if (test(o)) { sh.deleteRow(i + 1); changed(name); }
   }
 }
 
 function withLock(fn, after) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) fail('Busy right now. Try again in a moment.');
-  try { return fn(); } finally { lock.releaseLock(); if (after) after(); }
+  READ = {};   // read fresh inside the lock (another phone may have just written)
+  try { return fn(); } finally { READ = {}; lock.releaseLock(); if (after) after(); }
 }
 
 /* ---------- one-time setup (run from the Apps Script editor) ---------- */

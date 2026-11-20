@@ -178,8 +178,12 @@ function drawQr() {
   const boxes = document.querySelectorAll('[data-qr]'); if (!boxes.length) return;
   const link = 'https://pedalplate.in/club#' + location.hash.slice(1);
   const paint = () => { const q = qrcode(0, 'M'); q.addData(link); q.make(); const svg = q.createSvgTag({cellSize: 4, margin: 4, scalable: true}); boxes.forEach(b => b.innerHTML = svg); };
-  if (window.qrcode) return paint();
-  const s = document.createElement('script'); s.src = '/vendor/qrcode.js'; s.onload = paint; document.head.appendChild(s);
+  loadQr().then(paint);
+}
+let qrLoading = null;
+function loadQr() {   // started together with the card request, so the QR is ready when the card arrives
+  if (window.qrcode) return Promise.resolve();
+  return qrLoading || (qrLoading = new Promise(res => { const s = document.createElement('script'); s.src = '/vendor/qrcode.js'; s.onload = res; document.head.appendChild(s); }));
 }
 
 // Join online: saves name, number and consent. The card link comes with the first WhatsApp bill.
@@ -230,6 +234,7 @@ function fail(msg) { app.innerHTML = `<div class="status">${esc(msg)}</div>`; }
   if (!API_URL || key === 'demo') { show(sample()); app.insertAdjacentHTML('afterbegin', '<p class="fine" style="margin-bottom:8px">Sample card. Your own card opens from the link in your WhatsApp bill.</p>'); return; }
   if (key === 'join') return joinForm();
   if (!key) return landing();
+  if (/^[a-f0-9]{32,48}$/i.test(key)) loadQr();
   try {
     const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubCard', t:key}), redirect:'follow'});
     const j = await r.json();
