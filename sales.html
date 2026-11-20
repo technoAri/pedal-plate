@@ -149,6 +149,42 @@
   .scan video{width:100%;height:100%;object-fit:cover}
   .scan .frame{position:absolute;left:50%;top:42%;width:min(70vw,300px);aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #FBF6EC;border-radius:24px;box-shadow:0 0 0 999px rgba(0,0,0,.45)}
   .scan .bar{padding:16px max(16px,env(safe-area-inset-left,0px)) calc(16px + env(safe-area-inset-bottom,0px));background:#14110D;color:#FBF6EC;display:grid;gap:10px;text-align:center}
+  /* Sell v2 */
+  .combo-pick{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);margin-bottom:12px}
+  .combo-pick.on{border:2px solid var(--brand);background:var(--tint)}
+  .combo-pick small{display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+  .combo-pick b{display:block;font-size:1.05rem;line-height:1.25}
+  .combo-pick span small+b{margin-top:1px}
+  .combo-pick > span:last-child small:last-child{text-transform:none;letter-spacing:0;font-weight:500;font-size:.8rem}
+  .plates{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;margin-bottom:12px}
+  .pl{display:grid;gap:6px}
+  .pl .add{display:grid;justify-items:center;gap:2px;padding:12px 8px 10px;border-radius:18px;border:2px solid var(--line);background:var(--surface);min-height:132px}
+  .pl.on .add{border-color:var(--brand);background:var(--tint)}
+  .pl .add small{font-size:.85rem;font-weight:700;color:var(--soft)}
+  .pl .add b{font-size:1.5rem;font-weight:800;line-height:1.1}
+  .pl .add em{font-style:normal;font-size:1.6rem;font-weight:800;color:var(--brand);line-height:1.1}
+  .pl .add .plus{font-size:.78rem;font-weight:700;color:var(--brand)}
+  .pl .minus{min-height:40px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:700}
+  .pl .minus:disabled{opacity:.35}
+  .pl .add:active{transform:scale(.97)}
+  .custbox{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;border-radius:16px;border:2px dashed var(--line);margin-bottom:12px}
+  .custbox .hint{grid-column:1/-1;text-align:center}
+  .btn.dark{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .member{display:grid;gap:8px;padding:12px;border-radius:16px;border:2px solid var(--brand);background:var(--tint);margin-bottom:12px}
+  .member.ready{border-color:var(--basil);background:var(--basil-tint)}
+  .member .mtop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .member .x{border:0;background:none;font-size:1rem;color:var(--soft);min-width:36px;min-height:36px;border-radius:10px}
+  .freeq{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface);color:var(--basil);font-weight:700;font-size:.88rem}
+  .freeq input{width:24px;height:24px;flex:none;accent-color:var(--basil)}
+  .ototal{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px;margin:4px 0 10px}
+  .ototal span{color:var(--soft);font-weight:600;font-size:.9rem}
+  .ototal b{font-size:1.9rem;font-weight:800}
+  .paybtns.big .paybtn{min-height:74px;font-size:1.25rem;display:grid;place-content:center;line-height:1.15}
+  .paybtns.big .paybtn small{display:block;font-size:.72rem;font-weight:600;opacity:.9}
+  .paybtn:disabled{opacity:.4}
+  .lastbill{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--basil-tint);font-size:.84rem;font-weight:600;margin-bottom:12px}
+  .lastbill a{color:var(--basil);font-weight:800}
+  .busy{position:fixed;inset:0;z-index:25;background:rgba(30,26,21,.55);display:grid;place-content:center;color:#FBF6EC;font-weight:700;padding:20px;text-align:center}
   .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.88rem;z-index:20;max-width:calc(100% - 32px);text-align:center}
   .spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;vertical-align:-2px;margin-right:6px}
   @media (prefers-reduced-motion:no-preference){.spin{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}}
@@ -179,7 +215,9 @@ const rs = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
 const hm = t => new Date(t).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit'});
-const keyOf = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+// Days follow India time (like the Sheet), whatever time zone the phone is set to.
+const IST = new Intl.DateTimeFormat('en-CA', {timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'});
+const keyOf = d => IST.format(d);
 const todayKey = () => keyOf(new Date());
 const daysAgo = n => keyOf(new Date(Date.now() - n * 864e5));
 const nice = k => k ? new Date(k + 'T12:00').toLocaleDateString('en-IN', {day:'numeric', month:'short'}) : '';
@@ -383,6 +421,7 @@ const S = {
   local: store.get('local', []),                // this phone's sales since the last refresh (for the feed)
   base: store.get('base', null),                // today's totals from the Sheet at the last refresh
   view: 'sell', entered: '', err: '', busy: false, online: navigator.onLine, newPin: null, founderData: null,
+  lastBill: store.get('lastBill', null), pendingBill: store.get('pendingBill', null), order: null,
 };
 const persist = () => { store.set('session', S.session); store.set('queue', S.queue); store.set('local', S.local); store.set('base', S.base); };
 const me = () => S.session && S.session.me;
@@ -410,10 +449,16 @@ function handleError(e) {
 }
 
 /* ---------- sync ---------- */
-let syncing = false;
+let syncing = null;
+// Sends queued sales. If a send is already running, waits for it (and sends anything still left),
+// so the bill step can rely on "after flush(), these plates are in the Sheet unless there's no signal".
 async function flush() {
-  if (syncing || !S.session || !S.queue.length || !navigator.onLine) return;
-  syncing = true;
+  while (syncing) await syncing;   // wait for every send already running (one may start another)
+  if (!S.session || !S.queue.length || !navigator.onLine) return;
+  syncing = sendQueue();
+  try { await syncing; } finally { syncing = null; if (S.view === 'sell') renderTop(); }
+}
+async function sendQueue() {
   try {
     // Each sale is sent with the login that recorded it, so a partner switch never re-labels sales.
     const groups = {};
@@ -429,7 +474,6 @@ async function flush() {
     }
     if (!S.queue.some(x => S.session && x._t === S.session.token)) await refreshMine();
   } catch (e) {}
-  finally { syncing = false; if (S.view === 'sell') renderTop(); }
 }
 async function refreshMine() {
   try {
@@ -450,14 +494,14 @@ setInterval(() => { if (S.session && navigator.onLine && S.view === 'sell' && !p
 
 function myTotals() {
   const t = Object.assign({plates:0,total:0,cash:0,upi:0,manualPlates:0,freePlates:0}, S.base || {});
-  S.local.forEach(x => { if (x.inBase) return; t.plates += x.qty; t.total += x.price * x.qty; x.pay === 'UPI' ? t.upi += x.price * x.qty : t.cash += x.price * x.qty; if (x.source === 'manual') t.manualPlates += x.qty; });
+  S.local.forEach(x => { if (x.inBase) return; t.plates += x.qty; t.total += x.price * x.qty; if (x.pay === 'Free') t.freePlates += x.qty; else if (x.pay === 'UPI') t.upi += x.price * x.qty; else t.cash += x.price * x.qty; if (x.source === 'manual') t.manualPlates += x.qty; });
   return t;
 }
 
 /* ---------- views ---------- */
 function topbar() {
   const u = me(), q = S.queue.length;
-  return `<div class="top" id="top"><div class="who"><button class="av" data-v="me" aria-label="My PIN and settings" style="border:0">${esc(u.name[0])}</button><div><b>${esc(u.name)}</b><small>${u.role==='founder'?'Founder':esc(cartName(u.cart_id))} · ${new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</small></div></div>
+  return `<div class="top" id="top"><div class="who"><button class="av" data-v="me" aria-label="My PIN and settings" style="border:0">${esc(u.name[0])}</button><div><b>${esc(u.name)}</b><small>${u.role==='founder'?'Founder':esc(cartName(u.cart_id))} · ${new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',timeZone:'Asia/Kolkata'})}</small></div></div>
     <div style="display:flex;align-items:center;gap:4px"><span class="net ${S.online?'':'off'}">${S.online?(q?q+' to send':'Saved'):(q?q+' waiting':'Offline')}</span><button class="link" data-a="logout">Switch partner</button></div></div>`;
 }
 function renderTop() { const el = $('#top'); if (el && me()) el.outerHTML = topbar(); }
@@ -487,28 +531,10 @@ async function key(k) {
   render();
 }
 
-function vSell() {
-  const t = myTotals();
-  const undoMin = Number(cfg().settings.undo_minutes || 2);
-  const last = S.local[S.local.length - 1], canUndo = last && Date.now() - last.at < undoMin * 60000;
-  const cart = me().cart_id;
-  app.innerHTML = topbar() + `
-    ${!cart || !cartOf(cart) ? `<div class="diff bad" style="margin-bottom:12px">Choose your cart before selling.</div>` : ''}
-    <div class="totals"><div class="tot main"><small>Sold today</small><b class="num">${rs(t.total)}</b></div><div class="tot"><small>Plates</small><b class="num">${t.plates}</b></div><div class="tot"><small>Cash / UPI</small><b class="num" style="font-size:.92rem">${rs(t.cash)} / ${rs(t.upi)}</b></div></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px"><p class="hint">One tap per plate: press how the customer paid.</p><button class="mini" data-v="cart">${esc(cartName(cart))} ▾</button></div>
-    <div class="row" style="margin:0 0 12px"><button class="btn" data-v="bill" ${cart&&cartOf(cart)?'':'disabled'}>🧾 WhatsApp bill</button><button class="btn" data-v="free" ${cart&&cartOf(cart)?'':'disabled'}>🎁 Free meal</button></div>
-    <div class="items">${cfg().menu.map(it => `<div class="item"><div class="ihead"><span class="mark ${it.type}" aria-label="${it.type==='veg'?'Veg':'Non-veg'}"><i></i></span><b>${esc(it.name)}</b></div>
-      ${it.sizes.map(z => `<div class="size"><div class="row1"><span><span class="lbl">${esc(z.size)}</span> <span class="pr num">${rs(z.price)}</span></span></div>
-        <div class="paybtns"><button class="paybtn cash" data-sell="${esc(it.item_id)}|${esc(z.size)}|Cash" ${cart&&cartOf(cart)?'':'disabled'} aria-label="One ${esc(z.size)} ${esc(it.name)}, paid cash">💵 Cash</button><button class="paybtn upi" data-sell="${esc(it.item_id)}|${esc(z.size)}|UPI" ${cart&&cartOf(cart)?'':'disabled'} aria-label="One ${esc(z.size)} ${esc(it.name)}, paid UPI">📱 UPI</button></div></div>`).join('')}</div>`).join('') || '<p class="muted">No combos are switched on in the Menu tab yet.</p>'}</div>
-    <div class="row"><button class="btn" data-a="undo" ${canUndo?'':'disabled'}>↶ Undo last</button><button class="btn" data-v="missed">+ Missed sale</button></div>
-    <div class="row"><button class="btn primary" data-v="close">Close my day</button></div>
-    <div class="feed"><h3>Recent on this phone</h3>${S.local.slice(-6).reverse().map(x => `<div class="fe"><span>${x.qty} × ${esc(x.item_name)} · ${esc(x.size)}${x.source==='manual'?'<span class="tag m">Added later</span>':''}${x.order_type&&x.order_type!=='walkin'?`<span class="tag">${OT[x.order_type]}</span>`:''}${x.bill?'<span class="tag">Billed</span>':''}${x.synced?'':'<span class="tag p">Not sent</span>'}</span><span class="num">${x.pay} · ${hm(x.at)}</span></div>`).join('') || '<p class="muted">No sales yet. Tap Cash or UPI after each plate.</p>'}</div>`;
-}
-
-function addSale(item_id, size, pay, qty, price, source, order_type) {
+function addSale(item_id, size, pay, qty, price, source, order_type, orderId) {
   const it = cfg().menu.find(m => m.item_id === item_id); const z = it && it.sizes.find(s => s.size === size);
   if (!it || !z) return;
-  const sale = {sale_id: uid(), created_at: new Date().toISOString(), at: Date.now(), item_id, item_name: it.name, size, pay, qty: qty || 1, price: price || z.price, source: source || 'tap', order_type: order_type || 'walkin', synced: false};
+  const sale = {sale_id: uid(), created_at: new Date().toISOString(), at: Date.now(), item_id, item_name: it.name, size, pay, qty: qty || 1, price: price || z.price, source: source || 'tap', order_type: order_type || 'walkin', synced: false, order: orderId || undefined};
   S.local.push(sale);
   S.queue.push({_t: S.session.token, sale_id: sale.sale_id, created_at: sale.created_at, item_id, size, pay, qty: sale.qty, price: sale.source === 'manual' ? sale.price : undefined, source: sale.source, order_type: sale.order_type});
   persist(); flush();
@@ -523,13 +549,13 @@ async function undoLast() {
 
 function vMissed() {
   const menu = cfg().menu;
-  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">Add a missed sale</h1><p class="muted" style="margin-bottom:14px">For plates sold without tapping, and for corporate, bulk or delivery orders. These are marked "added later".</p>
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">Bulk, delivery or missed sale</h1><p class="muted" style="margin-bottom:14px">For plates sold without tapping, and for corporate, bulk or delivery orders. These are marked "added later".</p>
   <form class="card" id="mf"><label>Combo<select id="mItem">${menu.map(m => `<option value="${esc(m.item_id)}">${esc(m.name)}</option>`).join('')}</select></label>
    <div class="grid2"><label>Size<select id="mSize"></select></label><label>Price per plate (₹)<input id="mPrice" type="number" inputmode="numeric" min="1"></label></div>
    <div class="grid2"><label>Number of plates<input id="mQty" type="number" inputmode="numeric" min="1" value="1"></label><div><span style="display:block;font-size:.82rem;font-weight:600;color:var(--soft);margin-bottom:4px">Paid by</span><div class="seg" id="mPay"><button type="button" data-mp="Cash" aria-pressed="false">Cash</button><button type="button" data-mp="UPI" aria-pressed="false">UPI</button></div></div></div>
    <label>Order type<select id="mType"><option value="walkin">Walk-in at the cart</option><option value="corporate">Corporate / bulk order</option><option value="delivery">Home delivery</option></select></label>
    <div class="kv"><span>Total</span><span id="mTot" class="num">—</span></div>
-   <div class="row" style="margin:0"><button type="button" class="btn ghost" data-v="sell">Cancel</button><button class="btn primary">Add sale</button></div></form>`;
+   <div class="row" style="margin:0"><button type="button" class="btn ghost" data-v="more">Cancel</button><button class="btn primary">Add sale</button></div></form>`;
   const it = $('#mItem'), sz = $('#mSize'), pr = $('#mPrice'), q = $('#mQty'); let mp = null;
   const tot = () => $('#mTot').textContent = (+pr.value > 0 && +q.value > 0) ? `${q.value} × ${rs(pr.value)} = ${rs(q.value * pr.value)}` : '—';
   const fill = () => { const m = menu.find(x => x.item_id === it.value); if (!m) return; sz.innerHTML = m.sizes.map(z => `<option data-p="${z.price}">${esc(z.size)}</option>`).join(''); pr.value = m.sizes[0].price; tot(); };
@@ -559,7 +585,7 @@ function vClose() {
     <button class="btn primary" ${pend()||S.busy?'disabled':''}>${S.busy?'<span class="spin"></span>Saving…':done?'Close again (replaces earlier close)':'Submit day close'}</button>
    </form>
    ${done ? `<div class="card" style="margin-top:12px"><h2>Founders' update</h2><pre id="cPre">${esc(closeMsg(done))}</pre><button class="btn" data-a="copy">Copy for WhatsApp</button></div>` : ''}
-   <div class="row"><button class="btn ghost" data-v="sell">Back to selling</button></div>`;
+   <div class="row"><button class="btn ghost" data-v="${isFounder() ? 'sell' : 'day'}">Back</button></div>`;
   const f = () => { const sp = +$('#cSpent').value || 0, cc = $('#cCash').value, o = $('#cOut').value, b = $('#cBack').value, exp = float + t.cash - sp; let h = '';
     $('#cExp').innerHTML = `<span>So the pouch should have</span><span class="num">${rs(exp)}<small class="muted" style="display:block;font-weight:500;font-size:.74rem">float ${rs(float)} + cash ${rs(t.cash)}${sp?' − spent '+rs(sp):''}</small></span>`;
     if (cc !== '') { const d = (+cc) - exp; h += `<div class="diff ${d===0?'ok':'bad'}">${d===0?'✓ Money matches':d<0?rs(-d)+' short':rs(d)+' over'}</div><div class="diff note">Keep ${rs(float)} in the pouch · hand over ${rs(Math.max(0,(+cc)-float))}</div>`; }
@@ -578,103 +604,46 @@ function closeMsg(c) {
   return `📍 ${cartName(c.cart_id)} · ${c.partner_name}\n🍱 Plates: ${c.plates}\n💰 Sales ${rs(c.sales_total)} = Cash ${rs(c.cash_sales)} + UPI ${rs(c.upi_sales)}\n🧾 Spent from pouch: ${rs(c.spent)}\n🧮 Pouch ${rs(c.pouch_counted)} (${d===0?'matches':rs(Math.abs(d))+(d<0?' short':' over')}) · handed over ${rs(c.handed_over)}, float ${rs(c.float)} kept` + (c.boxes_out !== '' && c.boxes_out != null ? `\n📦 Boxes: ${c.boxes_out} out, ${c.boxes_back} back` : '') + (c.leftover !== '' && c.leftover != null ? `\n🍲 Left over: ${c.leftover} plates` : '') + (Number(c.free_plates) ? `\n🎁 Free meals (Pedal Club): ${c.free_plates}` : '');
 }
 
-/* ----- Scan a customer's Pedal Club card (phone's built-in QR reader; Chrome on Android) ----- */
-const canScan = () => 'BarcodeDetector' in window && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-let scanStop = null;
+/* ----- Scan a customer's Pedal Club card -----
+   Uses the phone's built-in QR reader where there is one (Chrome on Android), otherwise jsQR
+   (vendor/jsQR.js, Apache-2.0), loaded only when the rider taps Scan. Phone cameras need https. */
+const canScan = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+let scanStop = null, jsqrLoading = null;
+function loadJsQR() {
+  if (window.jsQR) return Promise.resolve();
+  return jsqrLoading || (jsqrLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = '/vendor/jsQR.js'; s.onload = res; s.onerror = () => { jsqrLoading = null; rej(new Error('Scanner did not load')); }; document.head.appendChild(s); }));
+}
 async function scanCard(onCode) {
   const box = document.createElement('div'); box.className = 'scan';
   box.innerHTML = '<video playsinline muted></video><div class="frame" aria-hidden="true"></div><div class="bar"><b>Point at the QR on the customer\'s Pedal Club card</b><button class="btn" data-a="scanClose">Cancel, type the number instead</button></div>';
   document.body.appendChild(box);
   let stream, timer, done = false;
   scanStop = () => { done = true; clearInterval(timer); if (stream) stream.getTracks().forEach(t => t.stop()); box.remove(); scanStop = null; };
+  const found = raw => { if (done) return; scanStop(); if (navigator.vibrate) navigator.vibrate(60); onCode(raw); };
   try {
+    let det = null;
+    if ('BarcodeDetector' in window) { try { const f = BarcodeDetector.getSupportedFormats ? await BarcodeDetector.getSupportedFormats() : ['qr_code']; if (f.includes('qr_code')) det = new BarcodeDetector({formats: ['qr_code']}); } catch (e) {} }
+    const libReady = det ? null : loadJsQR();
     stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
+    if (done) { stream.getTracks().forEach(t => t.stop()); return; }
     const v = box.querySelector('video'); v.srcObject = stream; await v.play();
-    const det = new BarcodeDetector({formats: ['qr_code']});
+    if (libReady) await libReady;
+    const cv = document.createElement('canvas'), g = cv.getContext('2d', {willReadFrequently: true});
     timer = setInterval(async () => {
       if (done || v.readyState < 2) return;
-      try { const r = await det.detect(v); if (r.length && !done) { const raw = r[0].rawValue; scanStop(); if (navigator.vibrate) navigator.vibrate(60); onCode(raw); } } catch (e) {}
-    }, 250);
+      try {
+        if (det) { const r = await det.detect(v); if (r.length) found(r[0].rawValue); return; }
+        const sc = Math.min(1, 640 / Math.max(v.videoWidth, v.videoHeight)); cv.width = Math.round(v.videoWidth * sc); cv.height = Math.round(v.videoHeight * sc);
+        g.drawImage(v, 0, 0, cv.width, cv.height);
+        const r = window.jsQR(g.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, {inversionAttempts: 'dontInvert'});
+        if (r && r.data) found(r.data);
+      } catch (e) {}
+    }, 220);
   } catch (e) { if (scanStop) scanStop(); toast('Camera not available. Type the number instead.'); }
 }
 
-/* ----- WhatsApp bill and Pedal Club (partner) ----- */
-// The plates most likely to be this customer's: the latest run of unbilled taps, each within 3 minutes of the next.
-function lastRun(list) {
-  const out = []; let prev = null;
-  for (const x of list) { if (x.bill || Date.now() - x.at > 15 * 60000) break; if (prev && prev.at - x.at > 3 * 60000) break; out.push(x.sale_id); prev = x; }
-  return out;
-}
+/* ----- WhatsApp bill text (also used for Pedal Club stamps) ----- */
 function dots(n, need) { let h = ''; for (let i = 0; i < need; i++) h += `<i class="${i < n ? 'on' : ''}"></i>`; return `<div class="sdots" aria-label="${n} of ${need} stamps">${h}<i class="free" title="Free meal"></i></div>`; }
-function clubLine(m) {
-  if (m.blocked) return '<p class="muted">Pedal Club is on hold for this number.</p>';
-  return `${dots(m.stamps, m.need)}<p class="num" style="font-size:.86rem">${m.stamps} of ${m.need} stamps${m.valid_till ? ' · valid till ' + nice(m.valid_till) : ''}${m.capLeft < 2 ? ` · ${m.capLeft ? 'one more stamp' : 'no more stamps'} today` : ''}</p>${m.ready.length ? `<div class="diff ok">🎁 Free meal ready (claim by ${nice(m.ready[0].claim_till)}). Use Free meal on the Sell screen.</div>` : ''}`;
-}
-
-function vBill() {
-  const recent = S.local.slice().reverse().filter(x => Date.now() - x.at < 60 * 60000);
-  const B = S.bill || (S.bill = {sel: lastRun(recent), q: '', matches: null, pick: null, isNew: false, name: '', consent: false, stamp: clubOn(), result: null, text: ''});
-  if (B.result) return vBillDone();
-  const sel = recent.filter(x => B.sel.includes(x.sale_id)), total = sel.reduce((n, x) => n + x.price * x.qty, 0);
-  let who = '';
-  if (B.matches && B.matches.length > 1 && !B.pick) who = `<p class="muted">More than one customer ends in ${esc(B.q.slice(-4))}. Choose, or type the full number.</p><div class="stack">${B.matches.map(m => `<button type="button" class="btn" data-bpick="${esc(m.cid)}">${esc(m.name || 'Customer')} · ${esc(m.masked)}</button>`).join('')}</div>`;
-  else if (B.matches && !B.matches.length && !B.isNew) who = `<p class="muted">No customer ends in ${esc(B.q)}. Type the full 10-digit number.</p>`;
-  else if (B.pick) who = `<div class="card club ${B.pick.ready.length ? 'ready' : ''}" style="gap:8px"><b>${esc(B.pick.name || 'Customer')} · ${esc(B.pick.masked)}</b>${clubLine(B.pick)}</div>`;
-  else if (B.isNew) who = `<div class="card club" style="gap:10px"><b>New customer · ${esc(B.masked)}</b>
-     <label>Name <span class="muted" style="font-weight:500">optional</span><input id="bName" maxlength="40" autocomplete="off" value="${esc(B.name)}"></label>
-     <label class="chk"><input type="checkbox" id="bOk" ${B.consent ? 'checked' : ''}><span>Customer said yes to getting bills and Pedal Club updates on this number<small>Ask first. They can ask us to delete it anytime.</small></span></label></div>`;
-  const ready = B.pick || B.isNew;
-  const anyStampable = sel.some(x => (x.order_type || 'walkin') === 'walkin');
-  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">WhatsApp bill</h1><p class="muted" style="margin-bottom:12px">Optional. Tick this customer's plates, then type their number.</p>
-   <div class="card" style="gap:4px"><h2 style="margin-bottom:4px">Plates</h2>
-    ${recent.length ? recent.map(x => `<label class="chk"><input type="checkbox" data-bsel="${esc(x.sale_id)}" ${B.sel.includes(x.sale_id) ? 'checked' : ''}><span>${x.qty} × ${esc(x.item_name)} · ${esc(x.size)} · <b class="num">${rs(x.price * x.qty)}</b><small>${x.pay} · ${hm(x.at)}${x.order_type && x.order_type !== 'walkin' ? ' · ' + OT[x.order_type] + ', no stamp' : ''}${x.bill ? ' · billed ' + esc(x.bill) : ''}</small></span></label>`).join('') : '<p class="muted">No plates on this phone in the last few minutes. Tap the sale first.</p>'}
-    <div class="kv" style="margin-top:6px"><span>Bill total</span><span class="num">${sel.length} plate${sel.length === 1 ? '' : 's'} · ${rs(total)}</span></div></div>
-   <div class="card" style="margin-top:12px">
-    <label>Customer's WhatsApp number<input id="bPh" type="tel" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="10 digits, or last 4 for a regular" value="${esc(B.q)}"></label>
-    <div class="row" style="margin:0"><button class="btn" data-a="billFind" ${S.busy ? 'disabled' : ''}>${S.busy && !ready ? '<span class="spin"></span>Finding…' : 'Find'}</button>${canScan() ? `<button class="btn" data-a="billScan" ${S.busy ? 'disabled' : ''}>📷 Scan card</button>` : ''}</div>
-    ${who}
-    ${ready && clubOn() && anyStampable && !(B.pick && B.pick.blocked) ? `<label class="chk"><input type="checkbox" id="bSt" ${B.stamp ? 'checked' : ''}><span>Add Pedal Club stamps<small>One per walk-in plate, up to ${esc(cfg().settings.club_daily_cap || 2)} a day. Every ${ord(clubNeed() + 1)} meal is free.</small></span></label>` : ''}
-    ${ready ? `<button class="btn primary" data-a="billSend" ${S.busy || !sel.length ? 'disabled' : ''}>${S.busy ? '<span class="spin"></span>Saving…' : 'Make bill'}</button>` : ''}
-   </div>
-   <div class="row"><button class="btn ghost" data-v="sell">Back to selling</button></div>`;
-  app.querySelectorAll('[data-bsel]').forEach(c => c.onchange = () => { const id = c.dataset.bsel; B.sel = c.checked ? B.sel.concat(id) : B.sel.filter(x => x !== id); vBill(); });
-  const ph = $('#bPh'); ph.oninput = () => { B.q = ph.value; }; ph.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); billFind(); } };
-  if ($('#bName')) $('#bName').oninput = e => B.name = e.target.value;
-  if ($('#bOk')) $('#bOk').onchange = e => B.consent = e.target.checked;
-  if ($('#bSt')) $('#bSt').onchange = e => B.stamp = e.target.checked;
-}
-async function billFind() {
-  const B = S.bill; const q = ($('#bPh') ? $('#bPh').value : B.q).replace(/\D/g, ''); B.q = q;
-  if (q.length !== 4 && !(q.length >= 10)) { toast('Type 10 digits, or the last 4 for a regular'); return; }
-  S.busy = true; vBill();
-  try { const r = await api('clubFind', {q}); B.matches = r.matches; B.isNew = r.isNew; B.masked = r.masked; B.pick = r.matches.length === 1 ? r.matches[0] : null; B.phone = r.isNew ? q : '';
-    B.stamp = clubOn() && !(B.pick && B.pick.blocked); }
-  catch (e) { handleError(e); }
-  S.busy = false; render();
-}
-function billScan() {
-  scanCard(async raw => {
-    const B = S.bill; S.busy = true; vBill();
-    try { const r = await api('clubFind', {card: raw}); B.matches = r.matches; B.isNew = false; B.pick = r.matches[0]; B.phone = ''; B.q = ''; B.stamp = clubOn() && !B.pick.blocked; toast('Card scanned: ' + (B.pick.name || B.pick.masked)); }
-    catch (e) { handleError(e); }
-    S.busy = false; render();
-  });
-}
-async function billSend() {
-  const B = S.bill;
-  if (!B.sel.length) { toast('Tick the plates for this bill'); return; }
-  if (B.isNew && !B.consent) { toast('Ask the customer first, then tick the box'); return; }
-  if (!navigator.onLine) { toast('No signal. Bills need signal.'); return; }
-  S.busy = true; vBill();
-  await flush();
-  if (S.queue.some(x => B.sel.includes(x.sale_id))) { S.busy = false; vBill(); toast('Plates are still sending. Try again in a moment.'); return; }
-  try {
-    const r = await api('clubBill', {sale_ids: B.sel, cid: B.pick ? B.pick.cid : undefined, phone: B.pick ? undefined : B.phone, name: B.name, consent: B.consent === true, stamp: B.stamp !== false});
-    B.result = r; B.text = billText(r);
-    S.local.forEach(x => { if (B.sel.includes(x.sale_id)) x.bill = r.bill.no; }); persist();
-  } catch (e) { handleError(e); }
-  S.busy = false; render();
-}
 function billText(r) {
   const b = r.bill, c = r.club, L = [];
   L.push('Pedal Plate · Bill ' + b.no);
@@ -694,74 +663,207 @@ function billText(r) {
   L.push(''); L.push(r.footer);
   return L.join('\n');
 }
-function vBillDone() {
-  const B = S.bill, r = B.result, k = r.club.skip, notes = [];
-  if (r.club.given) notes.push(`+${r.club.given} stamp${r.club.given > 1 ? 's' : ''}${r.club.newPass ? ' · new card started' : ''}`);
-  if (k.cap) notes.push(`${k.cap} over today's stamp limit`);
-  if (k.excluded) notes.push(`${k.excluded} corporate/delivery, no stamp`);
-  if (k.old) notes.push(`${k.old} tapped too long ago for a stamp`);
-  if (k.already) notes.push(`${k.already} already stamped`);
-  if (k.off) notes.push('Pedal Club is paused');
-  if (k.blocked) notes.push('Pedal Club on hold for this number');
-  if (r.club.ready.length) notes.push('🎁 free meal ready');
-  const wa = 'https://wa.me/' + r.wa_phone + '?text=' + encodeURIComponent(B.text);
-  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">Bill ${esc(r.bill.no)}</h1><p class="muted" style="margin-bottom:12px">For ${esc(r.customer.name || 'customer')} · ${esc(r.customer.masked)}. Open WhatsApp and press send.</p>
-   ${notes.length ? `<div class="chipline" style="margin-bottom:12px">${notes.map(n => `<span>${esc(n)}</span>`).join('')}</div>` : ''}
-   <div class="card"><pre id="bPre">${esc(B.text)}</pre>
-    <a class="btn primary" href="${esc(wa)}" target="_blank" rel="noopener">Open WhatsApp</a>
-    <button class="btn" data-a="billCopy">Copy bill</button></div>
-   <div class="row"><button class="btn ghost" data-v="sell">Done</button></div>`;
+
+/* ----- Sell: one combo of the day, Full / Half, one order at a time -----
+   Count the plates, optionally scan or type the customer, then Cash or UPI finishes the order.
+   With a customer, the WhatsApp bill (with Pedal Club stamps) opens by itself; the rider presses Send. */
+const comboKey = () => 'combo_' + (me() ? me().partner_id : '');
+function todaysCombo() {
+  const menu = cfg().menu, saved = store.get(comboKey(), null);
+  let it = saved && saved.day === todayKey() ? menu.find(m => m.item_id === saved.item_id) : null;
+  if (!it && menu.length === 1) { it = menu[0]; store.set(comboKey(), {day: todayKey(), item_id: it.item_id}); }
+  return it || null;
+}
+const bySize = (a, b) => ((a.size === 'Full' ? 0 : a.size === 'Half' ? 1 : 2) - (b.size === 'Full' ? 0 : b.size === 'Half' ? 1 : 2));
+const topSize = it => it.sizes.slice().sort((a, b) => b.price - a.price)[0];   // the free meal is the biggest plate
+const newOrder = () => ({counts: {}, cust: null, free: false, code: '', override: false, why: '', consent: false, typing: null});
+const order = () => S.order || (S.order = newOrder());
+function orderTotals(it) {
+  const o = order(); let plates = 0, total = 0;
+  it.sizes.forEach(z => { const n = o.counts[z.size] || 0; plates += n; total += n * z.price; });
+  const top = topSize(it), freeVal = o.free && (o.counts[top.size] || 0) > 0 ? top.price : 0;
+  return {plates, total: total - freeVal, freeVal};
 }
 
-function vFree() {
-  const F = S.free || (S.free = {q: '', matches: null, pick: null, code: '', item: '', done: null, override: false, reason: '', card: ''});
-  if (F.done) {
-    app.innerHTML = topbar() + `<div class="card club ready" style="text-align:center"><h1>🎁 Free meal saved</h1><p>${esc(F.done.sale.item_name)} · ${esc(F.done.sale.size)} for ${esc(F.done.customer.name || 'the customer')} (${esc(F.done.customer.masked)}).</p><p class="muted" style="font-size:.86rem">Hand over the plate. It counts as a plate in today's total, at ₹0.</p></div><div class="row"><button class="btn primary" data-v="sell">Back to selling</button></div>`;
-    return;
-  }
-  const m = F.pick, menu = cfg().menu;
-  let body = '';
-  if (F.matches && F.matches.length > 1 && !m) body = `<div class="stack">${F.matches.map(x => `<button class="btn" data-fpick="${esc(x.cid)}">${esc(x.name || 'Customer')} · ${esc(x.masked)}</button>`).join('')}</div>`;
-  else if (F.matches && !F.matches.length) body = `<p class="muted">No Pedal Club card on this number.</p>`;
-  else if (m && m.blocked) body = `<div class="diff bad">Pedal Club is on hold for this number. Ask a founder.</div>`;
-  else if (m && !m.ready.length) body = `<div class="card club" style="gap:8px"><b>${esc(m.name || 'Customer')} · ${esc(m.masked)}</b>${clubLine(m)}<p class="muted" style="font-size:.86rem">No free meal yet. ${m.need - m.stamps} more stamp${m.need - m.stamps === 1 ? '' : 's'} to go.</p></div>`;
-  else if (m) body = `<div class="card club ready" style="gap:10px"><b>${esc(m.name || 'Customer')} · ${esc(m.masked)}</b><p style="font-size:.88rem">Free meal ready. Ask the customer to open their Pedal Club card and read you the 4-digit card code.</p>
-     ${F.card && !F.override ? `<div class="diff ok">✓ Card scanned: no code needed</div>` : F.override ? `<label>Why there's no code (founders only, logged)<input id="fWhy" maxlength="120" value="${esc(F.reason)}" placeholder="e.g. customer lost their phone"></label>` : `<label>Card code<input id="fCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" value="${esc(F.code)}" style="font-size:1.4rem;letter-spacing:.3em;text-align:center"></label>`}
-     ${isFounder() ? `<label class="chk"><input type="checkbox" id="fOv" ${F.override ? 'checked' : ''}><span>Customer can't show the code<small>Founder override. Saved in the log with your name.</small></span></label>` : ''}
-     <label>Free combo<select id="fItem">${menu.map(x => `<option value="${esc(x.item_id)}" ${x.item_id === F.item ? 'selected' : ''}>${esc(x.name)}${x.sizes.length > 1 ? ' (' + esc(x.sizes.slice().sort((a, b) => b.price - a.price)[0].size) + ')' : ''}</option>`).join('')}</select></label>
-     <button class="btn primary" data-a="freeGive" ${S.busy ? 'disabled' : ''}>${S.busy ? '<span class="spin"></span>Saving…' : 'Give free meal'}</button></div>`;
-  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">Free meal</h1><p class="muted" style="margin-bottom:12px">Every ${ord(clubNeed() + 1)} meal is free for Pedal Club members.</p>
-   <div class="card"><label>Customer's number<input id="fPh" type="tel" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="10 digits, or last 4" value="${esc(F.q)}"></label><div class="row" style="margin:0"><button class="btn" data-a="freeFind" ${S.busy ? 'disabled' : ''}>Find</button>${canScan() ? `<button class="btn" data-a="freeScan" ${S.busy ? 'disabled' : ''}>📷 Scan card</button>` : ''}</div>${body}</div>
-   <div class="row"><button class="btn ghost" data-v="sell">Back to selling</button></div>`;
-  $('#fPh').oninput = e => F.q = e.target.value; $('#fPh').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); freeFind(); } };
-  if ($('#fCode')) $('#fCode').oninput = e => F.code = e.target.value.replace(/\D/g, '');
-  if ($('#fWhy')) $('#fWhy').oninput = e => F.reason = e.target.value;
-  if ($('#fOv')) $('#fOv').onchange = e => { F.override = e.target.checked; vFree(); };
-  if ($('#fItem')) { F.item = $('#fItem').value; $('#fItem').onchange = e => F.item = e.target.value; }
+function vPickCombo() {
+  const menu = cfg().menu, cur = todaysCombo();
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">What are you selling today?</h1><p class="muted" style="margin-bottom:12px">Pick your combo. You can change it any time.</p>
+   <div class="stack">${menu.map(m => `<button class="combo-pick ${cur && cur.item_id === m.item_id ? 'on' : ''}" data-pick="${esc(m.item_id)}"><span class="mark ${m.type}" aria-hidden="true"><i></i></span><span><b>${esc(m.name)}</b><small>${m.sizes.slice().sort(bySize).map(z => esc(z.size) + ' ' + rs(z.price)).join(' · ')}</small></span></button>`).join('') || '<p class="muted">No combos are switched on yet. Ask a founder to switch on today\'s combo in Menu.</p>'}</div>
+   ${cur ? '<div class="row"><button class="btn ghost" data-v="sell">Back</button></div>' : ''}`;
 }
-function freeScan() {
+
+function custBox(it) {
+  const o = order(), c = o.cust;
+  if (c && c.isNew) return `<div class="member"><div class="mtop"><b>New customer · ${esc(c.masked)}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
+     <label>Name <span class="muted" style="font-weight:500">optional</span><input id="oName" maxlength="40" autocomplete="off" value="${esc(c.name || '')}"></label>
+     <label class="chk"><input type="checkbox" id="oOk" ${o.consent ? 'checked' : ''}><span>Customer said yes to bills and Pedal Club on WhatsApp<small>Ask first. They can ask us to delete it anytime.</small></span></label></div>`;
+  if (c) {
+    const ready = c.ready && c.ready.length && !c.blocked, top = topSize(it);
+    return `<div class="member ${ready ? 'ready' : ''}"><div class="mtop"><b>${esc(c.name || 'Customer')} · ${esc(c.masked)}${c.card ? ' <span class="pill act">scanned</span>' : ''}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
+      ${c.blocked ? '<p class="hint">Pedal Club is on hold for this number. The bill still goes.</p>' : ready ? `${dots(c.need, c.need)}<small class="hint">Card full: free meal ready${c.stamps ? ` · ${c.stamps} stamp${c.stamps > 1 ? 's' : ''} on their next card` : ''}</small>` : `${dots(c.stamps, c.need)}<small class="hint num">${c.stamps} of ${c.need} stamps${c.capLeft < 2 ? ` · ${c.capLeft ? 'one more stamp' : 'no more stamps'} today` : ''}</small>`}
+      ${ready ? `<label class="freeq"><span>🎁 Free meal ready: 1 ${esc(top.size)} plate free</span><input type="checkbox" id="oFree" ${o.free ? 'checked' : ''} role="switch"></label>
+        ${o.free && !(o.counts[top.size] > 0) ? `<p class="hint" style="color:var(--warn)">Add a ${esc(top.size)} plate for the free meal.</p>` : ''}
+        ${o.free && !c.card ? (o.override ? `<label>Why there's no code (founders only, logged)<input id="oWhy" maxlength="120" value="${esc(o.why)}"></label>` : `<label>Card code from their Pedal Club card<input id="oCode" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" value="${esc(o.code)}" style="letter-spacing:.3em;text-align:center;font-size:1.2rem"></label>`) + (isFounder() ? `<label class="chk"><input type="checkbox" id="oOv" ${o.override ? 'checked' : ''}><span>Customer can't show the code (founder)</span></label>` : '') : ''}` : ''}</div>`;
+  }
+  if (o.typing) {
+    const T = o.typing;
+    return `<div class="member"><div class="mtop"><b>Customer's WhatsApp number</b><button class="x" data-a="custRemove" aria-label="Cancel">✕</button></div>
+      <div class="row" style="margin:0"><input id="oPh" type="tel" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="10 digits, or last 4" value="${esc(T.q || '')}"><button class="btn" style="flex:none" data-a="custFind">${S.finding ? '<span class="spin"></span>' : 'Find'}</button></div>
+      ${T.matches && T.matches.length > 1 ? `<div class="stack">${T.matches.map(m => `<button class="btn" data-cpick="${esc(m.cid)}">${esc(m.name || 'Customer')} · ${esc(m.masked)}</button>`).join('')}</div>` : ''}
+      ${T.none ? `<p class="hint">No customer ends in ${esc(T.q)}. Type the full 10-digit number.</p>` : ''}</div>`;
+  }
+  return `<div class="custbox"><button class="btn dark" data-a="custScan" ${canScan() ? '' : 'disabled'}>📷 Scan customer</button><button class="btn" data-a="custType">Type number</button><p class="hint">Optional: for a WhatsApp bill and Pedal Club stamps</p></div>`;
+}
+
+function lastBillStrip() {
+  if (S.pendingBill) return `<div class="diff bad" style="display:grid;gap:8px;text-align:left">Bill for ${esc(S.pendingBill.label)} was not sent (no signal). The sale is saved.<button class="btn" data-a="retryBill">Make the bill now</button></div>`;
+  const L = S.lastBill;
+  if (L && Date.now() - L.at < 15 * 60000) return `<div class="lastbill"><span>Bill ${esc(L.no)} · ${esc(L.name)}</span><a href="${esc(L.wa)}" target="_blank" rel="noopener">Open WhatsApp again</a></div>`;
+  return '';
+}
+
+function vSell() {
+  const cart = me().cart_id;
+  if (!cart || !cartOf(cart)) { vCart(); return; }
+  const it = todaysCombo(); if (!it) { vPickCombo(); return; }
+  const o = order(), T = orderTotals(it), t = myTotals();
+  const sizes = it.sizes.slice().sort(bySize);
+  app.innerHTML = topbar() + `
+    ${lastBillStrip()}
+    <button class="combo-pick" data-v="combo"><span class="mark ${it.type}" aria-hidden="true"><i></i></span><span><small>Today's combo · tap to change</small><b>${esc(it.name)}</b></span></button>
+    <div class="plates">${sizes.map(z => { const n = o.counts[z.size] || 0; return `<div class="pl ${n ? 'on' : ''}"><button class="add" data-cnt="${esc(z.size)}|1" aria-label="Add one ${esc(z.size)} plate"><small>${esc(z.size)}</small><b class="num">${rs(z.price)}</b><em class="num">${n}</em><span class="plus">+ add</span></button><button class="minus" data-cnt="${esc(z.size)}|-1" aria-label="One ${esc(z.size)} less" ${n ? '' : 'disabled'}>− 1</button></div>`; }).join('')}</div>
+    ${custBox(it)}
+    <div class="ototal"><span>${T.plates} plate${T.plates === 1 ? '' : 's'}${T.freeVal ? ' · 1 free' : ''}</span><b class="num">${rs(T.total)}</b></div>
+    <div class="paybtns big"><button class="paybtn cash" data-pay="Cash" ${T.plates && !S.busy ? '' : 'disabled'}>Cash<small>${o.cust ? 'finish + WhatsApp' : 'finish order'}</small></button><button class="paybtn upi" data-pay="UPI" ${T.plates && !S.busy ? '' : 'disabled'}>UPI<small>${o.cust ? 'finish + WhatsApp' : 'finish order'}</small></button></div>
+    <p class="hint" style="text-align:center;margin-top:10px">Today: <b class="num">${rs(t.total)}</b> · ${t.plates} plates${pend() ? ` · <span style="color:var(--warn)">${pend()} waiting for signal</span>` : ''}</p>
+    ${isFounder() ? '<div class="row"><button class="btn ghost" data-v="day">My day</button><button class="btn ghost" data-v="more">More</button></div>' : ''}
+    ${S.busy ? '<div class="busy"><span class="spin"></span>Saving the order and making the bill…</div>' : ''}`;
+  const on = (id, ev, fn) => { const el = $('#' + id); if (el) el[ev] = fn; };
+  on('oName', 'oninput', e => { o.cust.name = e.target.value; });
+  on('oOk', 'onchange', e => { o.consent = e.target.checked; });
+  on('oFree', 'onchange', e => { o.free = e.target.checked; vSell(); });
+  on('oCode', 'oninput', e => { o.code = e.target.value.replace(/\D/g, ''); });
+  on('oOv', 'onchange', e => { o.override = e.target.checked; vSell(); });
+  on('oWhy', 'oninput', e => { o.why = e.target.value; });
+  on('oPh', 'oninput', e => { o.typing.q = e.target.value; });
+  on('oPh', 'onkeydown', e => { if (e.key === 'Enter') { e.preventDefault(); custFind(); } });
+  if (o.typing && !o.cust) { const el = $('#oPh'); if (el && !el.value) el.focus(); }
+}
+
+function setCust(m, card) {
+  const o = order(); o.cust = Object.assign({}, m, card ? {card} : {}); o.typing = null; o.code = ''; o.override = false; o.why = '';
+  o.free = !!(m.ready && m.ready.length && !m.blocked);   // a ready free meal is offered, already switched on
+}
+function custScan() {
   scanCard(async raw => {
-    const F = S.free; S.busy = true; vFree();
-    try { const r = await api('clubFind', {card: raw}); F.matches = r.matches; F.pick = r.matches[0]; F.card = raw; F.q = ''; F.code = ''; toast('Card scanned: ' + (F.pick.name || F.pick.masked)); }
+    S.finding = true; vSell();
+    try { const r = await api('clubFind', {card: raw}); setCust(r.matches[0], raw); toast('Found ' + (r.matches[0].name || r.matches[0].masked)); }
     catch (e) { handleError(e); }
-    S.busy = false; render();
+    S.finding = false; render();
   });
 }
-async function freeFind() {
-  const F = S.free, q = ($('#fPh').value || '').replace(/\D/g, ''); F.q = q; F.card = '';
-  if (q.length !== 4 && q.length < 10) { toast('Type 10 digits, or the last 4'); return; }
-  S.busy = true; vFree();
-  try { const r = await api('clubFind', {q}); F.matches = r.matches; F.pick = r.matches.length === 1 ? r.matches[0] : null; } catch (e) { handleError(e); }
-  S.busy = false; render();
+async function custFind() {
+  const o = order(), q = String((o.typing && o.typing.q) || '').replace(/\D/g, '');
+  if (q.length !== 4 && q.length < 10) { toast('Type 10 digits, or the last 4 for a regular'); return; }
+  S.finding = true; vSell();
+  try {
+    const r = await api('clubFind', {q});
+    if (r.isNew) { o.cust = {isNew: true, phone: q, masked: r.masked, name: ''}; o.typing = null; o.consent = false; }
+    else if (r.matches.length === 1) setCust(r.matches[0]);
+    else { o.typing.matches = r.matches; o.typing.none = !r.matches.length; }
+  } catch (e) { handleError(e); }
+  S.finding = false; render();
 }
-async function freeGive() {
-  const F = S.free;
-  if (F.override) { if (F.reason.trim().length < 3) { toast("Write why there's no code"); return; } }
-  else if (!F.card && !/^\d{4}$/.test(F.code)) { toast('Type the 4-digit card code'); return; }
-  S.busy = true; vFree();
-  try { F.done = await api('clubRedeem', F.override ? {cid: F.pick.cid, override: true, reason: F.reason.trim(), item_id: F.item} : F.card ? {cid: F.pick.cid, card: F.card, item_id: F.item} : {cid: F.pick.cid, code: F.code, item_id: F.item}); await refreshMine(); }
-  catch (e) { handleError(e); F.code = ''; }
-  S.busy = false; render();
+
+async function finishOrder(pay) {
+  const it = todaysCombo(), o = order(), T = orderTotals(it), top = topSize(it);
+  if (!it || !T.plates || S.busy) return;
+  const c = o.cust;
+  if (c && c.isNew && !o.consent) { toast('Ask the customer first, then tick the box'); return; }
+  if (o.free) {
+    if (!T.freeVal) { toast('Add a ' + top.size + ' plate for the free meal'); return; }
+    if (!c.card && !o.override && !/^\d{4}$/.test(o.code)) { toast('Type the 4-digit code from their card'); return; }
+    if (o.override && o.why.trim().length < 3) { toast("Write why there's no code"); return; }
+    if (!navigator.onLine) { toast('The free meal needs signal'); return; }
+  }
+  S.busy = true; vSell();
+  let free = null;
+  if (o.free) {
+    try { free = (await api('clubRedeem', c.card ? {cid: c.cid, card: c.card, item_id: it.item_id} : o.override ? {cid: c.cid, override: true, reason: o.why.trim(), item_id: it.item_id} : {cid: c.cid, code: o.code, item_id: it.item_id})).sale; }
+    catch (e) { S.busy = false; handleError(e); render(); return; }   // nothing saved yet: fix and press again
+  }
+  const oid = uid(), counts = Object.assign({}, o.counts), ids = [];
+  if (free) counts[free.size] = (counts[free.size] || 0) - 1;
+  it.sizes.slice().sort(bySize).forEach(z => { const n = counts[z.size] || 0; if (n > 0) { const s = addSale(it.item_id, z.size, pay, n, undefined, 'tap', 'walkin', oid); if (s) ids.push(s.sale_id); } });
+  if (free) { S.local.push({sale_id: free.sale_id, created_at: new Date().toISOString(), at: Date.now(), item_id: it.item_id, item_name: free.item_name, size: free.size, pay: 'Free', qty: 1, price: 0, source: 'club', synced: true, order: oid}); persist(); }
+  S.order = newOrder();
+  if (!c) { S.busy = false; toast(`Saved · ${pay} ${rs(T.total)}`); render(); return; }
+  await sendBill({ids: ids.concat(free ? [free.sale_id] : []), cust: c, label: c.name || c.masked});
+}
+
+async function sendBill(B) {
+  S.busy = true; render();
+  try {
+    await flush();
+    if (S.queue.some(x => B.ids.includes(x.sale_id))) throw new Error('No signal right now.');
+    const r = await api('clubBill', Object.assign({sale_ids: B.ids}, B.cust.isNew ? {phone: B.cust.phone, name: B.cust.name, consent: true} : {cid: B.cust.cid}));
+    const wa = 'https://wa.me/' + r.wa_phone + '?text=' + encodeURIComponent(billText(r));
+    S.lastBill = {no: r.bill.no, name: r.customer.name || r.customer.masked, wa, at: Date.now()}; S.pendingBill = null;
+    S.local.forEach(x => { if (B.ids.includes(x.sale_id)) x.bill = r.bill.no; });
+    persist(); store.set('lastBill', S.lastBill); store.del('pendingBill');
+    S.busy = false; render();
+    const k = r.club.skip, notes = [r.club.given ? `+${r.club.given} stamp${r.club.given > 1 ? 's' : ''}` : '', k.cap ? `${k.cap} over today's stamp limit` : ''].filter(Boolean).join(' · ');
+    if (notes) toast(notes);
+    setTimeout(() => { location.href = wa; }, notes ? 700 : 0);   // WhatsApp opens with the bill filled in; the rider presses Send
+  } catch (e) {
+    S.pendingBill = B; store.set('pendingBill', B); S.busy = false;
+    toast(/signal/i.test(e.message || '') || !navigator.onLine ? 'Sale saved. The bill needs signal: tap "Make the bill now" when it is back.' : (e.message || 'Could not make the bill.'));
+    render();
+  }
+}
+
+/* ----- My day and More ----- */
+function orders() {
+  const map = new Map();
+  S.local.forEach(x => { const k = x.order || x.sale_id; if (!map.has(k)) map.set(k, []); map.get(k).push(x); });
+  return [...map.entries()].map(([k, list]) => ({id: k, list, at: Math.max(...list.map(x => x.at)), pay: (list.find(x => x.pay !== 'Free') || list[0]).pay, total: list.reduce((n, x) => n + x.price * x.qty, 0), bill: (list.find(x => x.bill) || {}).bill}));
+}
+function vDay() {
+  const t = myTotals(), undoMin = Number(cfg().settings.undo_minutes || 2), os = orders(), last = os[os.length - 1];
+  const canUndo = last && Date.now() - last.at < undoMin * 60000;
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">My day</h1>
+   <div class="totals"><div class="tot main"><small>Sold today</small><b class="num">${rs(t.total)}</b></div><div class="tot"><small>Plates</small><b class="num">${t.plates}</b></div><div class="tot"><small>Cash / UPI</small><b class="num" style="font-size:.92rem">${rs(t.cash)} / ${rs(t.upi)}</b></div></div>
+   ${t.freePlates ? `<p class="hint" style="margin-bottom:10px">Free meals (Pedal Club): ${t.freePlates}</p>` : ''}
+   ${lastBillStrip()}
+   <div class="row" style="margin:0 0 12px"><button class="btn" data-a="undoOrder" ${canUndo ? '' : 'disabled'}>↶ Undo last order</button><button class="btn primary" data-v="close">Close my day</button></div>
+   <div class="feed" style="margin-top:0"><h3>Recent orders on this phone</h3>${os.slice(-10).reverse().map(x => `<div class="fe"><span>${x.list.map(s => `${s.qty} ${esc(s.size)}${s.pay === 'Free' ? ' (free)' : ''}`).join(' + ')}${x.bill ? '<span class="tag">Bill ' + esc(x.bill) + '</span>' : ''}${x.list.some(s => !s.synced) ? '<span class="tag p">Not sent</span>' : ''}</span><span class="num">${x.pay} ${rs(x.total)} · ${hm(x.at)}</span></div>`).join('') || '<p class="muted">No orders yet today.</p>'}</div>`;
+}
+async function undoLastOrder() {
+  const last = orders().pop(); if (!last) return;
+  try {
+    for (const s of last.list) {
+      if (!s.synced) S.queue = S.queue.filter(q => q.sale_id !== s.sale_id);
+      else await api('void', {sale_id: s.sale_id});
+    }
+    const ids = new Set(last.list.map(s => s.sale_id)); S.local = S.local.filter(s => !ids.has(s.sale_id));
+    persist(); await refreshMine(); toast('Last order removed'); render();
+  } catch (e) { handleError(e); }
+}
+function vMore() {
+  const u = me();
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">More</h1><div class="stack">
+   <button class="btn" data-v="missed">Bulk, delivery or missed sale</button>
+   <button class="btn" data-v="combo">Change today's combo</button>
+   <button class="btn" data-v="cart">Change cart · ${esc(cartName(u.cart_id))}</button>
+   <button class="btn" data-v="me">Change my PIN</button>
+   <button class="btn ghost" data-a="logout">Switch partner (log out)</button></div>`;
+}
+function riderTabs() {
+  const t = [['sell', 'Sell', 'M12 5v14M5 12h14'], ['day', 'My day', 'M4 19V9M10 19V5M16 19v-7M22 19H2'], ['more', 'More', 'M5 12h.01M12 12h.01M19 12h.01']];
+  const cur = {missed: 'more', cart: 'more', me: 'more', combo: 'sell', close: 'day'}[S.view] || S.view;
+  $('#tabs').hidden = false;
+  $('#tabsIn').style.gridTemplateColumns = 'repeat(3,1fr)';
+  $('#tabsIn').innerHTML = t.map(([v, l, d]) => `<button data-v="${v}" ${cur === v ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>${l}</button>`).join('');
 }
 
 /* ----- Pedal Club (founder) ----- */
@@ -844,7 +946,7 @@ async function clubAction(b) {
 /* ----- founder views ----- */
 function tabs() {
   const t = [['today','Today','M4 19V9M10 19V5M16 19v-7M22 19H2'],['menu','Menu','M4 6h16M4 12h16M4 18h10'],['report','Reports','M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6'],['club','Club','M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10'],['partners','Partners','M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 10c0-4 3-6 7-6s7 2 7 6M17 11a3 3 0 1 0 0-6M22 21c0-3-2-5-5-5'],['sell','Sell','M12 5v14M5 12h14']];
-  $('#tabs').hidden = false;
+  $('#tabs').hidden = false; $('#tabsIn').style.gridTemplateColumns = '';
   $('#tabsIn').innerHTML = t.map(([v,l,d]) => `<button data-v="${v}" ${S.view===v||(v==='partners'&&['add','log'].includes(S.view))||(v==='menu'&&S.view==='madd')||(v==='club'&&S.view==='clubc')?'aria-current="page"':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>${l}</button>`).join('');
 }
 async function load(action, payload) { try { S.founderData = await api(action, payload); } catch (e) { S.founderData = {error: e.message}; handleError(e); } render(); }
@@ -999,11 +1101,11 @@ async function exportCsv(kind) {
     toast(full.sales.length + ' sales downloaded'); } catch (err) { handleError(err); }
 }
 
-const VIEWS = {sell: vSell, missed: vMissed, cart: vCart, close: vClose, me: vMe, bill: vBill, free: vFree, today: vToday, menu: vMenu, madd: vMenuAdd, report: vReport, club: vClub, clubc: vClubC, partners: vPartners, add: vAdd, log: vLog};
+const VIEWS = {sell: vSell, combo: vPickCombo, day: vDay, more: vMore, missed: vMissed, cart: vCart, close: vClose, me: vMe, today: vToday, menu: vMenu, madd: vMenuAdd, report: vReport, club: vClub, clubc: vClubC, partners: vPartners, add: vAdd, log: vLog};
 function render() {
   $('#demo').hidden = !DEMO;
   if (!S.session) { $('#tabs').hidden = true; vLogin(); return; }
-  if (isFounder()) tabs(); else $('#tabs').hidden = true;
+  if (isFounder()) tabs(); else riderTabs();
   if (!isFounder() && ['today','menu','madd','report','club','clubc','partners','add','log'].includes(S.view)) S.view = 'sell';
   (VIEWS[S.view] || vSell)();
 }
@@ -1013,31 +1115,30 @@ async function copy(text) { try { await navigator.clipboard.writeText(text); toa
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.k !== undefined) { key(b.dataset.k); return; }
-  if (b.dataset.sell) { const [item, size, pay] = b.dataset.sell.split('|'); const s = addSale(item, size, pay); if (s) { render(); toast(`+1 ${size} · ${rs(s.price)} · ${pay}`); } return; }
-  if (b.dataset.v) { S.view = b.dataset.v; if (['today','partners','log','menu','report','club'].includes(S.view)) S.founderData = null; if (S.view !== 'partners') S.newPin = null; if (S.view === 'bill') S.bill = null; if (S.view === 'free') S.free = null; S.confirm = null; S.manual = null; render(); window.scrollTo(0, 0); return; }
-  if (b.dataset.bpick) { const B = S.bill; B.pick = B.matches.find(m => m.cid === b.dataset.bpick); B.stamp = clubOn() && !B.pick.blocked; render(); return; }
-  if (b.dataset.fpick) { const F = S.free; F.pick = F.matches.find(m => m.cid === b.dataset.fpick); render(); return; }
+  if (b.dataset.cnt) { const [z, d] = b.dataset.cnt.split('|'); const o = order(); o.counts[z] = Math.max(0, (o.counts[z] || 0) + Number(d)); vSell(); return; }
+  if (b.dataset.pay) { finishOrder(b.dataset.pay); return; }
+  if (b.dataset.pick) { store.set(comboKey(), {day: todayKey(), item_id: b.dataset.pick}); S.order = newOrder(); S.view = 'sell'; render(); toast('Selling ' + ((cfg().menu.find(m => m.item_id === b.dataset.pick) || {}).name || '')); return; }
+  if (b.dataset.cpick) { const o = order(); setCust(o.typing.matches.find(m => m.cid === b.dataset.cpick)); vSell(); return; }
+  if (b.dataset.v) { S.view = b.dataset.v; if (['today','partners','log','menu','report','club'].includes(S.view)) S.founderData = null; if (S.view !== 'partners') S.newPin = null; S.confirm = null; S.manual = null; render(); window.scrollTo(0, 0); return; }
   if (b.dataset.ca) { clubAction(b); return; }
   if (b.dataset.cart) { try { const r = await api('setCart', {cart_id: b.dataset.cart}); S.session.me = r.me; persist(); S.view = 'sell'; render(); toast('Selling on ' + cartName(r.me.cart_id)); } catch (err) { handleError(err); } return; }
   if (b.dataset.reset) { try { const r = await api('partnersResetPin', {partner_id: b.dataset.reset}); S.newPin = {name: r.partner.name, pin: r.pin}; S.founderData = null; render(); } catch (err) { handleError(err); } return; }
   if (b.dataset.mtoggle) { try { S.founderData = await api('menuUpdate', {item_id: b.dataset.mtoggle, active: b.dataset.on === '1'}); toast(b.dataset.on === '1' ? 'On today' : 'Switched off'); render(); } catch (err) { handleError(err); } return; }
   if (b.dataset.toggle) { try { await api('partnersUpdate', {partner_id: b.dataset.toggle, active: b.dataset.on === '1'}); S.founderData = null; render(); toast(b.dataset.on === '1' ? 'Switched on' : 'Switched off'); } catch (err) { handleError(err); } return; }
   const a = b.dataset.a;
-  if (a === 'logout') { S.day = null; S.report = null; const mine = S.queue.filter(x => S.session && x._t === S.session.token).length; if (mine) toast(mine + ' sales still waiting for signal. They will send automatically.'); else { try { await api('logout', {}); } catch (err) {} } S.session = null; S.base = null; S.local = []; S.closeToday = null; S.view = 'sell'; S.newPin = null; persist(); render(); }
-  else if (a === 'undo') undoLast();
+  if (a === 'logout') { S.day = null; S.report = null; const mine = S.queue.filter(x => S.session && x._t === S.session.token).length; if (mine) toast(mine + ' sales still waiting for signal. They will send automatically.'); else { try { await api('logout', {}); } catch (err) {} } S.session = null; S.base = null; S.local = []; S.closeToday = null; S.view = 'sell'; S.newPin = null; S.order = null; persist(); render(); }
+  else if (a === 'undoOrder') undoLastOrder();
+  else if (a === 'custScan') custScan();
+  else if (a === 'custType') { order().typing = {q: ''}; vSell(); }
+  else if (a === 'custFind') custFind();
+  else if (a === 'custRemove') { const o = order(); o.cust = null; o.typing = null; o.free = false; vSell(); }
+  else if (a === 'retryBill') { if (S.pendingBill) sendBill(S.pendingBill); }
   else if (a === 'copy') copy($('#cPre').textContent);
   else if (a === 'copypin' && S.newPin) copy(S.newPin.pin);
   else if (a === 'hidepin') { S.newPin = null; render(); }
   else if (a === 'refresh') { S.founderData = null; render(); }
   else if (a === 'csvDays') exportCsv('days');
   else if (a === 'csvSales') exportCsv('sales');
-  else if (a === 'billFind') billFind();
-  else if (a === 'billSend') billSend();
-  else if (a === 'billCopy') copy(S.bill && S.bill.text || '');
-  else if (a === 'freeFind') freeFind();
-  else if (a === 'freeGive') freeGive();
-  else if (a === 'billScan') billScan();
-  else if (a === 'freeScan') freeScan();
   else if (a === 'scanClose') { if (scanStop) scanStop(); }
   else if (a === 'clubSearch') { const q = $('#cq').value.trim(); if (!q) return; S.clubQ = {q}; S.view = 'clubc'; S.founderData = null; render(); }
 });

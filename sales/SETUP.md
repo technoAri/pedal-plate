@@ -54,8 +54,13 @@ build charts or pivot tables from them, but don't edit their columns.
 
 ## Daily use
 
-- **Partners:** log in with the PIN, tap **Cash** or **UPI** after every plate, **Close my day**
-  at the end (pouch count, boxes, plates left over). Tap your initial at the top to change your PIN.
+- **Partners (riders):** log in with the PIN and pick **today's combo** (picked for them when only one
+  combo is on; the phone remembers it for the day). For each customer: tap **Full** / **Half** for every
+  plate, optionally **📷 Scan customer** (their Pedal Club card QR, any phone camera) or **Type number**,
+  then **Cash** or **UPI** finishes the order. With a customer, WhatsApp opens with the bill filled in:
+  press Send. A ready free meal is offered automatically (scan, or the 4-digit card code). Three tabs:
+  **Sell**, **My day** (totals, undo last order, **Close my day**), **More** (bulk / delivery / missed
+  sale, change combo or cart, change PIN, switch partner). The camera needs https (pedalplate.in is).
 - **Founders:** **Today** (any day with the date picker, plus the UPI check against the bank),
   **Menu** (today's combos and prices), **Reports** (any date range up to 3 months, with
   **Daily summary** and **Every sale** CSV downloads that open in Excel or Google Sheets),
