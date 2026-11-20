@@ -419,7 +419,6 @@
   .dish.is-today{border:2px solid var(--brand);box-shadow:0 0 0 6px color-mix(in srgb,var(--brand) 18%,transparent);}
   .dish-art{position:relative;aspect-ratio:4/3;border-radius:20px;display:grid;place-items:center;margin-bottom:20px;overflow:hidden;background:radial-gradient(circle at 50% 60%,#F7EEDD,#E3C48F);}
   .dish-art > svg.pot{width:40%;color:#7A4D15;}
-  .price small{display:block;margin-top:6px;font-size:.8rem;font-weight:600;letter-spacing:0;color:var(--ink-soft);text-align:right;}
   .dish:nth-child(1) .dish-art{background:radial-gradient(circle at 50% 60%,#F6E7CC,#D9A85E);}
   .dish:nth-child(2) .dish-art{background:radial-gradient(circle at 50% 60%,#F7EEDD,#E3C48F);}
   .dish:nth-child(3) .dish-art{background:radial-gradient(circle at 50% 60%,#EFD9B4,#B9834A);}
@@ -1568,7 +1567,6 @@
   var shown = '';
   function card(m){
     var full = m.sizes.filter(function(z){ return z.size === 'Full'; })[0] || m.sizes[m.sizes.length - 1];
-    var other = m.sizes.filter(function(z){ return z !== full; });
     var p = m.photo, art = p
       ? '<img src="/images/menu/' + p + '-600.webp" srcset="/images/menu/' + p + '-400.webp 400w, /images/menu/' + p + '-600.webp 600w, /images/menu/' + p + '-800.webp 800w" sizes="(max-width:900px) 90vw, 340px" width="600" height="450" loading="lazy" decoding="async" alt="' + esc(m.name) + '">'
       : '<svg class="pot" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-pot"/></svg>';
@@ -1576,8 +1574,7 @@
     return '<article class="dish reveal in" data-days="' + m.days.map(function(d){ return DAYS.indexOf(d); }).join(',') + '" data-label="' + esc(m.name + ' · ₹' + full.price) + '">' +
       '<span class="today-flag">Today</span><div class="dish-art">' + art + '</div>' +
       (m.days.length ? '<div class="days">' + m.days.map(function(d){ return '<span>' + d + '</span>'; }).join('') + '<i class="ast" aria-hidden="true">**</i></div>' : '') +
-      '<div class="dish-foot"><h3>' + name + '</h3><span class="price"><sup>₹</sup>' + full.price +
-      (other.length ? '<small>' + other.map(function(z){ return esc(z.size) + ' ₹' + z.price; }).join(' · ') + '</small>' : '') + '</span></div></article>';
+      '<div class="dish-foot"><h3>' + name + '</h3><span class="price"><sup>₹</sup>' + full.price + '</span></div></article>';   // full plate only; half plates are for the carts
   }
   function show(d){
     if (!d || !d.items || !d.items.length) return;
