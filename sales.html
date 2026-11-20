@@ -184,6 +184,12 @@
   .paybtn:disabled{opacity:.4}
   .lastbill{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--basil-tint);font-size:.84rem;font-weight:600;margin-bottom:12px}
   .lastbill a{color:var(--basil);font-weight:800}
+  .lastbill .note{display:block;font-weight:700;color:var(--basil)}
+  .lastbill .note.warn{color:var(--warn)}
+  .lastbill.warn{background:var(--warn-tint)} .lastbill.warn a{color:var(--ink)}   /* chili never next to basil green */
+  .capwarn{display:grid;gap:2px;padding:10px 12px;border-radius:12px;background:var(--warn-tint);color:var(--ink);border-left:4px solid var(--warn);font-size:.86rem;line-height:1.4}
+  .capwarn > b:first-child{color:var(--warn);font-size:.92rem}
+  .capwarn.soft{background:var(--surface);border-left-color:var(--brand)} .capwarn.soft > b:first-child{color:var(--brand)}
   .busy{position:fixed;inset:0;z-index:25;background:rgba(30,26,21,.55);display:grid;place-content:center;color:#FBF6EC;font-weight:700;padding:20px;text-align:center}
   .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.88rem;z-index:20;max-width:calc(100% - 32px);text-align:center}
   .spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;vertical-align:-2px;margin-right:6px}
@@ -701,7 +707,8 @@ function custBox(it) {
   if (c) {
     const ready = c.ready && c.ready.length && !c.blocked, top = topSize(it);
     return `<div class="member ${ready ? 'ready' : ''}"><div class="mtop"><b>${esc(c.name || 'Customer')} · ${esc(c.masked)}${c.card ? ' <span class="pill act">scanned</span>' : ''}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
-      ${c.blocked ? '<p class="hint">Pedal Club is on hold for this number. The bill still goes.</p>' : ready ? `${dots(c.need, c.need)}<small class="hint">Card full: free meal ready${c.stamps ? ` · ${c.stamps} stamp${c.stamps > 1 ? 's' : ''} on their next card` : ''}</small>` : `${dots(c.stamps, c.need)}<small class="hint num">${c.stamps} of ${c.need} stamps${c.capLeft < 2 ? ` · ${c.capLeft ? 'one more stamp' : 'no more stamps'} today` : ''}</small>`}
+      ${c.blocked ? '<p class="hint">Pedal Club is on hold for this number. The bill still goes.</p>' : ready ? `${dots(c.need, c.need)}<small class="hint">Card full: free meal ready${c.stamps ? ` · ${c.stamps} stamp${c.stamps > 1 ? 's' : ''} on their next card` : ''}</small>` : `${dots(c.stamps, c.need)}<small class="hint num">${c.stamps} of ${c.need} stamps</small>`}
+      ${capWarning(it)}
       ${ready ? `<label class="freeq"><span>🎁 Free meal ready: 1 ${esc(top.size)} plate free</span><input type="checkbox" id="oFree" ${o.free ? 'checked' : ''} role="switch"></label>
         ${o.free && !(o.counts[top.size] > 0) ? `<p class="hint" style="color:var(--warn)">Add a ${esc(top.size)} plate for the free meal.</p>` : ''}
         ${o.free && !c.card ? (o.override ? `<label>Why there's no code (founders only, logged)<input id="oWhy" maxlength="120" value="${esc(o.why)}"></label>` : `<label>Card code from their Pedal Club card<input id="oCode" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" value="${esc(o.code)}" style="letter-spacing:.3em;text-align:center;font-size:1.2rem"></label>`) + (isFounder() ? `<label class="chk"><input type="checkbox" id="oOv" ${o.override ? 'checked' : ''}><span>Customer can't show the code (founder)</span></label>` : '') : ''}` : ''}</div>`;
@@ -716,10 +723,22 @@ function custBox(it) {
   return `<div class="custbox"><button class="btn dark" data-a="custScan" ${canScan() ? '' : 'disabled'}>📷 Scan customer</button><button class="btn" data-a="custType">Type number</button><p class="hint">Optional: for a WhatsApp bill and Pedal Club stamps</p></div>`;
 }
 
+// The daily stamp limit (club_daily_cap, 2) said plainly, before the rider presses Cash / UPI.
+const dailyCap = () => Math.max(1, Number(cfg().settings.club_daily_cap) || 2);
+function capWarning(it) {
+  const o = order(), c = o.cust;
+  if (!c || c.isNew || c.blocked || !clubOn() || c.capLeft == null) return '';
+  const paid = orderTotals(it).plates - (orderTotals(it).freeVal ? 1 : 0);
+  const cls = c.ready && c.ready.length ? 'capwarn soft' : 'capwarn';
+  if (c.capLeft <= 0) return `<div class="${cls}" role="alert"><b>⚠ Daily stamp limit reached</b><span>This customer already got ${dailyCap()} stamps today. This order gets <b>no stamp</b>. The WhatsApp bill still goes.</span></div>`;
+  if (paid > c.capLeft) return `<div class="${cls}" role="alert"><b>⚠ Only ${c.capLeft} more stamp${c.capLeft > 1 ? 's' : ''} today</b><span>${paid} plates in this order, ${c.capLeft} stamp${c.capLeft > 1 ? 's' : ''} (limit ${dailyCap()} a day per customer).</span></div>`;
+  return '';
+}
+
 function lastBillStrip() {
   if (S.pendingBill) return `<div class="diff bad" style="display:grid;gap:8px;text-align:left">Bill for ${esc(S.pendingBill.label)} was not sent (no signal). The sale is saved.<button class="btn" data-a="retryBill">Make the bill now</button></div>`;
   const L = S.lastBill;
-  if (L && Date.now() - L.at < 15 * 60000) return `<div class="lastbill"><span>Bill ${esc(L.no)} · ${esc(L.name)}</span><a href="${esc(L.wa)}" target="_blank" rel="noopener">Open WhatsApp again</a></div>`;
+  if (L && Date.now() - L.at < 15 * 60000) return `<div class="lastbill ${L.warn ? 'warn' : ''}"><span>Bill ${esc(L.no)} · ${esc(L.name)}${L.note ? `<b class="note ${L.warn ? 'warn' : ''}">${esc(L.note)}</b>` : ''}</span><a href="${esc(L.wa)}" target="_blank" rel="noopener">Open WhatsApp again</a></div>`;
   return '';
 }
 
@@ -809,13 +828,14 @@ async function sendBill(B) {
     if (S.queue.some(x => B.ids.includes(x.sale_id))) throw new Error('No signal right now.');
     const r = await api('clubBill', Object.assign({sale_ids: B.ids}, B.cust.isNew ? {phone: B.cust.phone, name: B.cust.name, consent: true} : {cid: B.cust.cid}));
     const wa = 'https://wa.me/' + r.wa_phone + '?text=' + encodeURIComponent(billText(r));
-    S.lastBill = {no: r.bill.no, name: r.customer.name || r.customer.masked, wa, at: Date.now()}; S.pendingBill = null;
+    const k = r.club.skip, g = r.club.given;
+    const note = k.cap ? (g ? `+${g} stamp${g > 1 ? 's' : ''} · ${k.cap} plate${k.cap > 1 ? 's' : ''} over the daily limit of ${dailyCap()}` : `No stamp: daily limit of ${dailyCap()} reached`) : g ? `+${g} stamp${g > 1 ? 's' : ''}` : '';
+    S.lastBill = {no: r.bill.no, name: r.customer.name || r.customer.masked, wa, at: Date.now(), note, warn: !!k.cap}; S.pendingBill = null;
     S.local.forEach(x => { if (B.ids.includes(x.sale_id)) x.bill = r.bill.no; });
     persist(); store.set('lastBill', S.lastBill); store.del('pendingBill');
     S.busy = false; render();
-    const k = r.club.skip, notes = [r.club.given ? `+${r.club.given} stamp${r.club.given > 1 ? 's' : ''}` : '', k.cap ? `${k.cap} over today's stamp limit` : ''].filter(Boolean).join(' · ');
-    if (notes) toast(notes);
-    setTimeout(() => { location.href = wa; }, notes ? 700 : 0);   // WhatsApp opens with the bill filled in; the rider presses Send
+    if (note) toast(note);
+    setTimeout(() => { location.href = wa; }, note ? (k.cap ? 1400 : 700) : 0);   // WhatsApp opens with the bill filled in; the rider presses Send
   } catch (e) {
     S.pendingBill = B; store.set('pendingBill', B); S.busy = false;
     toast(/signal/i.test(e.message || '') || !navigator.onLine ? 'Sale saved. The bill needs signal: tap "Make the bill now" when it is back.' : (e.message || 'Could not make the bill.'));
