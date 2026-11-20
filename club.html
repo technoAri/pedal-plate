@@ -79,7 +79,7 @@
 /* Pedal Club card. Reads the card key after # in the link from the WhatsApp bill and asks the
    sales backend (sales/apps-script/Code.gs, action clubCard). API_URL is the same /exec URL as in sales.html.
    While API_URL is empty, or with #demo, it shows a sample card. */
-const API_URL = '';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxOhUUFVpzZqXNz7d4bebHgEiE5m9sKTm_5mKFWmOg6huv_9IelbnmAOia34jJ6tfhQ/exec';
 const $ = s => document.querySelector(s), app = $('#app');
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nice = k => k ? new Date(k + 'T12:00').toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '';
