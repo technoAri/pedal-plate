@@ -120,7 +120,7 @@
   .pp .meta{flex:1;min-width:0} .pp .meta b{display:block}
   .pp small{color:var(--soft);font-size:.78rem}
   .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
-  .pill.act{background:var(--basil-tint);color:var(--basil)} .pill.off{background:var(--chip);color:var(--soft)} .pill.bk{background:var(--tint);color:var(--brand)}
+  .pill.act{background:var(--basil-tint);color:var(--basil)} .pill.off{background:var(--chip);color:var(--soft)} .pill.bk{background:var(--tint);color:var(--brand)} .pill.end{background:var(--brand);color:var(--on)}
   .mini{min-height:36px;padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-size:.76rem;font-weight:700}
   .pin{font-size:2.2rem;font-weight:800;letter-spacing:.3em;text-align:center;color:var(--brand)}
   .bar{height:8px;border-radius:999px;background:var(--chip);overflow:hidden} .bar i{display:block;height:100%;background:var(--brand)}
@@ -229,6 +229,9 @@ const keyOf = d => IST.format(d);
 const todayKey = () => keyOf(new Date());
 const daysAgo = n => keyOf(new Date(Date.now() - n * 864e5));
 const nice = k => k ? new Date(k + 'T12:00').toLocaleDateString('en-IN', {day:'numeric', month:'short'}) : '';
+const daysTo = (k, from) => Math.round((new Date(k + 'T12:00') - new Date(from + 'T12:00')) / 864e5);   // whole days from one day key to another
+const whenLeft = n => n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days';
+const ENDING_DAYS = 4;   // warn in the last 5 days of a card (today + 4)
 const ord = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ({1:'st',2:'nd',3:'rd'}[n % 10] || 'th'));
 const OT = {walkin:'Walk-in', corporate:'Corporate / bulk', delivery:'Home delivery'};
 
@@ -696,7 +699,8 @@ function billText(r) {
   if (!c.blocked && (c.on || c.ready.length || c.stamps)) {
     L.push('');
     if (c.ready.length) L.push(`Pedal Club: your free meal is ready! Show your card at any Pedal Plate cart by ${nice(c.ready[0].claim_till)}.`);
-    if (c.stamps) L.push(`Pedal Club: ${c.stamps} of ${c.need} stamps${c.given ? ` (+${c.given} today)` : ''}. ${c.need - c.stamps} more and your next combo is free. Valid till ${nice(c.valid_till)}.`);
+    const left = c.valid_till ? daysTo(c.valid_till, keyOf(new Date(b.at))) : 99;
+    if (c.stamps) L.push(`Pedal Club: ${c.stamps} of ${c.need} stamps${c.given ? ` (+${c.given} today)` : ''}. ${c.need - c.stamps} more and your next combo is free. ${left >= 0 && left <= ENDING_DAYS ? `Your stamps expire on ${nice(c.valid_till)} (${whenLeft(left)}), so come back soon!` : `Valid till ${nice(c.valid_till)}.`}`);
     else if (!c.ready.length && c.on) L.push(`Pedal Club: every ${ord(c.need + 1)} combo at our carts is free. Ask for a stamp next time.`);
     L.push('Your card: ' + c.link);
   }
@@ -743,7 +747,8 @@ function custBox(it) {
       <label class="chk"><input type="checkbox" id="oOk" ${o.consent ? 'checked' : ''}><span>If this is a new customer: they said yes to bills and Pedal Club on WhatsApp</span></label>` : ''}</div>`;
   if (c) {
     const ready = c.ready && c.ready.length && !c.blocked, top = topSize(it);
-    return `<div class="member ${ready ? 'ready' : ''}"><div class="mtop"><b>${esc(c.name || 'Customer')} · ${esc(c.masked)}${c.card ? ' <span class="pill act">scanned</span>' : ''}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
+    const left = c.stamps && c.valid_till && !c.blocked && !ready ? daysTo(c.valid_till, todayKey()) : 99;
+    return `<div class="member ${ready ? 'ready' : ''}"><div class="mtop"><b>${esc(c.name || 'Customer')} · ${esc(c.masked)}${c.card ? ' <span class="pill act">scanned</span>' : ''}${left >= 0 && left <= ENDING_DAYS ? ` <span class="pill end">Card ends ${whenLeft(left)}</span>` : ''}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
       ${c.blocked ? '<p class="hint">Pedal Club is on hold for this number. The bill still goes.</p>' : ready ? `${dots(c.need, c.need)}<small class="hint">Card full: free meal ready${c.stamps ? ` · ${c.stamps} stamp${c.stamps > 1 ? 's' : ''} on their next card` : ''}</small>` : `${dots(c.stamps, c.need)}<small class="hint num">${c.stamps} of ${c.need} stamps</small>`}
       ${capWarning(it)}
       ${ready ? `<label class="freeq"><span>🎁 Free meal ready: 1 ${esc(top.size)} plate free</span><input type="checkbox" id="oFree" ${o.free ? 'checked' : ''} role="switch"></label>

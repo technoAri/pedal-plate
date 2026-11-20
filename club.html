@@ -50,6 +50,7 @@
   .code b{display:block;font-size:30px;font-weight:800;letter-spacing:.16em;line-height:1.1}
   .status{border-radius:14px;padding:12px 14px;font-weight:600;font-size:14px;background:var(--tint)}
   .status.ok{background:var(--basil-tint)}
+  .status.exp{border-left:5px solid var(--brand);font-weight:500} .status.exp b{display:block;font-weight:800;color:var(--brand);margin-bottom:2px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:10px}
   ol,ul{padding-left:20px;display:grid;gap:6px}
   .hist{display:grid;gap:4px;font-size:13px;color:var(--soft)}
@@ -99,6 +100,9 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxOhUUFVpzZqXNz7d4bebHg
 const $ = s => document.querySelector(s), app = $('#app');
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nice = k => k ? new Date(k + 'T12:00').toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '';
+const niceS = k => new Date(k + 'T12:00').toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+const daysTo = (k, from) => Math.round((new Date(k + 'T12:00') - new Date(from + 'T12:00')) / 864e5);
+const whenLeft = n => n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days';
 const ord = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ({1:'st',2:'nd',3:'rd'}[n % 10] || 'th'));
 const gift = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v9H5v-9M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>';
 
@@ -128,8 +132,17 @@ function passHtml(p, d) {
       ${p.code ? `<div class="code">Card code<b>${esc(p.code)}</b>Read it out only at the cart</div>` : ''}
       ${p.code ? `<div class="qr"><div class="box" data-qr aria-label="Your Pedal Club QR"></div><p><b>Show this at the cart</b>The rider scans it to add your stamp or give your free meal.</p></div>` : ''}
     </div>
-    <div class="status ${status[1]}">${status[0]}</div>
+    ${ending(p, d) || `<div class="status ${status[1]}">${status[0]}</div>`}
     ${p.dates.length ? `<details class="card"><summary style="font-weight:700;cursor:pointer">Stamp dates on this card</summary><div class="hist" style="margin-top:8px">${p.dates.slice().sort().map((x, i) => `<div><span>Stamp ${i + 1}</span><span>${nice(x)}</span></div>`).join('')}</div></details>` : ''}`;
+}
+
+// Last 5 days of a card that is still filling: say when the stamps expire, and whether the free meal can still be reached.
+function ending(p, d) {
+  if (p.state !== 'active' || !p.stamps || !d.today) return '';
+  const left = daysTo(p.valid_till, d.today);
+  if (left < 0 || left > 4) return '';
+  const more = p.need - p.stamps, room = (left + 1) * (d.rules.cap || 4) - p.dates.filter(x => x === d.today).length;
+  return `<div class="status exp"><b>Stamp${p.stamps > 1 ? 's expire' : ' expires'} ${whenLeft(left)}</b>Your ${p.stamps} stamp${p.stamps > 1 ? 's expire' : ' expires'} on ${niceS(p.valid_till)}. ${more <= room ? `Get ${more} more combo${more > 1 ? 's' : ''} by then for your free meal.` : 'After that, your next plate starts a new card.'}</div>`;
 }
 
 // Joined online, not yet been to the cart: a welcome card with a QR for the rider to scan.
