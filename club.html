@@ -57,7 +57,7 @@
   .fine{font-size:12px;color:var(--soft)}
   a{color:var(--brand);font-weight:600}
   .qr{display:flex;align-items:center;gap:14px;background:#FBF6EC;color:#2B2620;border-radius:16px;padding:10px 14px 10px 10px}
-  .qr .box{flex:none;width:112px;height:112px;background:#fff;border-radius:10px;padding:4px}
+  .qr .box{flex:none;width:132px;height:132px;background:#fff;border-radius:10px;padding:0}
   .qr .box svg{width:100%;height:100%;display:block}
   .qr p{font-size:13px;line-height:1.4}
   .qr b{display:block;font-size:14px}
@@ -132,8 +132,34 @@ function passHtml(p, d) {
     ${p.dates.length ? `<details class="card"><summary style="font-weight:700;cursor:pointer">Stamp dates on this card</summary><div class="hist" style="margin-top:8px">${p.dates.slice().sort().map((x, i) => `<div><span>Stamp ${i + 1}</span><span>${nice(x)}</span></div>`).join('')}</div></details>` : ''}`;
 }
 
+// Joined online, not yet been to the cart: a welcome card with a QR for the rider to scan.
+function welcome(d) {
+  let joined = false; try { joined = sessionStorage.getItem('pp_joined') === '1'; sessionStorage.removeItem('pp_joined'); } catch (e) {}
+  let dots = ''; for (let i = 0; i < d.rules.stamps; i++) dots += '<i></i>'; dots += `<i class="gift" title="Free meal">${gift}</i>`;
+  app.innerHTML = `<div style="display:grid;gap:14px">
+    <h1>${joined ? `You're in, ${esc(d.name || 'friend')}!` : `Hi ${esc(d.name || 'there')}, welcome to Pedal Club`}</h1>
+    <div class="pass">
+      <div class="row"><span class="kick">PEDAL CLUB</span><span class="sm">Welcome card</span></div>
+      <div><div class="who">${esc(d.name || 'Pedal Club member')}</div><div class="sm">${esc(d.masked)}</div></div>
+      <div class="dots" aria-label="0 of ${d.rules.stamps} stamps">${dots}</div>
+      <div class="qr"><div class="box" data-qr aria-label="Your Pedal Club QR"></div><p><b>Show this at the cart</b>With your first combo, the rider scans it and adds your first stamp.</p></div>
+    </div>
+    <div class="status">Your Pedal Club card comes on WhatsApp with your first bill at the cart. From then on, use the link in that WhatsApp message.</div>
+  </div>`;
+  drawQr();
+}
+
+// No login: the card link is the customer's key. This phone remembers it, so pedalplate.in/club
+// (or the standee QR) opens the same card again. The QR never changes after the first bill.
+const SAVED = 'pp_card';
+const saved = () => { try { return localStorage.getItem(SAVED) || ''; } catch (e) { return ''; } };
+const remember = k => { try { localStorage.setItem(SAVED, k); } catch (e) {} };
+const forget = () => { try { localStorage.removeItem(SAVED); } catch (e) {} };
+
 function show(d) {
   rules(d.rules);
+  if (/^[a-f0-9]{32,48}$/i.test(location.hash.slice(1))) remember(location.hash.slice(1));
+  if (d.confirmed === false) return welcome(d);
   const live = d.passes.filter(p => p.state === 'ready').concat(d.passes.filter(p => p.state === 'active'));   // free meal first
   const old = d.passes.filter(p => p.state !== 'ready' && p.state !== 'active');
   app.innerHTML = `<div style="display:grid;gap:14px">
@@ -151,7 +177,7 @@ function show(d) {
 function drawQr() {
   const boxes = document.querySelectorAll('[data-qr]'); if (!boxes.length) return;
   const link = 'https://pedalplate.in/club#' + location.hash.slice(1);
-  const paint = () => { const q = qrcode(0, 'M'); q.addData(link); q.make(); const svg = q.createSvgTag({cellSize: 4, margin: 2, scalable: true}); boxes.forEach(b => b.innerHTML = svg); };
+  const paint = () => { const q = qrcode(0, 'M'); q.addData(link); q.make(); const svg = q.createSvgTag({cellSize: 4, margin: 4, scalable: true}); boxes.forEach(b => b.innerHTML = svg); };
   if (window.qrcode) return paint();
   const s = document.createElement('script'); s.src = '/vendor/qrcode.js'; s.onload = paint; document.head.appendChild(s);
 }
@@ -167,6 +193,7 @@ function joinForm(msg) {
       <div class="hp" aria-hidden="true"><label for="jw">Leave empty<input type="text" id="jw" tabindex="-1" autocomplete="off"></label></div>
       <label class="chk" for="jc"><input type="checkbox" id="jc"><span>Pedal Plate may save my name and number to send my bills and Pedal Club updates on WhatsApp. I can ask to delete them anytime.</span></label>
       <p class="err" id="je" role="alert">${esc(msg || '')}</p>
+      ${saved() ? `<p class="fine">This phone already has a Pedal Club card. <a href="#${esc(saved())}">Open it</a></p>` : ''}
       <button class="btn" id="jb">Join Pedal Club</button>
     </form>
   </div>`;
@@ -179,9 +206,10 @@ function joinForm(msg) {
     if (!consent) { er.textContent = 'Tick the box so we can save your number.'; return; }
     $('#jb').disabled = true; $('#jb').textContent = 'Joining…'; er.textContent = '';
     try {
-      const j = API_URL ? await (await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubJoin', name, phone, consent, website:$('#jw').value})})).json() : {ok:true};
+      const j = API_URL ? await (await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubJoin', name, phone, consent, website:$('#jw').value})})).json() : {ok:true, link:'/club#demo'};
       if (!j.ok) { er.textContent = j.error || 'Something went wrong. Try again.'; $('#jb').disabled = false; $('#jb').textContent = 'Join Pedal Club'; return; }
-      app.innerHTML = `<div class="status ok" style="display:grid;gap:6px"><b style="font-size:18px">You're in, ${esc(name.split(' ')[0])}!</b><span>Next time at a Pedal Plate cart, ask for your bill on WhatsApp and tell the rider this number. Your Pedal Club card comes with that bill, and every combo adds a stamp.</span></div>`;
+      if (j.link) { try { sessionStorage.setItem('pp_joined', '1'); } catch (x) {} location.hash = j.link.split('#')[1]; return; }   // opens their welcome card on this page
+      app.innerHTML = `<div class="status ok" style="display:grid;gap:6px"><b style="font-size:18px">You're already in Pedal Club, ${esc(name.split(' ')[0])}!</b><span>Your card link is in your WhatsApp bill from the cart. Lost it? Ask the rider for a bill on WhatsApp and the link comes with it.</span></div>`;
     } catch (err) { er.textContent = navigator.onLine ? 'Something went wrong. Try again.' : 'No internet. Try again when you are online.'; $('#jb').disabled = false; $('#jb').textContent = 'Join Pedal Club'; }
   };
 }
@@ -190,8 +218,8 @@ function landing() {
   app.innerHTML = `<div style="display:grid;gap:14px">
     <h1>Every <span data-r="nth">10th</span> meal is on us.</h1>
     <p class="muted">Pedal Club is free. No app, no fee. Join in a few seconds and start collecting stamps at our carts.</p>
-    <a class="btn" href="#join">Join Pedal Club</a>
-    <p class="fine">Already a member? Your card opens from the link in your WhatsApp bill.</p>
+    ${saved() ? `<a class="btn" href="#${esc(saved())}">Open my Pedal Club card</a><a href="#join" style="text-align:center">Join with another number</a>` : `<a class="btn" href="#join">Join Pedal Club</a>
+    <p class="fine">Already a member? Your card opens from the link in your WhatsApp bill.</p>`}
   </div>`;
 }
 
@@ -205,7 +233,7 @@ function fail(msg) { app.innerHTML = `<div class="status">${esc(msg)}</div>`; }
   try {
     const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubCard', t:key}), redirect:'follow'});
     const j = await r.json();
-    if (!j.ok) return fail(j.error || 'We could not open your card. Try again.');
+    if (!j.ok) { if (key === saved()) forget(); return fail(j.error || 'We could not open your card. Try again.'); }
     show(j);
   } catch (e) { fail(navigator.onLine ? 'We could not open your card. Try again in a moment.' : 'No internet. Your card will open when you are back online.'); }
 })();

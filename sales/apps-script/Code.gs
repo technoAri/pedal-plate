@@ -25,7 +25,7 @@ const SCHEMA = {
   BankUpi:  ['date', 'amount', 'upi_tapped', 'difference', 'entered_by', 'entered_at'],
   Log:      ['at', 'by', 'action', 'details'],
   // Pedal Club and bills. Phone numbers live only in Customers, so deleting a customer is one row.
-  Customers: ['customer_id', 'phone', 'name', 'card_token', 'consent_at', 'consent_by', 'created_at', 'blocked', 'blocked_by', 'deleted_at', 'flag_ok'],
+  Customers: ['customer_id', 'phone', 'name', 'card_token', 'consent_at', 'consent_by', 'created_at', 'blocked', 'blocked_by', 'deleted_at', 'flag_ok', 'verified'],
   Passes:   ['pass_id', 'customer_id', 'code', 'issued_date', 'issued_at', 'valid_till', 'status', 'redeemed_at', 'redeem_sale_id', 'redeemed_by', 'issued_by', 'flag_ok'],
   Stamps:   ['stamp_id', 'pass_id', 'customer_id', 'sale_id', 'date', 'created_at', 'partner_id', 'partner_name', 'cart_id', 'status', 'void_by', 'void_at'],
   Bills:    ['bill_no', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'customer_id', 'sale_ids', 'amount', 'stamps', 'pass_id'],
@@ -587,12 +587,13 @@ function clubManual(req, s) {
       if (!c) {
         if (req.consent !== true) fail('Tick the box once the customer has agreed to us saving their number.');
         c = { customer_id: newId('CU'), phone, name: String(req.name || '').trim().slice(0, 40), card_token: Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8),
-          consent_at: new Date().toISOString(), consent_by: s.partner.name, created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '' };
+          consent_at: new Date().toISOString(), consent_by: s.partner.name, created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '', verified: 'yes' };
         append('Customers', c); D.customers.push(c);
       }
     }
     if (!c) fail('Customer not found.');
     if (truthy(c.blocked)) fail('This number is on hold. Lift the hold first.');
+    confirmCard(c);   // the founder sends the card link to their WhatsApp
     const ids = []; for (let i = 0; i < n; i++) ids.push('manual');
     const r = addStamps(c, D, R, today, ids, s.partner.partner_id, s.partner.name + ' (by hand)', '');
     const card = customerCard(c, D, R, today);
@@ -619,17 +620,34 @@ function clubJoin(req) {
   const name = String(req.name || '').trim().replace(/\s+/g, ' ').slice(0, 40);
   if (!name) fail('Type your name.');
   cache.put('club_joins', String(n + 1), 3600);
-  let added = false;
+  let added = false, out = null;
   withLock(() => {
     const D = clubLoad();
     const c = findCustomer(D, phone);
-    if (c) { if (!c.name) updateWhere('Customers', r => String(r.customer_id) === c.customer_id, { name }); return; }
-    append('Customers', { customer_id: newId('CU'), phone, name, card_token: Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8),
-      consent_at: new Date().toISOString(), consent_by: 'website', created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '' });
-    added = true;
+    if (c && isConfirmed(c)) { out = { joined: true, member: true }; return; }   // their card is in their WhatsApp bill
+    if (c) {   // joined online before but never came to the cart: a fresh welcome card (the old online link stops working)
+      const token = newToken();
+      updateWhere('Customers', r => String(r.customer_id) === c.customer_id, c.name ? { card_token: token } : { card_token: token, name });
+      out = { joined: true, link: clubRules().site + '/club#' + token }; return;
+    }
+    const token = newToken();
+    append('Customers', { customer_id: newId('CU'), phone, name, card_token: token,
+      consent_at: new Date().toISOString(), consent_by: 'website', created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '', verified: '' });
+    added = true; out = { joined: true, link: clubRules().site + '/club#' + token };
   });
   if (added) logAction('Website', 'club: joined online', maskPhone(phone));
-  return { joined: true };
+  return out;
+}
+
+// A number joined online is not proven to be the customer's. Its welcome card can be scanned at the
+// cart, but the first WhatsApp bill (sent to that number) replaces the card link, and only that link
+// is used from then on. So someone who joins with another person's number never sees their stamps.
+function newToken() { return Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8); }
+function isConfirmed(c) { return c.consent_by !== 'website' || truthy(c.verified); }
+function confirmCard(c) {
+  if (isConfirmed(c)) return;
+  c.card_token = newToken(); c.verified = 'yes';
+  updateWhere('Customers', r => String(r.customer_id) === c.customer_id, { card_token: c.card_token, verified: 'yes' });
 }
 
 function newCode() { let c; do { c = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); } while (/^(\d)\1+$/.test(c)); return c; }
@@ -653,7 +671,7 @@ function clubBill(req, s) {
       if (!c) {
         if (req.consent !== true) fail('Ask the customer if we can save their number, then tick the box.');
         c = { customer_id: newId('CU'), phone, name: String(req.name || '').trim().slice(0, 40), card_token: Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8),
-          consent_at: new Date().toISOString(), consent_by: s.partner.name, created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '' };
+          consent_at: new Date().toISOString(), consent_by: s.partner.name, created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '', verified: 'yes' };
         append('Customers', c); D.customers.push(c); isNew = true; logNew = c;
       } else if (!c.name && req.name) {
         c.name = String(req.name).trim().slice(0, 40);
@@ -700,6 +718,7 @@ function clubBill(req, s) {
       l.qty += Number(r.qty) || 1; l.amount += a; total += a; if (r.pay === 'Free') freeLines++;
       if (r.pay === 'UPI') pay.UPI += a; else if (r.pay === 'Cash') pay.Cash += a;
     });
+    confirmCard(c);   // the bill goes to this WhatsApp number, so its link becomes the real card
     const card = customerCard(c, D, R, today);
     append('Bills', { bill_no: billNo, created_at: new Date().toISOString(), date: today, partner_id: String(s.partner.partner_id), partner_name: s.partner.name,
       cart_id: s.cart_id, customer_id: c.customer_id, sale_ids: sales.map(r => r.sale_id).join(','), amount: total, stamps: given, pass_id: card.active ? card.active.pass_id : '' });
@@ -777,11 +796,11 @@ function clubCard(req) {
   if (!/^[a-f0-9]{32,48}$/i.test(t)) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('This card link is not complete. Open the link from your WhatsApp bill.'); }
   const R = clubRules(), today = dateKey(new Date()), D = clubLoad();
   const c = D.customers.find(x => x.card_token === t && !x.deleted_at);
-  if (!c) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('We could not find this card. Ask for a new link at the cart.'); }
+  if (!c) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('This card link has changed or was removed. Open the latest link from your WhatsApp bill, or join again.'); }
   const card = customerCard(c, D, R, today);
   const recent = card.views.filter(v => v.state === 'active' || v.state === 'ready' || daysBetween(v.valid_till, today) <= 30).sort((a, b) => a.issued < b.issued ? 1 : -1);
   return {
-    name: String(c.name || '').split(' ')[0], masked: maskPhone(c.phone), blocked: truthy(c.blocked), today,
+    name: String(c.name || '').split(' ')[0], masked: maskPhone(c.phone), blocked: truthy(c.blocked), today, confirmed: isConfirmed(c),
     rules: { stamps: R.stamps, days: R.days, cap: R.cap, grace: R.grace, on: R.on },
     passes: recent.map(v => ({ code: v.state === 'active' || v.state === 'ready' ? v.code : '', issued: v.issued, valid_till: v.valid_till, claim_till: v.claim_till,
       stamps: v.stamps, need: v.need, state: v.state, redeemed_at: v.redeemed_at, dates: v.stampList.map(x => x.date) })),
