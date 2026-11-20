@@ -108,6 +108,14 @@ their stamp: no signal, a partner forgot, a complaint; a reason is required and 
 meal, put a number on hold, resend the card link or delete their data. On the **Free meal**
 screen, founders can tick **Customer can't show the code** and give a reason.
 
+**No signal (whole orders).** Every order is saved on the phone as one package (plates, Cash/UPI,
+the customer if any) and sent when there is signal. The server saves each package whole: plates,
+stamps and bill together, and a resend after weak signal never adds anything twice. Without signal
+the rider can still scan a card or type a number; stamps follow the time of the order (daily limit for
+that day; orders more than 2 days old get no stamps). Bills from such orders appear on the Sell screen
+as **"WhatsApp bills to send"**; tap each to open WhatsApp. Free meals need signal. The sales page itself
+opens without signal once it has been opened once on that phone (`sales-sw.js`, scope `/sales` only).
+
 **Notifications.** Every bill already carries the stamp count and card link, sent from the cart
 phone at no cost. Fully automatic messages (with nobody pressing send) need the WhatsApp
 Business Platform, which Meta charges per message; not set up.

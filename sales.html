@@ -184,6 +184,8 @@
   .paybtn:disabled{opacity:.4}
   .lastbill{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--basil-tint);font-size:.84rem;font-weight:600;margin-bottom:12px}
   .lastbill a{color:var(--basil);font-weight:800}
+  .tosend{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:14px 16px;margin-bottom:12px;border-radius:14px;border:0;background:var(--ink);color:var(--bg);font-weight:800;font-size:1rem;text-align:left}
+  .tosend span{font-size:.8rem;font-weight:600;opacity:.85}
   .lastbill .note{display:block;font-weight:700;color:var(--basil)}
   .lastbill .note.warn{color:var(--warn)}
   .lastbill.warn{background:var(--warn-tint)} .lastbill.warn a{color:var(--ink)}   /* chili never next to basil green */
@@ -341,6 +343,34 @@ const DemoApi = (() => {
       const k = ccard(c); db.bills.push({bill_no:no, date:today, customer_id:c.customer_id, partner_name:s.p.name, amount:total, stamps:given}); save();
       return {bill:{no, at:new Date().toISOString(), cart_id:s.cart, lines:Object.values(lines), total, pay}, club:{on:CR.on, given, newPass, skip, need:CR.stamps, stamps:k.active?k.active.stamps:0, valid_till:k.active?k.active.valid_till:'', ready:k.ready.map(v => ({claim_till:v.claim_till})), blocked:!!c.blocked, link:CR.site+'/club#'+c.card_token},
         customer:{cid:c.customer_id, name:c.name||'', masked:mask(c.phone), isNew}, wa_phone:'91'+c.phone, footer:CR.footer}; },
+    // One order saved whole (same rules as orderSave in Code.gs, for training)
+    orderSave({token, order: o}) { const s = sess(token);
+      const reply = () => { const sales = db.sales.filter(r => r.order_id === o.order_id && r.status !== 'void'); const out = {order_id: o.order_id, saved: sales.map(r => r.sale_id)};
+        const fr = sales.find(r => r.pay === 'Free'); if (fr) out.free = {sale_id: fr.sale_id, item_name: fr.item_name, size: fr.size, value: (db.menu.find(m => m.item_id === fr.item_id).sizes.find(z => z.size === fr.size) || {}).price || 0};
+        return out; };
+      if (db.sales.some(r => r.order_id === o.order_id)) return Object.assign(reply(), o._bill || {}, {repeat: true});
+      const it = db.menu.find(m => m.item_id === o.item_id); if (!it) throw new Error('That combo or plate size is not on the menu.');
+      const top = it.sizes.slice().sort((a, b) => b.price - a.price)[0];
+      let c = null, note = '';
+      if (o.cust && o.cust.card != null) { const m = String(o.cust.card).match(/([a-f0-9]{32,48})\s*$/i); c = m ? liveC().find(x => x.card_token === m[1].toLowerCase()) || null : null; if (!c) note = 'card_unknown'; }
+      else if (o.cust && o.cust.cid) c = liveC().find(x => x.customer_id === o.cust.cid) || null;
+      else if (o.cust && o.cust.phone != null) { const ph = norm(o.cust.phone); c = ph ? liveC().find(x => x.phone === ph) || null : null;
+        if (!c && ph && o.cust.consent === true) { c = {customer_id:'CU'+uid().slice(0,8), phone:ph, name:String(o.cust.name||'').trim(), card_token:uid().replace(/-/g,'').padEnd(40,'0').slice(0,40), consent_by:s.p.name, created_at:new Date().toISOString(), blocked:false}; db.customers.push(c); } else if (!c) note = 'needs_consent'; }
+      let pv = null;
+      if (o.free) { if (!c) throw new Error('The free meal needs the customer. Scan their card or type their number.'); const ready = ccard(c).ready; if (!ready.length) throw new Error('No free meal is ready on this number.');
+        if (!o.lines.some(l => l.size === top.size)) throw new Error('Add a ' + top.size + ' plate for the free meal.');
+        if (o.free.override === true && s.p.role !== 'founder') throw new Error('Only founders can give a free meal without the code.');
+        const scanned = o.cust && o.cust.card != null; pv = o.free.override === true || scanned ? ready[0] : ready.find(v => v.code === String(o.free.code || '')) || null;
+        if (!pv) throw new Error("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code."); }
+      const day = keyOf(new Date(Math.min(Date.now(), new Date(o.created_at).getTime() || Date.now()))), ids = [];
+      o.lines.forEach(l => { const z = it.sizes.find(x => x.size === l.size); if (!z) throw new Error('That combo or plate size is not on the menu.'); const q = l.qty - (pv && l.size === top.size ? 1 : 0);
+        if (q > 0) { db.sales.push({sale_id: o.order_id + '-' + l.size, order_id: o.order_id, created_at: o.created_at, date: day, partner_id: s.p.partner_id, partner_name: s.p.name, cart_id: s.cart, item_id: it.item_id, item_name: it.name, size: l.size, price: z.price, qty: q, amount: z.price * q, pay: o.pay, source: 'tap', status: 'ok', order_type: 'walkin'}); ids.push(o.order_id + '-' + l.size); } });
+      if (pv) { db.sales.push({sale_id: o.order_id + '-free', order_id: o.order_id, created_at: o.created_at, date: day, partner_id: s.p.partner_id, partner_name: s.p.name, cart_id: s.cart, item_id: it.item_id, item_name: it.name, size: top.size, price: 0, qty: 1, amount: 0, pay: 'Free', source: 'club', status: 'ok', order_type: 'walkin', ref: 'club:' + pv.pass_id});
+        const pp = db.passes.find(x => x.pass_id === pv.pass_id); pp.status = 'redeemed'; pp.redeem_sale_id = o.order_id + '-free'; ids.push(o.order_id + '-free'); }
+      save();
+      if (!c) return Object.assign(reply(), {note});
+      const bill = A.clubBill({token, sale_ids: ids, cid: c.customer_id}); o._bill = bill;
+      return Object.assign(reply(), bill, {note}); },
     clubManual({token, cid, phone, name, consent, stamps, reason}) { const s = sess(token); founder(s); const n = Math.round(+stamps); if (!(n >= 1 && n <= CR.stamps)) throw new Error('Add between 1 and ' + CR.stamps + ' stamps.'); if (String(reason||'').trim().length < 3) throw new Error('Write why you are adding these stamps.');
       let c = cid ? liveC().find(x => x.customer_id === cid) : null; const today = todayKey();
       if (!cid) { const ph = norm(phone); if (!ph) throw new Error('Type a valid 10-digit mobile number.'); c = liveC().find(x => x.phone === ph); if (!c) { if (consent !== true) throw new Error('Tick the box once the customer has agreed to us saving their number.'); c = {customer_id:'CU'+uid().slice(0,8), phone:ph, name:String(name||'').trim(), card_token:uid().replace(/-/g,'').padEnd(40,'0').slice(0,40), consent_by:s.p.name, created_at:new Date().toISOString(), blocked:false}; db.customers.push(c); } }
@@ -408,7 +438,7 @@ const DemoApi = (() => {
     logList({token}) { founder(sess(token)); return {log:db.log.slice(-60).reverse()}; },
     logout({token}) { delete db.sessions[token]; save(); return {}; },
   };
-  return {call: (action, body) => new Promise((res, rej) => setTimeout(() => { try { res(A[action](body)); } catch (e) { rej(e); } }, 150))};
+  return {call: (action, body) => new Promise((res, rej) => setTimeout(() => { try { res(A[action](body)); } catch (e) { e.server = true; rej(e); } }, 150))};
 })();
 
 /* ---------- API ---------- */
@@ -417,7 +447,7 @@ async function api(action, payload) {
   if (DEMO) return DemoApi.call(action, body);
   const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body), redirect:'follow'});
   const j = await r.json();
-  if (!j.ok) { const e = new Error(j.error || 'Something went wrong.'); if (/expired/i.test(j.error || '')) e.expired = true; throw e; }
+  if (!j.ok) { const e = new Error(j.error || 'Something went wrong.'); e.server = true; if (/expired/i.test(j.error || '')) e.expired = true; throw e; }
   return j;
 }
 
@@ -428,9 +458,11 @@ const S = {
   local: store.get('local', []),                // this phone's sales since the last refresh (for the feed)
   base: store.get('base', null),                // today's totals from the Sheet at the last refresh
   view: 'sell', entered: '', err: '', busy: false, online: navigator.onLine, newPin: null, founderData: null,
-  lastBill: store.get('lastBill', null), pendingBill: store.get('pendingBill', null), order: null,
+  lastBill: store.get('lastBill', null), order: null,
+  outbox: store.get('outbox', []),              // whole orders not yet saved in the Sheet (sent when there is signal)
+  toSend: store.get('toSend', []),              // WhatsApp bills ready to send (from orders that waited for signal)
 };
-const persist = () => { store.set('session', S.session); store.set('queue', S.queue); store.set('local', S.local); store.set('base', S.base); };
+const persist = () => { store.set('session', S.session); store.set('queue', S.queue); store.set('local', S.local); store.set('base', S.base); store.set('outbox', S.outbox || []); store.set('toSend', S.toSend || []); store.set('lastBill', S.lastBill || null); };
 const me = () => S.session && S.session.me;
 const cfg = () => (S.session && S.session.config) || {menu:[], carts:[], settings:{}};
 const cartOf = id => cfg().carts.find(c => c.cart_id === id);
@@ -438,7 +470,7 @@ const cartName = id => (cartOf(id) || {}).name || (id ? id : 'No cart');
 const isFounder = () => me() && me().role === 'founder';
 const clubOn = () => String(cfg().settings.club_on || 'yes').toLowerCase() !== 'no';
 const clubNeed = () => Math.max(1, Number(cfg().settings.club_stamps) || 9);
-const pend = () => S.queue.filter(x => S.session && x._t === S.session.token).length;
+const pend = () => S.queue.filter(x => S.session && x._t === S.session.token).length + (S.outbox || []).filter(x => S.session && x._t === S.session.token).length;
 
 // A new day starts clean on this phone.
 (function rollDay() {
@@ -461,7 +493,7 @@ let syncing = null;
 // so the bill step can rely on "after flush(), these plates are in the Sheet unless there's no signal".
 async function flush() {
   while (syncing) await syncing;   // wait for every send already running (one may start another)
-  if (!S.session || !S.queue.length || !navigator.onLine) return;
+  if (!S.session || (!S.queue.length && !(S.outbox || []).length) || !navigator.onLine) return;
   syncing = sendQueue();
   try { await syncing; } finally { syncing = null; if (S.view === 'sell') renderTop(); }
 }
@@ -479,7 +511,8 @@ async function sendQueue() {
         persist();
       } catch (e) { if (e && e.expired && S.session && tok === S.session.token) { handleError(e); return; } }
     }
-    if (!S.queue.some(x => S.session && x._t === S.session.token)) await refreshMine();
+    await sendOrders();
+    if (!S.queue.some(x => S.session && x._t === S.session.token) && !(S.outbox || []).some(x => S.session && x._t === S.session.token)) await refreshMine();
   } catch (e) {}
 }
 async function refreshMine() {
@@ -507,7 +540,7 @@ function myTotals() {
 
 /* ---------- views ---------- */
 function topbar() {
-  const u = me(), q = S.queue.length;
+  const u = me(), q = S.queue.length + (S.outbox || []).length;
   return `<div class="top" id="top"><div class="who"><button class="av" data-v="me" aria-label="My PIN and settings" style="border:0">${esc(u.name[0])}</button><div><b>${esc(u.name)}</b><small>${u.role==='founder'?'Founder':esc(cartName(u.cart_id))} · ${new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',timeZone:'Asia/Kolkata'})}</small></div></div>
     <div style="display:flex;align-items:center;gap:4px"><span class="net ${S.online?'':'off'}">${S.online?(q?q+' to send':'Saved'):(q?q+' waiting':'Offline')}</span><button class="link" data-a="logout">Switch partner</button></div></div>`;
 }
@@ -704,6 +737,10 @@ function custBox(it) {
   if (c && c.isNew) return `<div class="member"><div class="mtop"><b>New customer · ${esc(c.masked)}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
      <label>Name <span class="muted" style="font-weight:500">optional</span><input id="oName" maxlength="40" autocomplete="off" value="${esc(c.name || '')}"></label>
      <label class="chk"><input type="checkbox" id="oOk" ${o.consent ? 'checked' : ''}><span>Customer said yes to bills and Pedal Club on WhatsApp<small>Ask first. They can ask us to delete it anytime.</small></span></label></div>`;
+  if (c && c.offline) return `<div class="member"><div class="mtop"><b>${c.card ? 'Card scanned' : esc(c.masked)} <span class="pill off">no signal</span></b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
+      <small class="hint">Stamps are added and the bill is made when the phone is back online. Free meals need signal.</small>
+      ${c.phone ? `<label>Name <span class="muted" style="font-weight:500">optional</span><input id="oName" maxlength="40" autocomplete="off" value="${esc(c.name || '')}"></label>
+      <label class="chk"><input type="checkbox" id="oOk" ${o.consent ? 'checked' : ''}><span>If this is a new customer: they said yes to bills and Pedal Club on WhatsApp</span></label>` : ''}</div>`;
   if (c) {
     const ready = c.ready && c.ready.length && !c.blocked, top = topSize(it);
     return `<div class="member ${ready ? 'ready' : ''}"><div class="mtop"><b>${esc(c.name || 'Customer')} · ${esc(c.masked)}${c.card ? ' <span class="pill act">scanned</span>' : ''}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
@@ -736,11 +773,15 @@ function capWarning(it) {
 }
 
 function lastBillStrip() {
-  if (S.pendingBill) return `<div class="diff bad" style="display:grid;gap:8px;text-align:left">Bill for ${esc(S.pendingBill.label)} was not sent (no signal). The sale is saved.<button class="btn" data-a="retryBill">Make the bill now</button></div>`;
+  const n = (S.toSend || []).length, w = (S.outbox || []).filter(x => x.cust).length;
+  let h = '';
+  if (n) h += `<button class="tosend" data-v="bills">📨 ${n} WhatsApp bill${n > 1 ? 's' : ''} to send<span>Tap to send</span></button>`;
+  if (w) h += `<p class="hint" style="margin:-4px 0 10px">${w} bill${w > 1 ? 's' : ''} waiting for signal. ${w > 1 ? 'They' : 'It'} will be ready to send when the phone is back online.</p>`;
   const L = S.lastBill;
-  if (L && Date.now() - L.at < 15 * 60000) return `<div class="lastbill ${L.warn ? 'warn' : ''}"><span>Bill ${esc(L.no)} · ${esc(L.name)}${L.note ? `<b class="note ${L.warn ? 'warn' : ''}">${esc(L.note)}</b>` : ''}</span><a href="${esc(L.wa)}" target="_blank" rel="noopener">Open WhatsApp again</a></div>`;
-  return '';
+  if (L && Date.now() - L.at < 15 * 60000) h += `<div class="lastbill ${L.warn ? 'warn' : ''}"><span>Bill ${esc(L.no)} · ${esc(L.name)}${L.note ? `<b class="note ${L.warn ? 'warn' : ''}">${esc(L.note)}</b>` : ''}</span><a href="${esc(L.wa)}" target="_blank" rel="noopener">Open WhatsApp again</a></div>`;
+  return h;
 }
+
 
 function vSell() {
   const cart = me().cart_id;
@@ -770,77 +811,126 @@ function vSell() {
   if (o.typing && !o.cust) { const el = $('#oPh'); if (el && !el.value) el.focus(); }
 }
 
+/* ----- the customer for this order (online: looked up at once; no signal: checked when it syncs) ----- */
 function setCust(m, card) {
   const o = order(); o.cust = Object.assign({}, m, card ? {card} : {}); o.typing = null; o.code = ''; o.override = false; o.why = '';
   o.free = !!(m.ready && m.ready.length && !m.blocked);   // a ready free meal is offered, already switched on
 }
+const netErr = e => !(e && e.server);   // no answer from the server (no or weak signal)
 function custScan() {
   scanCard(async raw => {
+    if (!cardKeyOf(raw)) { toast('This is not a Pedal Club card. Type the number instead.'); return; }
     S.finding = true; vSell();
     try { const r = await api('clubFind', {card: raw}); setCust(r.matches[0], raw); toast('Found ' + (r.matches[0].name || r.matches[0].masked)); }
-    catch (e) { handleError(e); }
+    catch (e) {
+      if (netErr(e)) { const o = order(); o.cust = {offline: true, card: raw, name: '', masked: 'Card scanned'}; o.typing = null; o.free = false; toast('No signal: card saved with the order. Stamps are added when back online.'); }
+      else handleError(e);
+    }
     S.finding = false; render();
   });
 }
+const cardKeyOf = raw => { const m = String(raw || '').match(/club#([a-f0-9]{32,48})\s*$/i); return m ? m[1] : ''; };
 async function custFind() {
   const o = order(), q = String((o.typing && o.typing.q) || '').replace(/\D/g, '');
-  if (q.length !== 4 && q.length < 10) { toast('Type 10 digits, or the last 4 for a regular'); return; }
+  const ten = q.length >= 10 ? q.slice(-10) : '';
+  if (q.length !== 4 && !ten) { toast('Type 10 digits, or the last 4 for a regular'); return; }
   S.finding = true; vSell();
   try {
     const r = await api('clubFind', {q});
     if (r.isNew) { o.cust = {isNew: true, phone: q, masked: r.masked, name: ''}; o.typing = null; o.consent = false; }
     else if (r.matches.length === 1) setCust(r.matches[0]);
     else { o.typing.matches = r.matches; o.typing.none = !r.matches.length; }
-  } catch (e) { handleError(e); }
+  } catch (e) {
+    if (netErr(e) && ten && /^[6-9]/.test(ten)) { o.cust = {offline: true, phone: ten, masked: ten.slice(0, 2) + '•••••' + ten.slice(-3), name: ''}; o.typing = null; o.consent = false; o.free = false; toast('No signal: the number is saved with the order.'); }
+    else if (netErr(e)) toast('No signal: type the full 10-digit number.');
+    else handleError(e);
+  }
   S.finding = false; render();
 }
 
+/* ----- finish the order: saved whole on the phone, sent as one package ----- */
 async function finishOrder(pay) {
   const it = todaysCombo(), o = order(), T = orderTotals(it), top = topSize(it);
   if (!it || !T.plates || S.busy) return;
   const c = o.cust;
-  if (c && c.isNew && !o.consent) { toast('Ask the customer first, then tick the box'); return; }
+  if (c && (c.isNew || (c.offline && c.phone)) && !o.consent) { toast(c.offline ? 'Tick the box if the customer is new and said yes' : 'Ask the customer first, then tick the box'); return; }
   if (o.free) {
     if (!T.freeVal) { toast('Add a ' + top.size + ' plate for the free meal'); return; }
     if (!c.card && !o.override && !/^\d{4}$/.test(o.code)) { toast('Type the 4-digit code from their card'); return; }
     if (o.override && o.why.trim().length < 3) { toast("Write why there's no code"); return; }
-    if (!navigator.onLine) { toast('The free meal needs signal'); return; }
+    if (!navigator.onLine) { toast('The free meal needs signal. Wait for signal, or switch it off to sell normally.'); return; }
   }
-  S.busy = true; vSell();
-  let free = null;
-  if (o.free) {
-    try { free = (await api('clubRedeem', c.card ? {cid: c.cid, card: c.card, item_id: it.item_id} : o.override ? {cid: c.cid, override: true, reason: o.why.trim(), item_id: it.item_id} : {cid: c.cid, code: o.code, item_id: it.item_id})).sale; }
-    catch (e) { S.busy = false; handleError(e); render(); return; }   // nothing saved yet: fix and press again
-  }
-  const oid = uid(), counts = Object.assign({}, o.counts), ids = [];
-  if (free) counts[free.size] = (counts[free.size] || 0) - 1;
-  it.sizes.slice().sort(bySize).forEach(z => { const n = counts[z.size] || 0; if (n > 0) { const s = addSale(it.item_id, z.size, pay, n, undefined, 'tap', 'walkin', oid); if (s) ids.push(s.sale_id); } });
-  if (free) { S.local.push({sale_id: free.sale_id, created_at: new Date().toISOString(), at: Date.now(), item_id: it.item_id, item_name: free.item_name, size: free.size, pay: 'Free', qty: 1, price: 0, source: 'club', synced: true, order: oid}); persist(); }
+  const oid = 'O' + Date.now().toString(36) + uid().replace(/-/g, '').slice(0, 6);
+  const lines = it.sizes.slice().sort(bySize).map(z => ({size: z.size, qty: o.counts[z.size] || 0})).filter(l => l.qty > 0);
+  const pkg = {order_id: oid, created_at: new Date().toISOString(), item_id: it.item_id, pay, lines, _t: S.session.token, label: c ? (c.name || c.masked) : ''};
+  if (c) pkg.cust = c.cid && !c.offline ? Object.assign({cid: c.cid}, c.card ? {card: c.card} : {}) : c.card ? {card: c.card} : {phone: c.phone, name: c.name || '', consent: o.consent === true};
+  if (o.free) pkg.free = c.card ? {} : o.override ? {override: true, reason: o.why.trim()} : {code: o.code};
+  // the phone's own record (feed, totals, undo); sale ids match the server's
+  const now = Date.now();
+  lines.forEach(l => { const z = it.sizes.find(x => x.size === l.size), q = l.qty - (o.free && l.size === top.size ? 1 : 0);
+    if (q > 0) S.local.push({sale_id: oid + '-' + l.size, created_at: pkg.created_at, at: now, item_id: it.item_id, item_name: it.name, size: l.size, pay, qty: q, price: z.price, source: 'tap', order_type: 'walkin', synced: false, order: oid}); });
+  if (o.free) S.local.push({sale_id: oid + '-free', created_at: pkg.created_at, at: now, item_id: it.item_id, item_name: it.name, size: top.size, pay: 'Free', qty: 1, price: 0, source: 'club', synced: false, order: oid});
+  S.outbox = (S.outbox || []).concat(pkg); persist();
+  const keep = Object.assign({}, o);   // to put back if the server refuses a free meal
   S.order = newOrder();
-  if (!c) { S.busy = false; toast(`Saved · ${pay} ${rs(T.total)}`); render(); return; }
-  await sendBill({ids: ids.concat(free ? [free.sale_id] : []), cust: c, label: c.name || c.masked});
+  if (!c) { toast(`Saved · ${pay} ${rs(T.total)}`); render(); flush(); return; }
+  S.busy = true; render();
+  await flush();
+  S.busy = false;
+  const res = (S.results || {})[oid];
+  if (res && res.refused) {   // only free meals are refused (wrong code, not ready): nothing was saved
+    S.local = S.local.filter(x => x.order !== oid); S.order = keep; persist(); toast(res.refused); render(); return;
+  }
+  if (res && res.bill) { openBill(res); return; }
+  if (res && res.note) { toast(res.note === 'card_unknown' ? 'Sale saved. This card was not found, so no stamp or bill.' : res.note === 'needs_consent' ? 'Sale saved. New number without the customer\'s OK: no stamp or bill.' : 'Sale saved, no bill.'); render(); return; }
+  toast('No signal: order saved on the phone. The bill will be ready to send when signal is back.'); render();
+}
+function billNote(r) {
+  const k = r.club.skip, g = r.club.given;
+  return {note: k.old ? 'No stamp: order more than 2 days old' : k.cap ? (g ? `+${g} stamp${g > 1 ? 's' : ''} · ${k.cap} plate${k.cap > 1 ? 's' : ''} over the daily limit of ${dailyCap()}` : `No stamp: daily limit of ${dailyCap()} reached`) : g ? `+${g} stamp${g > 1 ? 's' : ''}` : '', warn: !!(k.cap || k.old)};
+}
+function waLink(r) { return 'https://wa.me/' + r.wa_phone + '?text=' + encodeURIComponent(billText(r)); }
+function openBill(r) {
+  const n = billNote(r), wa = waLink(r);
+  S.toSend = (S.toSend || []).filter(b => b.order_id !== r.order_id);
+  S.lastBill = {no: r.bill.no, name: r.customer.name || r.customer.masked, wa, at: Date.now(), note: n.note, warn: n.warn};
+  persist(); render();
+  if (n.note) toast(n.note);
+  setTimeout(() => { location.href = wa; }, n.note ? (n.warn ? 1400 : 700) : 0);   // WhatsApp opens with the bill filled in; the rider presses Send
 }
 
-async function sendBill(B) {
-  S.busy = true; render();
-  try {
-    await flush();
-    if (S.queue.some(x => B.ids.includes(x.sale_id))) throw new Error('No signal right now.');
-    const r = await api('clubBill', Object.assign({sale_ids: B.ids}, B.cust.isNew ? {phone: B.cust.phone, name: B.cust.name, consent: true} : {cid: B.cust.cid}));
-    const wa = 'https://wa.me/' + r.wa_phone + '?text=' + encodeURIComponent(billText(r));
-    const k = r.club.skip, g = r.club.given;
-    const note = k.cap ? (g ? `+${g} stamp${g > 1 ? 's' : ''} · ${k.cap} plate${k.cap > 1 ? 's' : ''} over the daily limit of ${dailyCap()}` : `No stamp: daily limit of ${dailyCap()} reached`) : g ? `+${g} stamp${g > 1 ? 's' : ''}` : '';
-    S.lastBill = {no: r.bill.no, name: r.customer.name || r.customer.masked, wa, at: Date.now(), note, warn: !!k.cap}; S.pendingBill = null;
-    S.local.forEach(x => { if (B.ids.includes(x.sale_id)) x.bill = r.bill.no; });
-    persist(); store.set('lastBill', S.lastBill); store.del('pendingBill');
-    S.busy = false; render();
-    if (note) toast(note);
-    setTimeout(() => { location.href = wa; }, note ? (k.cap ? 1400 : 700) : 0);   // WhatsApp opens with the bill filled in; the rider presses Send
-  } catch (e) {
-    S.pendingBill = B; store.set('pendingBill', B); S.busy = false;
-    toast(/signal/i.test(e.message || '') || !navigator.onLine ? 'Sale saved. The bill needs signal: tap "Make the bill now" when it is back.' : (e.message || 'Could not make the bill.'));
-    render();
+// Send every waiting order, oldest first. Each is one package; the server saves it whole or not at all,
+// and a resend returns the same answer. Bills from orders that waited for signal go to "Bills to send".
+async function sendOrders() {
+  const tok0 = S.session && S.session.token;
+  for (const pkg of (S.outbox || []).slice()) {
+    try {
+      const {_t, label, ...order} = pkg;
+      const r = await api('orderSave', {token: _t, order});
+      S.outbox = S.outbox.filter(x => x.order_id !== pkg.order_id);
+      const ids = new Set(r.saved || []);
+      S.local.forEach(x => { if (x.order === pkg.order_id) { if (ids.has(x.sale_id)) x.synced = true; } });
+      S.local = S.local.filter(x => x.order !== pkg.order_id || ids.has(x.sale_id));   // drop a free plate the server didn't give
+      S.results = S.results || {}; S.results[pkg.order_id] = r;
+      if (r.bill) { S.local.forEach(x => { if (x.order === pkg.order_id) x.bill = r.bill.no; }); S.toSend = (S.toSend || []).filter(b => b.order_id !== r.order_id).concat({order_id: r.order_id, no: r.bill.no, name: r.customer.name || r.customer.masked, total: r.bill.total, wa: waLink(r), note: billNote(r).note, at: Date.now()}); }
+      persist();
+    } catch (e) {
+      if (e && e.expired && tok0 && pkg._t === tok0) { handleError(e); return; }
+      if (e && e.server) {   // the server refused it: only a free meal can be refused; anything else is kept to retry
+        if (pkg.free) { S.outbox = S.outbox.filter(x => x.order_id !== pkg.order_id); S.results = S.results || {}; S.results[pkg.order_id] = {refused: e.message}; persist(); continue; }
+      }
+      break;   // no signal: try again later, in the same order
+    }
   }
+}
+
+function vBills() {
+  const list = (S.toSend || []).slice().reverse();
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:4px">WhatsApp bills to send</h1><p class="muted" style="margin-bottom:12px">From orders saved without signal. Tap a bill to open WhatsApp, then press Send.</p>
+   <div class="stack">${list.map(b => `<a class="btn primary" style="justify-content:space-between;text-align:left;gap:10px" href="${esc(b.wa)}" target="_blank" rel="noopener" data-sent="${esc(b.order_id)}"><span><b style="display:block">${esc(b.name)} · ${rs(b.total)}</b><small style="font-weight:600;opacity:.9">Bill ${esc(b.no)}${b.note ? ' · ' + esc(b.note) : ''}</small></span><span>Send ›</span></a>`).join('') || '<p class="muted">No bills waiting. All sent.</p>'}</div>
+   ${list.length ? '<div class="row"><button class="btn ghost" data-a="billsClear">Clear the list (already sent)</button></div>' : ''}
+   <div class="row"><button class="btn ghost" data-v="sell">Back to selling</button></div>`;
+  app.querySelectorAll('[data-sent]').forEach(a => a.addEventListener('click', () => { const id = a.dataset.sent; setTimeout(() => { S.toSend = (S.toSend || []).filter(b => b.order_id !== id); persist(); }, 300); }));
 }
 
 /* ----- My day and More ----- */
@@ -862,10 +952,12 @@ function vDay() {
 async function undoLastOrder() {
   const last = orders().pop(); if (!last) return;
   try {
-    for (const s of last.list) {
+    if ((S.outbox || []).some(x => x.order_id === last.id)) S.outbox = S.outbox.filter(x => x.order_id !== last.id);   // not sent yet: just drop it
+    else for (const s of last.list) {
       if (!s.synced) S.queue = S.queue.filter(q => q.sale_id !== s.sale_id);
       else await api('void', {sale_id: s.sale_id});
     }
+    S.toSend = (S.toSend || []).filter(b => b.order_id !== last.id);
     const ids = new Set(last.list.map(s => s.sale_id)); S.local = S.local.filter(s => !ids.has(s.sale_id));
     persist(); await refreshMine(); toast('Last order removed'); render();
   } catch (e) { handleError(e); }
@@ -881,7 +973,7 @@ function vMore() {
 }
 function riderTabs() {
   const t = [['sell', 'Sell', 'M12 5v14M5 12h14'], ['day', 'My day', 'M4 19V9M10 19V5M16 19v-7M22 19H2'], ['more', 'More', 'M5 12h.01M12 12h.01M19 12h.01']];
-  const cur = {missed: 'more', cart: 'more', me: 'more', combo: 'sell', close: 'day'}[S.view] || S.view;
+  const cur = {missed: 'more', cart: 'more', me: 'more', combo: 'sell', bills: 'sell', close: 'day'}[S.view] || S.view;
   $('#tabs').hidden = false;
   $('#tabsIn').style.gridTemplateColumns = 'repeat(3,1fr)';
   $('#tabsIn').innerHTML = t.map(([v, l, d]) => `<button data-v="${v}" ${cur === v ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>${l}</button>`).join('');
@@ -1134,7 +1226,7 @@ async function exportCsv(kind) {
     toast(full.sales.length + ' sales downloaded'); } catch (err) { handleError(err); }
 }
 
-const VIEWS = {sell: vSell, combo: vPickCombo, day: vDay, more: vMore, missed: vMissed, cart: vCart, close: vClose, me: vMe, today: vToday, menu: vMenu, madd: vMenuAdd, report: vReport, club: vClub, clubc: vClubC, partners: vPartners, add: vAdd, log: vLog};
+const VIEWS = {sell: vSell, bills: vBills, combo: vPickCombo, day: vDay, more: vMore, missed: vMissed, cart: vCart, close: vClose, me: vMe, today: vToday, menu: vMenu, madd: vMenuAdd, report: vReport, club: vClub, clubc: vClubC, partners: vPartners, add: vAdd, log: vLog};
 function render() {
   $('#demo').hidden = !DEMO;
   if (!S.session) { $('#tabs').hidden = true; vLogin(); return; }
@@ -1160,13 +1252,13 @@ document.addEventListener('click', async e => {
   if (b.dataset.mtoggle) { try { S.founderData = await api('menuUpdate', {item_id: b.dataset.mtoggle, active: b.dataset.on === '1'}); toast(b.dataset.on === '1' ? 'On today' : 'Switched off'); render(); } catch (err) { handleError(err); } return; }
   if (b.dataset.toggle) { try { await api('partnersUpdate', {partner_id: b.dataset.toggle, active: b.dataset.on === '1'}); S.founderData = null; render(); toast(b.dataset.on === '1' ? 'Switched on' : 'Switched off'); } catch (err) { handleError(err); } return; }
   const a = b.dataset.a;
-  if (a === 'logout') { S.day = null; S.report = null; const mine = S.queue.filter(x => S.session && x._t === S.session.token).length; if (mine) toast(mine + ' sales still waiting for signal. They will send automatically.'); else { try { await api('logout', {}); } catch (err) {} } S.session = null; S.base = null; S.local = []; S.closeToday = null; S.view = 'sell'; S.newPin = null; S.order = null; persist(); render(); }
+  if (a === 'logout') { S.day = null; S.report = null; const mine = pend(); if (mine) toast(mine + ' sales still waiting for signal. They will send automatically.'); else { try { await api('logout', {}); } catch (err) {} } S.session = null; S.base = null; S.local = []; S.closeToday = null; S.view = 'sell'; S.newPin = null; S.order = null; persist(); render(); }
   else if (a === 'undoOrder') undoLastOrder();
   else if (a === 'custScan') custScan();
   else if (a === 'custType') { order().typing = {q: ''}; vSell(); }
   else if (a === 'custFind') custFind();
   else if (a === 'custRemove') { const o = order(); o.cust = null; o.typing = null; o.free = false; vSell(); }
-  else if (a === 'retryBill') { if (S.pendingBill) sendBill(S.pendingBill); }
+  else if (a === 'billsClear') { S.toSend = []; persist(); render(); }
   else if (a === 'copy') copy($('#cPre').textContent);
   else if (a === 'copypin' && S.newPin) copy(S.newPin.pin);
   else if (a === 'hidepin') { S.newPin = null; render(); }
@@ -1181,6 +1273,9 @@ document.addEventListener('change', async e => {
   const s = e.target.closest('[data-cartfor]'); if (!s) return;
   try { await api('partnersUpdate', {partner_id: s.dataset.cartfor, cart_id: s.value}); toast('Cart updated'); } catch (err) { handleError(err); }
 });
+
+// Keep a copy of this page on the phone so it opens without signal (scope /sales only; see sales-sw.js).
+if ('serviceWorker' in navigator && location.protocol !== 'file:') window.addEventListener('load', () => navigator.serviceWorker.register('/sales-sw.js', {scope: '/sales'}).catch(() => {}));
 
 render();
 if (S.session) { flush(); if (!isFounder()) refreshMine().then(() => { if (S.view === 'sell') render(); }); }
