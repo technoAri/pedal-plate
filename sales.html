@@ -296,6 +296,7 @@ const DemoApi = (() => {
   const founder = s => { if (s.p.role !== 'founder') throw new Error('Only founders can do this.'); };
   const log = (by, action, details) => db.log.push({at:new Date().toISOString(),by,action,details});
   const newPin = () => { let p; do { p = String(Math.floor(1000 + Math.random()*9000)); } while (db.partners.some(x => x.pin === p)); return p; };
+  const demoPin = (want, self) => { if (want == null || String(want).trim() === '') return newPin(); want = String(want).trim(); if (!/^\d{4}$/.test(want)) throw new Error('The PIN must be 4 digits.'); if (/^(\d)\1+$/.test(want)) throw new Error('Choose a PIN that is harder to guess (not 1111, 2222…).'); if (db.partners.some(x => x !== self && x.pin === want)) throw new Error('That PIN is already in use. Choose another.'); return want; };
   const A = {
     login({pin}) { const p = db.partners.find(x => x.pin === String(pin)); if (!p) throw new Error("That PIN isn't recognised. Try again."); if (!p.active) throw new Error(p.name + "'s PIN is switched off. Ask a founder."); const token = uid(); db.sessions[token] = {pid:p.partner_id, cart:p.cart_id}; save(); return {token, me:pub(p), config:cfg()}; },
     config({token}) { const s = sess(token); return {config:cfg(), me:pub(s.p, s.cart)}; },
@@ -395,9 +396,9 @@ const DemoApi = (() => {
       return {date:day, totals:tot(sales), perPartner:per, byItem, bank:db.bank.filter(b=>b.date===day).pop()||null}; },
     bankUpi({token, amount, date}) { const s = sess(token); founder(s); const day = date || todayKey(); const tapped = tot(live(day)).upi; const row = {date:day,amount:+amount,upi_tapped:tapped,difference:(+amount)-tapped,entered_by:s.p.name}; db.bank.push(row); save(); return {bank:row}; },
     partnersList({token}) { founder(sess(token)); return {partners:db.partners.map(p => pub(p))}; },
-    partnersAdd({token, name, cart_id, backup}) { const s = sess(token); founder(s); const pin = newPin(); const p = {partner_id:'P'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,role:'partner',cart_id,pin,active:true,backup:!!backup}; db.partners.push(p); log(s.p.name,'added partner',name+' ('+cart_id+')'); save(); return {partner:pub(p), pin}; },
+    partnersAdd({token, name, cart_id, backup, pin: want}) { const s = sess(token); founder(s); const pin = demoPin(want); const p = {partner_id:'P'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,role:'partner',cart_id,pin,active:true,backup:!!backup}; db.partners.push(p); log(s.p.name,'added partner',name+' ('+cart_id+')'); save(); return {partner:pub(p), pin}; },
     partnersUpdate({token, partner_id, active, cart_id, backup}) { const s = sess(token); founder(s); const p = db.partners.find(x => x.partner_id === partner_id); if (active != null) p.active = !!active; if (cart_id != null) p.cart_id = cart_id; if (backup != null) p.backup = !!backup; log(s.p.name,'updated partner',p.name); save(); return {partner:pub(p)}; },
-    partnersResetPin({token, partner_id}) { const s = sess(token); founder(s); const p = db.partners.find(x => x.partner_id === partner_id); if (p.partner_id === s.p.partner_id) throw new Error('Ask another founder to reset your PIN.'); p.pin = newPin(); log(s.p.name,'reset PIN',p.name); save(); return {pin:p.pin, partner:pub(p)}; },
+    partnersResetPin({token, partner_id, pin: want}) { const s = sess(token); founder(s); const p = db.partners.find(x => x.partner_id === partner_id); if (p.partner_id === s.p.partner_id) throw new Error('Change your own PIN under More → Change my PIN, or ask another founder.'); p.pin = demoPin(want, p); log(s.p.name, want ? 'set PIN by hand' : 'reset PIN', p.name); save(); return {pin:p.pin, partner:pub(p)}; },
     logList({token}) { founder(sess(token)); return {log:db.log.slice(-60).reverse()}; },
     logout({token}) { delete db.sessions[token]; save(); return {}; },
   };
@@ -982,19 +983,31 @@ function vPartners() {
   app.innerHTML = topbar() + `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h1>Partners</h1><button class="btn primary" style="flex:none" data-v="add">+ Add partner</button></div>
    ${S.newPin ? `<div class="card" style="margin-bottom:12px;border-color:var(--brand)"><h2>${esc(S.newPin.name)}'s PIN</h2><div class="pin num">${esc(S.newPin.pin)}</div><p class="muted" style="font-size:.85rem">Shown once. Send it to ${esc(S.newPin.name)} now.</p><div class="row" style="margin:0"><button class="btn" data-a="copypin">Copy PIN</button><button class="btn ghost" data-a="hidepin">Done</button></div></div>` : ''}
    <div class="plist">${list.map(p => `<div class="pp"><div class="line"><span class="av">${esc(p.name[0])}</span><div class="meta"><b>${esc(p.name)}</b><small>${esc(cartName(p.cart_id))} · <span class="pill ${p.active?'act':'off'}">${p.active?'Active':'Switched off'}</span>${p.backup?' <span class="pill bk">Backup</span>':''}</small></div></div>
-     <div style="display:flex;flex-wrap:wrap;gap:6px">${p.active?`<select class="mini" data-cartfor="${esc(p.partner_id)}" aria-label="Cart for ${esc(p.name)}" style="width:auto">${cfg().carts.map(c => `<option value="${esc(c.cart_id)}" ${c.cart_id===p.cart_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select><button class="mini" data-reset="${esc(p.partner_id)}">Reset PIN</button><button class="mini" data-toggle="${esc(p.partner_id)}" data-on="0">Switch off</button>`:`<button class="mini" data-toggle="${esc(p.partner_id)}" data-on="1">Switch on</button>`}</div></div>`).join('') || '<p class="muted">No partners yet.</p>'}</div>
+     <div style="display:flex;flex-wrap:wrap;gap:6px">${p.active?`<select class="mini" data-cartfor="${esc(p.partner_id)}" aria-label="Cart for ${esc(p.name)}" style="width:auto">${cfg().carts.map(c => `<option value="${esc(c.cart_id)}" ${c.cart_id===p.cart_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select><button class="mini" data-reset="${esc(p.partner_id)}">New random PIN</button><button class="mini" data-setpin="${esc(p.partner_id)}">Set PIN</button><button class="mini" data-toggle="${esc(p.partner_id)}" data-on="0">Switch off</button>`:`<button class="mini" data-toggle="${esc(p.partner_id)}" data-on="1">Switch on</button>`}</div></div>`).join('') || '<p class="muted">No partners yet.</p>'}</div>
    <p class="hint" style="margin-top:14px">Partners are never deleted, so past sales stay linked to them.</p>
+   ${S.setPin ? `<div class="busy" style="place-content:end stretch;padding:0"><form class="card" id="spf" style="color:var(--ink);text-align:left;border-radius:20px 20px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))"><h2>Set ${esc(S.setPin.name)}'s PIN</h2><p class="muted" style="font-size:.85rem">4 digits. Not 1111-style, and not a PIN someone else uses. Their old PIN and logins stop at once.</p>
+     <input id="spPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" style="font-size:1.6rem;letter-spacing:.4em;text-align:center">
+     <div class="row" style="margin:0"><button type="button" class="btn ghost" data-a="setPinCancel">Cancel</button><button class="btn primary">Save PIN</button></div></form></div>` : ''}
    <div class="row"><button class="btn ghost" data-v="log">See recent changes</button></div>`;
+  bindSetPin();
+}
+function bindSetPin() {
+  const f = $('#spf'); if (!f) return; $('#spPin').focus();
+  f.onsubmit = async e => { e.preventDefault(); const pin = $('#spPin').value.trim();
+    if (!/^\d{4}$/.test(pin)) { toast('Type 4 digits'); return; }
+    try { const r = await api('partnersResetPin', {partner_id: S.setPin.id, pin}); S.newPin = {name: r.partner.name, pin: r.pin}; S.setPin = null; S.founderData = null; render(); toast('PIN saved'); } catch (err) { handleError(err); } };
 }
 function vAdd() {
   app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">Add partner</h1><form class="card" id="af">
    <label>First name<input id="aName" required maxlength="40" autocomplete="off"></label>
    <div class="grid2"><label>Usual cart<select id="aCart">${cfg().carts.map(c => `<option value="${esc(c.cart_id)}">${esc(c.name)}</option>`).join('')}</select></label><label>Start date<input id="aDate" type="date" value="${todayKey()}"></label></div>
    <label>Phone (optional)<input id="aPhone" type="tel" inputmode="tel" maxlength="20"></label>
+   <label>PIN <span class="muted" style="font-weight:500">optional: 4 digits, or leave blank for a random PIN</span><input id="aPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off"></label>
    <label style="display:flex;align-items:center;gap:10px;font-size:.92rem;color:var(--ink)"><input id="aBk" type="checkbox" style="width:auto"> Backup partner (called in when needed)</label>
    <div class="row" style="margin:0"><button type="button" class="btn ghost" data-v="partners">Cancel</button><button class="btn primary">Save and create PIN</button></div></form>`;
   $('#af').onsubmit = async e => { e.preventDefault(); const name = $('#aName').value.trim(); if (!name) return;
-    try { const r = await api('partnersAdd', {name, cart_id: $('#aCart').value, start_date: $('#aDate').value, phone: $('#aPhone').value, backup: $('#aBk').checked}); S.newPin = {name, pin: r.pin}; S.view = 'partners'; S.founderData = null; render(); }
+    const pinWant = $('#aPin').value.trim(); if (pinWant && !/^\d{4}$/.test(pinWant)) { toast('The PIN must be 4 digits'); return; }
+    try { const r = await api('partnersAdd', {name, cart_id: $('#aCart').value, start_date: $('#aDate').value, phone: $('#aPhone').value, backup: $('#aBk').checked, pin: pinWant || undefined}); S.newPin = {name, pin: r.pin}; S.view = 'partners'; S.founderData = null; render(); }
     catch (err) { handleError(err); } };
 }
 function vLog() {
@@ -1122,6 +1135,7 @@ document.addEventListener('click', async e => {
   if (b.dataset.v) { S.view = b.dataset.v; if (['today','partners','log','menu','report','club'].includes(S.view)) S.founderData = null; if (S.view !== 'partners') S.newPin = null; S.confirm = null; S.manual = null; render(); window.scrollTo(0, 0); return; }
   if (b.dataset.ca) { clubAction(b); return; }
   if (b.dataset.cart) { try { const r = await api('setCart', {cart_id: b.dataset.cart}); S.session.me = r.me; persist(); S.view = 'sell'; render(); toast('Selling on ' + cartName(r.me.cart_id)); } catch (err) { handleError(err); } return; }
+  if (b.dataset.setpin) { const pt = (S.founderData && S.founderData.partners || []).find(x => x.partner_id === b.dataset.setpin); S.setPin = {id: b.dataset.setpin, name: pt ? pt.name : ''}; render(); return; }
   if (b.dataset.reset) { try { const r = await api('partnersResetPin', {partner_id: b.dataset.reset}); S.newPin = {name: r.partner.name, pin: r.pin}; S.founderData = null; render(); } catch (err) { handleError(err); } return; }
   if (b.dataset.mtoggle) { try { S.founderData = await api('menuUpdate', {item_id: b.dataset.mtoggle, active: b.dataset.on === '1'}); toast(b.dataset.on === '1' ? 'On today' : 'Switched off'); render(); } catch (err) { handleError(err); } return; }
   if (b.dataset.toggle) { try { await api('partnersUpdate', {partner_id: b.dataset.toggle, active: b.dataset.on === '1'}); S.founderData = null; render(); toast(b.dataset.on === '1' ? 'Switched on' : 'Switched off'); } catch (err) { handleError(err); } return; }
@@ -1139,6 +1153,7 @@ document.addEventListener('click', async e => {
   else if (a === 'refresh') { S.founderData = null; render(); }
   else if (a === 'csvDays') exportCsv('days');
   else if (a === 'csvSales') exportCsv('sales');
+  else if (a === 'setPinCancel') { S.setPin = null; render(); }
   else if (a === 'scanClose') { if (scanStop) scanStop(); }
   else if (a === 'clubSearch') { const q = $('#cq').value.trim(); if (!q) return; S.clubQ = {q}; S.view = 'clubc'; S.founderData = null; render(); }
 });

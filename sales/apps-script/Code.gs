@@ -265,10 +265,20 @@ function saveBankUpi(req, s) {
   return { bank: row };
 }
 
+// A founder may type the PIN (manual override); otherwise a random one is made.
+function chosenPin(req, exceptId) {
+  if (req.pin == null || String(req.pin).trim() === '') return newPin();
+  const pin = String(req.pin).trim();
+  if (!/^\d{4}$/.test(pin)) fail('The PIN must be 4 digits.');
+  if (/^(\d)\1+$/.test(pin)) fail('Choose a PIN that is harder to guess (not 1111, 2222…).');
+  if (pinTaken(pin, exceptId)) fail('That PIN is already in use. Choose another.');
+  return pin;
+}
+
 function addPartner(req, s) {
   const name = String(req.name || '').trim().slice(0, 40);
   if (!name) fail('Enter a first name.');
-  const pin = newPin();
+  const pin = chosenPin(req);
   const salt = Utilities.getUuid();
   const p = {
     partner_id: newId('P'), name, role: 'partner', cart_id: String(req.cart_id || ''),
@@ -301,14 +311,15 @@ function updatePartner(req, s) {
 function resetPin(req, s) {
   const p = rows('Partners').find(r => String(r.partner_id) === String(req.partner_id));
   if (!p) fail('Partner not found.');
-  if (p.role === 'founder' && String(p.partner_id) === String(s.partner.partner_id)) fail("Ask another founder to reset your PIN.");
-  const pin = newPin(); const salt = Utilities.getUuid();
+  if (p.role === 'founder' && String(p.partner_id) === String(s.partner.partner_id)) fail("Change your own PIN under More → Change my PIN, or ask another founder.");
+  const manual = req.pin != null && String(req.pin).trim() !== '';
+  const pin = chosenPin(req, p.partner_id); const salt = Utilities.getUuid();
   withLock(() => {
     updateWhere('Partners', r => String(r.partner_id) === String(p.partner_id), { pin_hash: hashPin(pin, salt), salt });
     deleteWhere('Sessions', r => String(r.partner_id) === String(p.partner_id));
   });
   partnersChanged();   // cached logins check the PIN salt, so the old logins stop at once
-  logAction(s.partner.name, 'reset PIN', p.name);
+  logAction(s.partner.name, manual ? 'set PIN by hand' : 'reset PIN', p.name);
   return { pin, partner: publicPartner(p) };
 }
 
