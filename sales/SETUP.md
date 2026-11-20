@@ -31,7 +31,7 @@ Setup takes about 10 minutes and is done once.
 
 ## 3. Connect the page
 
-In `sales.html`, set:
+In **both** `sales.html` and `club.html` (the customer's Pedal Club card), set the same URL:
 
 ```js
 const API_URL = 'https://script.google.com/macros/s/…/exec';
@@ -46,10 +46,10 @@ for training.
 |---|---|
 | **Menu** | Easiest from the app: founder → **Menu** to switch today's combos on or off, change prices, or add a combo. In the Sheet: one row per combo **and size**, same `item_id` for the Half and Full rows, `type` is `veg` or `nonveg`, `active` `yes`/`no`. Prices here are what taps use. Partners' phones pick up changes within a minute. |
 | **Carts** | One row per cart: `cart_id` (e.g. `C3`), name, `float` (₹ kept in the pouch every morning), `active`. |
-| **Settings** | `undo_minutes`, `session_hours`, `pin_length`, `timezone`. |
+| **Settings** | `undo_minutes`, `session_hours`, `pin_length`, `timezone`, and the Pedal Club rules below. |
 | **Partners** | Add partners from the app (founder → Partners → Add partner). Add more founders by running `addFounder` from the Apps Script editor. Never delete rows: switch people off instead. |
 
-The other tabs (**Sales, Closes, BankUpi, Sessions, Log**) are written by the app. Read them,
+The other tabs (**Sales, Closes, BankUpi, Sessions, Log, Customers, Passes, Stamps, Bills**) are written by the app. Read them,
 build charts or pivot tables from them, but don't edit their columns.
 
 ## Daily use
@@ -60,6 +60,55 @@ build charts or pivot tables from them, but don't edit their columns.
   **Menu** (today's combos and prices), **Reports** (any date range up to 3 months, with
   **Daily summary** and **Every sale** CSV downloads that open in Excel or Google Sheets),
   **Partners** (add, reset PIN, switch off, recent changes), **Sell**.
+
+## WhatsApp bills and Pedal Club
+
+**Bill (optional).** After tapping Cash/UPI, the partner taps **WhatsApp bill**, ticks the
+customer's plates (the latest ones are ticked already), types the number (or the last 4 digits
+for a regular) and taps **Make bill**. **Open WhatsApp** opens a chat with the bill filled in on
+the cart phone; the partner presses send. This uses normal WhatsApp, so it costs nothing.
+First-time numbers need the customer's OK (tick box).
+
+**Pedal Club (reward).** Each paid walk-in plate on a bill gets one stamp. After `club_stamps`
+stamps (9), the next combo is free: every 10th meal. Settings:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `club_on` | yes | `no` pauses new stamps (earned free meals can still be claimed) |
+| `club_stamps` | 9 | paid plates per card; the next one is free |
+| `club_days` | 30 | a card is valid this many days, counting the day of its first stamp |
+| `club_daily_cap` | 2 | most stamps per phone number per day, across all carts |
+| `club_stamp_minutes` | 60 | a plate can get its stamp only this long after it was tapped |
+| `club_grace_days` | 7 | a free meal that becomes ready near the end can still be claimed this many days later |
+| `club_new_flag` | 15 | flag a partner who adds this many new customers in a day |
+| `site_url`, `bill_footer` | | card link and last line of every bill |
+
+A changed rule applies to cards from then on (validity is fixed when a card starts).
+
+**Free meal.** Partner taps **Free meal**, finds the number, and types the 4-digit code from
+the customer's card (pedalplate.in/club, link in their bill). It is saved as a ₹0 sale
+("Free" in Reports), so plates, boxes and stock still match. Five wrong codes lock that
+number's claims for 6 hours.
+
+**Rules that stop misuse:** stamps only come from a sale saved in the Sheet, tapped by the
+same partner, today, within 60 minutes; each sale is stamped once; undoing a sale removes its
+stamps; corporate, bulk, home delivery and free plates never get stamps; one card being
+filled per number; the free meal needs the customer's code; partners see masked numbers.
+Founders see flags under **Club → Needs a look** (a partner's own number, a card filled
+unusually fast, wrong-code lockouts, stamps by hand, free meals without code).
+
+**Founder fallback (manual).** Under **Club**: **Add stamps by hand** (for plates that missed
+their stamp: no signal, a partner forgot, a complaint; a reason is required and it is logged),
+**Tell them on WhatsApp** afterwards, search a customer to remove a stamp, cancel a free
+meal, put a number on hold, resend the card link or delete their data. On the **Free meal**
+screen, founders can tick **Customer can't show the code** and give a reason.
+
+**Notifications.** Every bill already carries the stamp count and card link, sent from the cart
+phone at no cost. Fully automatic messages (with nobody pressing send) need the WhatsApp
+Business Platform, which Meta charges per message; not set up.
+
+**Customer data.** Phone numbers are only in the **Customers** tab. If someone asks to be
+removed: Club → find them → **Delete their data**. Their stamps and bills stay without the number.
 
 ## Updating the script later
 

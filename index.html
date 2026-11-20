@@ -452,6 +452,19 @@
   .menu-note{margin-top:24px;font-size:.95rem;}
 
   /* Bulk / B2B */
+  .club-band{background:var(--dark);color:var(--on-dark);}
+  .club-band p{color:var(--on-dark);opacity:.8;}
+  .club-band .kicker,.club-band .hl{color:var(--brand-light);}
+  .club-band .section-head p{margin-top:14px;}
+  .club-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:28px 56px;align-items:center;}
+  .club-steps{list-style:none;margin:0;padding:0;display:grid;gap:16px;counter-reset:s;}
+  .club-steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;}
+  .club-steps li::before{content:counter(s);width:44px;height:44px;border-radius:50%;background:var(--brand-fill);color:var(--on-brand);display:grid;place-items:center;font-weight:800;}
+  .club-steps b{display:block;font-weight:700;color:var(--on-dark);}
+  .club-steps span{opacity:.8;}
+  .club-fine{grid-column:1/-1;font-size:.85rem;max-width:90ch;}
+  .club-fine a{color:var(--brand-light);}
+  @media (max-width:900px){ .club-grid{grid-template-columns:1fr;} }
   .bulk-card{
     display:grid;grid-template-columns:1.1fr .9fr;overflow:hidden;border-radius:34px;
     background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);
@@ -1024,6 +1037,23 @@
             </ul>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- PEDAL CLUB -->
+    <section class="club-band" id="club" aria-labelledby="club-h">
+      <div class="wrap club-grid">
+        <div class="section-head reveal">
+          <div class="kicker">Pedal Club · Rewards</div>
+          <h2 id="club-h">Every <span class="hl">10th meal</span> is on us.</h2>
+          <p>Free to join. No app, no fee. Just ask for your bill on WhatsApp at the cart.</p>
+        </div>
+        <ol class="club-steps reveal">
+          <li><div><b>Get your card.</b><span>Share your WhatsApp number at the cart. Your Pedal Club card link comes with your bill.</span></div></li>
+          <li><div><b>Collect stamps.</b><span>One stamp for every combo you buy at our carts, up to 2 a day.</span></div></li>
+          <li><div><b>Eat free.</b><span>After 9 stamps, your 10th combo is free.</span></div></li>
+        </ol>
+        <p class="club-fine reveal">A card is valid for 30 days from its first stamp. Not valid on corporate, bulk or home delivery orders. Show the 4-digit code on your card to claim your free meal. We use your number only for bills and Pedal Club. <a href="/privacy#club">Privacy</a></p>
       </div>
     </section>
 

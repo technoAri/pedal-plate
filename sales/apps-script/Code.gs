@@ -20,10 +20,15 @@ const SCHEMA = {
   Carts:    ['cart_id', 'name', 'float', 'active'],
   Partners: ['partner_id', 'name', 'role', 'cart_id', 'phone', 'backup', 'active', 'start_date', 'pin_hash', 'salt', 'created_at'],
   Sessions: ['token', 'partner_id', 'cart_id', 'expires_at'],
-  Sales:    ['sale_id', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'item_id', 'item_name', 'size', 'price', 'qty', 'amount', 'pay', 'source', 'status', 'void_by', 'void_at'],
-  Closes:   ['close_id', 'date', 'partner_id', 'partner_name', 'cart_id', 'plates', 'sales_total', 'cash_sales', 'upi_sales', 'float', 'spent', 'pouch_expected', 'pouch_counted', 'difference', 'handed_over', 'boxes_out', 'boxes_back', 'note', 'closed_at', 'leftover'],
+  Sales:    ['sale_id', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'item_id', 'item_name', 'size', 'price', 'qty', 'amount', 'pay', 'source', 'status', 'void_by', 'void_at', 'order_type', 'ref'],
+  Closes:   ['close_id', 'date', 'partner_id', 'partner_name', 'cart_id', 'plates', 'sales_total', 'cash_sales', 'upi_sales', 'float', 'spent', 'pouch_expected', 'pouch_counted', 'difference', 'handed_over', 'boxes_out', 'boxes_back', 'note', 'closed_at', 'leftover', 'free_plates'],
   BankUpi:  ['date', 'amount', 'upi_tapped', 'difference', 'entered_by', 'entered_at'],
   Log:      ['at', 'by', 'action', 'details'],
+  // Pedal Club and bills. Phone numbers live only in Customers, so deleting a customer is one row.
+  Customers: ['customer_id', 'phone', 'name', 'card_token', 'consent_at', 'consent_by', 'created_at', 'blocked', 'blocked_by', 'deleted_at', 'flag_ok'],
+  Passes:   ['pass_id', 'customer_id', 'code', 'issued_date', 'issued_at', 'valid_till', 'status', 'redeemed_at', 'redeem_sale_id', 'redeemed_by', 'issued_by', 'flag_ok'],
+  Stamps:   ['stamp_id', 'pass_id', 'customer_id', 'sale_id', 'date', 'created_at', 'partner_id', 'partner_name', 'cart_id', 'status', 'void_by', 'void_at'],
+  Bills:    ['bill_no', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'customer_id', 'sale_ids', 'amount', 'stamps', 'pass_id'],
 };
 
 const DEFAULT_SETTINGS = [
@@ -31,6 +36,15 @@ const DEFAULT_SETTINGS = [
   ['session_hours', '18', 'How long a login lasts on a phone'],
   ['undo_minutes', '2', 'How long a partner can undo their own last sale'],
   ['pin_length', '4', 'Digits in generated PINs'],
+  ['club_on', 'yes', 'Pedal Club stamps on (yes) or paused (no). Earned free meals can still be claimed.'],
+  ['club_stamps', '9', 'Paid plates per pass. The next plate is free (9 = every 10th meal free).'],
+  ['club_days', '30', 'Days a pass is valid, counting the day it is issued'],
+  ['club_daily_cap', '2', 'Most stamps one phone number can get in a day'],
+  ['club_stamp_minutes', '60', 'A sale can get a stamp only this many minutes after it was tapped'],
+  ['club_grace_days', '7', 'Extra days to claim a free meal that became ready near the end of the pass'],
+  ['club_new_flag', '15', 'Flag a partner who adds this many new customers in one day'],
+  ['site_url', 'https://pedalplate.in', 'Used for the Pedal Club card link in bills'],
+  ['bill_footer', 'Thank you! Pre-book on WhatsApp: +91 76991 49899', 'Last line of every WhatsApp bill'],
 ];
 
 // Edit these two lines before running setup() the first time, then change the PIN from the app.
@@ -41,6 +55,7 @@ const FIRST_FOUNDER_PIN = '9999';   // set back to '0000' after setup() and chan
 
 function doPost(e) {
   let req = {};
+  SETTINGS_CACHE = null;
   try {
     req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     const handler = ACTIONS[req.action];
@@ -83,6 +98,18 @@ const ACTIONS = {
   menuUpdate: { founder: true, fn: menuUpdate },
   menuAdd: { founder: true, fn: menuAdd },
   report: { founder: true, fn: report },
+  clubFind: { fn: clubFind },
+  clubBill: { fn: clubBill },
+  clubRedeem: { fn: clubRedeem },
+  clubCard: { public: true, fn: clubCard },
+  clubOverview: { founder: true, fn: clubOverview },
+  clubCustomer: { founder: true, fn: clubCustomer },
+  clubVoidStamp: { founder: true, fn: clubVoidStamp },
+  clubBlock: { founder: true, fn: clubBlock },
+  clubForget: { founder: true, fn: clubForget },
+  clubUndoRedeem: { founder: true, fn: clubUndoRedeem },
+  clubFlagOk: { founder: true, fn: clubFlagOk },
+  clubManual: { founder: true, fn: clubManual },
   logout: { fn: (req, s) => { deleteWhere('Sessions', r => r.token === req.token); return {}; } },
   setCart: { fn: (req, s) => {
     const cart = rows('Carts').find(c => String(c.cart_id) === String(req.cart_id) && truthy(c.active));
@@ -144,6 +171,7 @@ function recordSales(req, s) {
         sale_id: id, created_at: at.toISOString(), date: dateKey(at), partner_id: s.partner.partner_id, partner_name: s.partner.name,
         cart_id: s.cart_id, item_id: x.item_id, item_name: m ? m.name : String(x.item_name || x.item_id), size: x.size,
         price, qty, amount: price * qty, pay, source, status: 'ok', void_by: '', void_at: '',
+        order_type: ORDER_TYPES.indexOf(x.order_type) >= 0 ? x.order_type : 'walkin', ref: '',
       });
       seen.add(id); saved.push(id);
     });
@@ -165,8 +193,10 @@ function voidSale(req, s) {
       const own = String(data[i][ci('partner_id')]) === String(s.partner.partner_id);
       const age = (Date.now() - new Date(data[i][ci('created_at')]).getTime()) / 60000;
       if (!isFounder && (!own || age > undoMin + 1)) fail('This sale can no longer be undone. Ask a founder to correct it.');
+      if (data[i][ci('status')] === 'void') { done = true; break; }
       sh.getRange(i + 1, ci('status') + 1, 1, 3).setValues([['void', s.partner.name, new Date().toISOString()]]);
       if (isFounder && !own) logged = id + ' (' + data[i][ci('partner_name')] + ')';
+      clubAfterVoid(id, String(ci('ref') >= 0 ? data[i][ci('ref')] : ''), s.partner.name);
       done = true; break;
     }
   });
@@ -199,6 +229,7 @@ function closeDay(req, s) {
     boxes_back: req.boxes_back === '' || req.boxes_back == null ? '' : Number(req.boxes_back),
     note: String(req.note || '').slice(0, 300), closed_at: new Date().toISOString(),
     leftover: req.leftover === '' || req.leftover == null ? '' : Math.max(0, Math.round(Number(req.leftover)) || 0),
+    free_plates: t.freePlates,
   };
   withLock(() => append('Closes', row));   // a second close the same day is kept too; the latest one counts
   return { close: row, totals: t };
@@ -359,8 +390,423 @@ function report(req) {
     from, to, totals: totalsOf(sales), perDay,
     byItem: Object.keys(items).map(k => Object.assign({ item: k }, items[k])).sort((a, b) => b.plates - a.plates),
     byPartner: Object.keys(partners).map(n => Object.assign({ name: n }, totalsOf(partners[n]))).sort((a, b) => b.total - a.total),
-    sales: req.withSales ? sales.map(r => ({ date: r.date, time: r.created_at, partner: r.partner_name, cart: r.cart_id, item: r.item_name, size: r.size, qty: Number(r.qty), price: Number(r.price), amount: Number(r.amount), pay: r.pay, source: r.source, sale_id: r.sale_id })) : undefined,
+    sales: req.withSales ? sales.map(r => ({ date: r.date, time: r.created_at, partner: r.partner_name, cart: r.cart_id, item: r.item_name, size: r.size, qty: Number(r.qty), price: Number(r.price), amount: Number(r.amount), pay: r.pay, source: r.source, order_type: r.order_type || 'walkin', sale_id: r.sale_id })) : undefined,
   };
+}
+
+/* ----- Pedal Club (reward stamps) and WhatsApp bills -----
+ * Rules (all in the Settings tab):
+ *  - Every paid walk-in plate can earn one stamp. After club_stamps stamps (9), the next plate is free.
+ *  - A pass is issued with its first stamp and is valid for club_days (30) days, counting that day.
+ *    When it is used or runs out, the next stamp on the same number starts a new pass.
+ *  - At most club_daily_cap (2) stamps per phone number per day, across all carts.
+ *  - Stamps only come from a recorded sale (sale_id), tapped by the same partner today, within
+ *    club_stamp_minutes. One sale is stamped once. Voiding the sale removes its stamps.
+ *  - Corporate, bulk and home delivery sales, and free meals, never earn stamps.
+ *  - The free meal needs the 4-digit code on the customer's own card (sent only to their WhatsApp).
+ *    Five wrong codes lock that number's claims for 6 hours.
+ *  - A free meal that becomes ready near the end of the pass can still be claimed for club_grace_days.
+ *  - Partners see masked numbers; founders see full numbers and can undo, block or delete.
+ */
+const ORDER_TYPES = ['walkin', 'corporate', 'delivery'];
+
+function clubRules() {
+  return {
+    on: truthy(setting('club_on', 'yes')),
+    stamps: Math.max(1, Math.round(Number(setting('club_stamps', 9))) || 9),
+    days: Math.max(1, Math.round(Number(setting('club_days', 30))) || 30),
+    cap: Math.max(1, Math.round(Number(setting('club_daily_cap', 2))) || 2),
+    minutes: Math.max(1, Number(setting('club_stamp_minutes', 60)) || 60),
+    grace: Math.max(0, Math.round(Number(setting('club_grace_days', 7))) || 0),
+    newFlag: Math.max(1, Number(setting('club_new_flag', 15)) || 15),
+    site: String(setting('site_url', 'https://pedalplate.in')).replace(/\/+$/, ''),
+    footer: String(setting('bill_footer', 'Thank you! Pre-book on WhatsApp: +91 76991 49899')),
+  };
+}
+
+function normPhone(v) {
+  let d = String(v == null ? '' : v).replace(/\D/g, '');
+  if (d.length === 12 && d.indexOf('91') === 0) d = d.slice(2);
+  if (d.length === 11 && d[0] === '0') d = d.slice(1);
+  return /^[6-9]\d{9}$/.test(d) ? d : '';
+}
+function maskPhone(p) { p = String(p || ''); return p.length === 10 ? p.slice(0, 2) + '•••••' + p.slice(-3) : ''; }
+function padCode(c) { return String(c == null ? '' : c).replace(/\D/g, '').padStart(4, '0').slice(-4); }
+function addDaysKey(k, n) { const d = new Date(k + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function daysBetween(a, b) { return Math.round((new Date(b + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 864e5); }
+
+function clubLoad() {
+  return {
+    customers: rows('Customers').map(c => Object.assign(c, { customer_id: String(c.customer_id), phone: c.phone === '' ? '' : normPhone(c.phone) })),
+    passes: rows('Passes').map(p => Object.assign(p, { pass_id: String(p.pass_id), customer_id: String(p.customer_id), code: padCode(p.code) })),
+    stamps: rows('Stamps').filter(x => x.status !== 'void').map(x => Object.assign(x, { pass_id: String(x.pass_id), customer_id: String(x.customer_id), sale_id: String(x.sale_id) })),
+  };
+}
+
+function findCustomer(D, phone) { return D.customers.find(c => !c.deleted_at && c.phone && c.phone === phone) || null; }
+
+// What a pass looks like today. state: active (collecting), ready (free meal waiting), redeemed, expired.
+function passView(p, D, R, today) {
+  const st = D.stamps.filter(x => x.pass_id === p.pass_id).sort((a, b) => String(a.created_at) < String(b.created_at) ? -1 : 1);
+  const n = st.length;
+  let state, claimTill = '';
+  if (p.status === 'redeemed') state = 'redeemed';
+  else if (n >= R.stamps) {
+    const readyOn = st[R.stamps - 1].date;
+    claimTill = p.valid_till > addDaysKey(readyOn, R.grace) ? p.valid_till : addDaysKey(readyOn, R.grace);
+    state = today <= claimTill ? 'ready' : 'expired';
+  } else state = today > p.valid_till ? 'expired' : 'active';
+  return { pass_id: p.pass_id, customer_id: p.customer_id, code: p.code, issued: p.issued_date, valid_till: p.valid_till, claim_till: claimTill,
+    stamps: Math.min(n, R.stamps), need: R.stamps, state, redeemed_at: p.redeemed_at || '', stampList: st };
+}
+
+// Card summary for a customer: the pass being filled, free meals waiting, and how many stamps are left today.
+function customerCard(c, D, R, today) {
+  const views = D.passes.filter(p => p.customer_id === c.customer_id).map(p => passView(p, D, R, today));
+  const active = views.find(v => v.state === 'active') || null;
+  const ready = views.filter(v => v.state === 'ready');
+  const usedToday = D.stamps.filter(x => x.customer_id === c.customer_id && x.date === today).length;
+  return { views, active, ready, usedToday, capLeft: Math.max(0, R.cap - usedToday) };
+}
+
+function partnerSafe(c, card, R) {
+  return { cid: c.customer_id, name: c.name || '', masked: maskPhone(c.phone), blocked: truthy(c.blocked),
+    stamps: card.active ? card.active.stamps : 0, need: R.stamps, valid_till: card.active ? card.active.valid_till : '',
+    ready: card.ready.map(v => ({ pass_id: v.pass_id, claim_till: v.claim_till })), capLeft: card.capLeft };
+}
+
+function clubFind(req, s) {
+  const R = clubRules(), today = dateKey(new Date()), D = clubLoad();
+  const q = String(req.q || '').replace(/\D/g, '');
+  if (q.length === 4) {
+    const list = D.customers.filter(c => !c.deleted_at && c.phone && c.phone.slice(-4) === q).slice(0, 5);
+    return { matches: list.map(c => partnerSafe(c, customerCard(c, D, R, today), R)), isNew: false, club_on: R.on };
+  }
+  const phone = normPhone(q);
+  if (!phone) fail('Type the 10-digit number, or the last 4 digits for a regular.');
+  const c = findCustomer(D, phone);
+  if (!c) return { matches: [], isNew: true, masked: maskPhone(phone), club_on: R.on };
+  return { matches: [partnerSafe(c, customerCard(c, D, R, today), R)], isNew: false, club_on: R.on };
+}
+
+// Add stamps to a customer's card, starting a new card whenever the current one is full or missing.
+function addStamps(c, D, R, today, saleIds, partnerId, partnerName, cartId) {
+  const card0 = customerCard(c, D, R, today);
+  let active = card0.active, given = 0, newPass = false;
+  const newStamps = [];
+  saleIds.forEach((sid, i) => {
+    if (!active || active.stamps >= R.stamps) {
+      const p = { pass_id: newId('PS'), customer_id: c.customer_id, code: newCode(), issued_date: today, issued_at: new Date().toISOString(),
+        valid_till: addDaysKey(today, R.days - 1), status: 'open', redeemed_at: '', redeem_sale_id: '', redeemed_by: '', issued_by: partnerName, flag_ok: '' };
+      append('Passes', p); D.passes.push(p); newPass = true;
+      active = { pass_id: p.pass_id, stamps: 0 };
+    }
+    const st = { stamp_id: newId('ST'), pass_id: active.pass_id, customer_id: c.customer_id, sale_id: sid, date: today, created_at: new Date(Date.now() + i).toISOString(),
+      partner_id: String(partnerId), partner_name: partnerName, cart_id: cartId || '', status: 'ok', void_by: '', void_at: '' };
+    newStamps.push(st); D.stamps.push(st); active.stamps++; given++;
+  });
+  appendMany('Stamps', newStamps);
+  return { given, newPass };
+}
+
+// Founder fallback: add stamps by hand (no signal at the cart, a partner forgot, a customer's complaint).
+// Needs a reason, ignores the daily limit, and is logged. The stamp shows "by hand" in the history.
+function clubManual(req, s) {
+  const R = clubRules(), today = dateKey(new Date());
+  const n = Math.round(Number(req.stamps));
+  const reason = String(req.reason || '').trim().slice(0, 120);
+  if (!(n >= 1 && n <= R.stamps)) fail('Add between 1 and ' + R.stamps + ' stamps.');
+  if (reason.length < 3) fail('Write why you are adding these stamps.');
+  let out = null, phoneMasked = '';
+  withLock(() => {
+    const D = clubLoad();
+    let c = null;
+    if (req.cid) c = D.customers.find(x => x.customer_id === String(req.cid) && !x.deleted_at);
+    else {
+      const phone = normPhone(req.phone);
+      if (!phone) fail('Type a valid 10-digit mobile number.');
+      c = findCustomer(D, phone);
+      if (!c) {
+        if (req.consent !== true) fail('Tick the box once the customer has agreed to us saving their number.');
+        c = { customer_id: newId('CU'), phone, name: String(req.name || '').trim().slice(0, 40), card_token: Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8),
+          consent_at: new Date().toISOString(), consent_by: s.partner.name, created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '' };
+        append('Customers', c); D.customers.push(c);
+      }
+    }
+    if (!c) fail('Customer not found.');
+    if (truthy(c.blocked)) fail('This number is on hold. Lift the hold first.');
+    const ids = []; for (let i = 0; i < n; i++) ids.push('manual');
+    const r = addStamps(c, D, R, today, ids, s.partner.partner_id, s.partner.name + ' (by hand)', '');
+    const card = customerCard(c, D, R, today);
+    phoneMasked = maskPhone(c.phone);
+    out = { given: r.given, newPass: r.newPass, stamps: card.active ? card.active.stamps : 0, need: R.stamps, ready: card.ready.length,
+      link: R.site + '/club#' + c.card_token, wa_phone: '91' + c.phone, name: c.name || '', cid: c.customer_id };
+  });
+  logAction(s.partner.name, 'club: stamps by hand', phoneMasked + ' +' + n + ' · ' + reason);
+  return out;
+}
+
+function newCode() { let c; do { c = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); } while (/^(\d)\1+$/.test(c)); return c; }
+
+// Send a bill for some of this partner's sales, and add Pedal Club stamps if the customer is in.
+function clubBill(req, s) {
+  const R = clubRules(), today = dateKey(new Date());
+  const ids = (Array.isArray(req.sale_ids) ? req.sale_ids : []).map(String).filter(Boolean).slice(0, 50);
+  if (!ids.length) fail('Choose the plates for this bill.');
+  const wantStamps = req.stamp !== false;
+  let out = null, logNew = null;
+  withLock(() => {
+    const D = clubLoad();
+    // customer
+    let c = null, isNew = false;
+    if (req.cid) { c = D.customers.find(x => x.customer_id === String(req.cid) && !x.deleted_at); if (!c) fail('Customer not found. Type the number again.'); }
+    else {
+      const phone = normPhone(req.phone);
+      if (!phone) fail('Type a valid 10-digit mobile number.');
+      c = findCustomer(D, phone);
+      if (!c) {
+        if (req.consent !== true) fail('Ask the customer if we can save their number, then tick the box.');
+        c = { customer_id: newId('CU'), phone, name: String(req.name || '').trim().slice(0, 40), card_token: Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8),
+          consent_at: new Date().toISOString(), consent_by: s.partner.name, created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '' };
+        append('Customers', c); D.customers.push(c); isNew = true; logNew = c;
+      } else if (!c.name && req.name) {
+        c.name = String(req.name).trim().slice(0, 40);
+        updateWhere('Customers', r => String(r.customer_id) === c.customer_id, { name: c.name });
+      }
+    }
+    // sales
+    const all = rowsTail('Sales', 6000); const byId = {}; all.forEach(r => byId[String(r.sale_id)] = r);
+    const missing = ids.filter(id => !byId[id]);
+    if (missing.length) fail(missing.length + (missing.length > 1 ? ' plates have' : ' plate has') + " not reached the Sheet yet. Wait for signal and try again.");
+    const sales = ids.map(id => byId[id]).filter(r => r.status !== 'void' && String(r.partner_id) === String(s.partner.partner_id));
+    if (!sales.length) fail('These plates are not yours or were cancelled.');
+    const stamped = new Set(D.stamps.map(x => x.sale_id));
+    const skip = { excluded: 0, old: 0, already: 0, free: 0, cap: 0, off: 0, blocked: 0 };
+    const units = [];
+    sales.forEach(r => {
+      const q = Math.max(1, Number(r.qty) || 1), ot = r.order_type || 'walkin';
+      const age = (Date.now() - new Date(r.created_at).getTime()) / 60000;
+      if (r.pay === 'Free') skip.free += q;
+      else if (ot !== 'walkin') skip.excluded += q;
+      else if (stamped.has(String(r.sale_id))) skip.already += q;
+      else if (r.date !== today || age > R.minutes) skip.old += q;
+      else for (let i = 0; i < q; i++) units.push(String(r.sale_id));
+    });
+    let given = 0, newPass = false;
+    const card0 = customerCard(c, D, R, today);
+    if (units.length && !wantStamps) { /* bill only */ }
+    else if (units.length && !R.on) skip.off += units.length;
+    else if (units.length && truthy(c.blocked)) skip.blocked += units.length;
+    else if (units.length) {
+      const allowed = Math.min(units.length, card0.capLeft);
+      skip.cap += units.length - allowed;
+      const r = addStamps(c, D, R, today, units.slice(0, allowed), s.partner.partner_id, s.partner.name, s.cart_id);
+      given = r.given; newPass = r.newPass;
+    }
+    // bill
+    const billsToday = rows('Bills').filter(b => b.date === today).length;
+    const billNo = 'PP' + today.replace(/-/g, '').slice(2) + '-' + String(billsToday + 1).padStart(3, '0');
+    const lines = {}; const pay = { Cash: 0, UPI: 0 }; let total = 0, freeLines = 0;
+    sales.forEach(r => {
+      const k = r.item_name + '|' + r.size + '|' + (r.pay === 'Free' ? 'free' : Number(r.price));
+      const l = lines[k] = lines[k] || { name: r.item_name, size: r.size, qty: 0, price: r.pay === 'Free' ? 0 : Number(r.price), amount: 0, free: r.pay === 'Free' };
+      const a = r.pay === 'Free' ? 0 : Number(r.amount) || 0;
+      l.qty += Number(r.qty) || 1; l.amount += a; total += a; if (r.pay === 'Free') freeLines++;
+      if (r.pay === 'UPI') pay.UPI += a; else if (r.pay === 'Cash') pay.Cash += a;
+    });
+    const card = customerCard(c, D, R, today);
+    append('Bills', { bill_no: billNo, created_at: new Date().toISOString(), date: today, partner_id: String(s.partner.partner_id), partner_name: s.partner.name,
+      cart_id: s.cart_id, customer_id: c.customer_id, sale_ids: sales.map(r => r.sale_id).join(','), amount: total, stamps: given, pass_id: card.active ? card.active.pass_id : '' });
+    out = {
+      bill: { no: billNo, at: new Date().toISOString(), cart_id: s.cart_id, lines: Object.keys(lines).map(k => lines[k]), total, pay },
+      club: { on: R.on, given, newPass, skip, need: R.stamps, stamps: card.active ? card.active.stamps : 0, valid_till: card.active ? card.active.valid_till : '',
+        ready: card.ready.map(v => ({ claim_till: v.claim_till })), blocked: truthy(c.blocked), link: R.site + '/club#' + c.card_token },
+      customer: { cid: c.customer_id, name: c.name || '', masked: maskPhone(c.phone), isNew },
+      wa_phone: '91' + c.phone, footer: R.footer,
+    };
+  });
+  if (logNew) logAction(s.partner.name, 'club: new customer', maskPhone(logNew.phone));
+  return out;
+}
+
+function clubRedeem(req, s) {
+  const today = dateKey(new Date()), R = clubRules();
+  const cache = CacheService.getScriptCache();
+  let out = null, lockout = null;
+  withLock(() => {
+    const D = clubLoad();
+    const c = D.customers.find(x => x.customer_id === String(req.cid || '') && !x.deleted_at);
+    if (!c) fail('Customer not found. Type the number again.');
+    if (truthy(c.blocked)) fail('Pedal Club is on hold for this number. Ask a founder.');
+    const key = 'club_code_' + c.customer_id;
+    const wrong = Number(cache.get(key) || 0);
+    if (wrong >= 5) fail('Too many wrong codes for this number. Try again later or ask a founder.');
+    const ready = D.passes.filter(p => p.customer_id === c.customer_id).map(p => passView(p, D, R, today)).filter(v => v.state === 'ready');
+    if (!ready.length) fail('No free meal is ready on this number.');
+    const code = padCode(req.code);
+    const override = req.override === true && s.partner.role === 'founder';
+    if (req.override === true && !override) fail('Only founders can give a free meal without the code.');
+    if (override && String(req.reason || '').trim().length < 3) fail('Write why the code is not available.');
+    const pv = override ? ready[0] : ready.find(v => v.code === code && String(req.code || '').replace(/\D/g, '').length === 4);
+    if (!pv) {
+      cache.put(key, String(wrong + 1), 21600);
+      if (wrong + 1 >= 5) lockout = maskPhone(c.phone);
+      fail("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code.");
+    }
+    const item = getConfig().menu.find(m => String(m.item_id) === String(req.item_id || ''));
+    if (!item) fail("Choose one of today's combos.");
+    const size = item.sizes.slice().sort((a, b) => b.price - a.price)[0];
+    const sale = { sale_id: newId('CLUB'), created_at: new Date().toISOString(), date: today, partner_id: s.partner.partner_id, partner_name: s.partner.name,
+      cart_id: s.cart_id, item_id: item.item_id, item_name: item.name, size: size.size, price: 0, qty: 1, amount: 0, pay: 'Free', source: 'club',
+      status: 'ok', void_by: '', void_at: '', order_type: 'walkin', ref: 'club:' + pv.pass_id };
+    append('Sales', sale);
+    updateWhere('Passes', r => String(r.pass_id) === pv.pass_id, { status: 'redeemed', redeemed_at: sale.created_at, redeem_sale_id: sale.sale_id, redeemed_by: s.partner.name });
+    cache.remove(key);
+    out = { sale: { sale_id: sale.sale_id, item_name: item.name, size: size.size, value: size.price }, customer: { name: c.name || '', masked: maskPhone(c.phone) } };
+  }, () => { if (lockout) logAction(s.partner.name, 'club: code lockout', lockout); });
+  logAction(s.partner.name, req.override === true ? 'club: free meal without code' : 'club: free meal', out.customer.masked + ' · ' + out.sale.item_name + (req.override === true ? ' · ' + String(req.reason || '').trim().slice(0, 120) : ''));
+  return out;
+}
+
+// Called inside the lock when a sale is voided.
+function clubAfterVoid(saleId, ref, by) {
+  const now = new Date().toISOString();
+  const sh = SpreadsheetApp.getActive().getSheetByName('Stamps');
+  if (sh && sh.getLastRow() > 1) {
+    const data = sh.getDataRange().getValues(), h = data[0], c = k => h.indexOf(k);
+    for (let i = 1; i < data.length; i++) if (String(data[i][c('sale_id')]) === saleId && data[i][c('status')] !== 'void')
+      sh.getRange(i + 1, c('status') + 1, 1, 3).setValues([['void', by, now]]);
+  }
+  if (ref.indexOf('club:') === 0) updateWhere('Passes', r => String(r.pass_id) === ref.slice(5), { status: 'open', redeemed_at: '', redeem_sale_id: '', redeemed_by: '' });
+}
+
+// The customer's own card (public: the long token in their link is the key).
+function clubCard(req) {
+  const t = String(req.t || '');
+  const cache = CacheService.getScriptCache();
+  const bad = Number(cache.get('club_bad_tokens') || 0);
+  if (bad > 300) fail('Too many requests. Try again in a few minutes.');
+  if (!/^[a-f0-9]{32,48}$/i.test(t)) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('This card link is not complete. Open the link from your WhatsApp bill.'); }
+  const R = clubRules(), today = dateKey(new Date()), D = clubLoad();
+  const c = D.customers.find(x => x.card_token === t && !x.deleted_at);
+  if (!c) { cache.put('club_bad_tokens', String(bad + 1), 900); fail('We could not find this card. Ask for a new link at the cart.'); }
+  const card = customerCard(c, D, R, today);
+  const recent = card.views.filter(v => v.state === 'active' || v.state === 'ready' || daysBetween(v.valid_till, today) <= 30).sort((a, b) => a.issued < b.issued ? 1 : -1);
+  return {
+    name: String(c.name || '').split(' ')[0], masked: maskPhone(c.phone), blocked: truthy(c.blocked), today,
+    rules: { stamps: R.stamps, days: R.days, cap: R.cap, grace: R.grace, on: R.on },
+    passes: recent.map(v => ({ code: v.state === 'active' || v.state === 'ready' ? v.code : '', issued: v.issued, valid_till: v.valid_till, claim_till: v.claim_till,
+      stamps: v.stamps, need: v.need, state: v.state, redeemed_at: v.redeemed_at, dates: v.stampList.map(x => x.date) })),
+  };
+}
+
+/* founder screens */
+function clubOverview(req) {
+  const R = clubRules(), today = dateKey(new Date()), D = clubLoad();
+  const live = D.customers.filter(c => !c.deleted_at);
+  const views = D.passes.map(p => passView(p, D, R, today));
+  const weekAgo = addDaysKey(today, -6), monthStart = today.slice(0, 8) + '01';
+  const freeSales = rows('Sales').filter(r => r.pay === 'Free' && r.status !== 'void');
+  const menuIdx = getMenuIndex();
+  const valueOf = r => { const m = menuIdx[r.item_id + '|' + r.size]; return m ? Number(m.price) || 0 : 0; };
+  const freeMonth = freeSales.filter(r => r.date >= monthStart);
+  const stampsWeek = D.stamps.filter(x => x.date >= weekAgo);
+  // flags
+  const flags = [];
+  const partnerPhones = {}; rows('Partners').forEach(p => { const ph = normPhone(p.phone); if (ph) partnerPhones[ph] = p.name; });
+  live.forEach(c => { if (partnerPhones[c.phone] && !truthy(c.flag_ok) && D.stamps.some(x => x.customer_id === c.customer_id))
+    flags.push({ kind: 'customer', id: c.customer_id, cid: c.customer_id, title: 'Number belongs to partner ' + partnerPhones[c.phone], who: maskPhone(c.phone) }); });
+  views.forEach(v => {
+    const p = D.passes.find(x => x.pass_id === v.pass_id);
+    if (truthy(p.flag_ok)) return;
+    const c = D.customers.find(x => x.customer_id === v.customer_id) || {};
+    if (v.stamps >= R.stamps) {
+      const days = daysBetween(v.stampList[0].date, v.stampList[R.stamps - 1].date) + 1;
+      const byPartner = {}; v.stampList.forEach(x => byPartner[x.partner_name] = (byPartner[x.partner_name] || 0) + 1);
+      const top = Object.keys(byPartner).sort((a, b) => byPartner[b] - byPartner[a])[0];
+      if (days <= Math.ceil(R.stamps / R.cap) + 1) flags.push({ kind: 'pass', id: v.pass_id, cid: v.customer_id, title: 'Filled ' + R.stamps + ' stamps in ' + days + ' days (' + byPartner[top] + ' from ' + top + ')', who: (c.name || '') + ' ' + maskPhone(c.phone) });
+    }
+    if (v.state === 'redeemed' && v.stamps < R.stamps) flags.push({ kind: 'pass', id: v.pass_id, cid: v.customer_id, title: 'Free meal given, then a stamped sale was cancelled (' + v.stamps + '/' + R.stamps + ')', who: (c.name || '') + ' ' + maskPhone(c.phone) });
+  });
+  const burst = {}; live.forEach(c => { if (c.created_at && String(c.created_at).slice(0, 10) >= weekAgo) { const k = dateKey(new Date(c.created_at)) + '|' + c.consent_by; burst[k] = (burst[k] || 0) + 1; } });
+  Object.keys(burst).forEach(k => { if (burst[k] >= R.newFlag) { const [d, who] = k.split('|'); flags.push({ kind: 'info', id: k, title: who + ' added ' + burst[k] + ' new customers on ' + d, who: '' }); } });
+  rowsTail('Log', 300).filter(l => (l.action === 'club: stamps by hand' || l.action === 'club: free meal without code') && String(l.at).slice(0, 10) >= weekAgo)
+    .forEach(l => flags.push({ kind: 'info', id: l.at, title: (l.action === 'club: stamps by hand' ? 'Stamps added by hand by ' : 'Free meal without code by ') + l.by + ': ' + l.details, who: '' }));
+  rowsTail('Log', 300).filter(l => l.action === 'club: code lockout' && String(l.at).slice(0, 10) >= weekAgo)
+    .forEach(l => flags.push({ kind: 'info', id: l.at, title: 'Five wrong free-meal codes for ' + l.details + ' (tried by ' + l.by + ')', who: '' }));
+  return {
+    rules: R, today,
+    kpis: { members: live.length, newWeek: live.filter(c => String(c.created_at).slice(0, 10) >= weekAgo).length,
+      activeCards: views.filter(v => v.state === 'active').length, readyNow: views.filter(v => v.state === 'ready').length,
+      stampsWeek: stampsWeek.length, freeMonth: freeMonth.length, freeMonthValue: freeMonth.reduce((n, r) => n + valueOf(r), 0),
+      billsWeek: rows('Bills').filter(b => b.date >= weekAgo).length },
+    flags,
+  };
+}
+
+function clubCustomer(req) {
+  const R = clubRules(), today = dateKey(new Date()), D = clubLoad();
+  const raw = String(req.q || '').trim(), q = raw.replace(/\D/g, '');
+  let list;
+  if (req.cid) list = D.customers.filter(c => c.customer_id === String(req.cid));
+  else if (q.length >= 4) list = D.customers.filter(c => !c.deleted_at && c.phone.indexOf(q.length === 10 ? normPhone(q) || q : q) >= 0);
+  else if (raw.length >= 2) list = D.customers.filter(c => !c.deleted_at && String(c.name).toLowerCase().indexOf(raw.toLowerCase()) >= 0);
+  else fail('Type at least 4 digits of the number, or 2 letters of the name.');
+  const bills = rows('Bills');
+  return { customers: list.slice(0, 10).map(c => {
+    const card = customerCard(c, D, R, today);
+    return { cid: c.customer_id, name: c.name || '', phone: c.phone, created_at: c.created_at, consent_by: c.consent_by, blocked: truthy(c.blocked), deleted: !!c.deleted_at,
+      link: c.card_token ? R.site + '/club#' + c.card_token : '', bills: bills.filter(b => String(b.customer_id) === c.customer_id).length,
+      passes: card.views.sort((a, b) => a.issued < b.issued ? 1 : -1).map(v => ({ pass_id: v.pass_id, code: v.code, issued: v.issued, valid_till: v.valid_till, claim_till: v.claim_till,
+        stamps: v.stamps, need: v.need, state: v.state, redeemed_at: v.redeemed_at,
+        stampList: v.stampList.map(x => ({ stamp_id: x.stamp_id, date: x.date, partner: x.partner_name, cart: x.cart_id, sale_id: x.sale_id })) })) };
+  }) };
+}
+
+function clubVoidStamp(req, s) {
+  let found = null;
+  withLock(() => { found = updateWhere('Stamps', r => String(r.stamp_id) === String(req.stamp_id || '') && r.status !== 'void', { status: 'void', void_by: s.partner.name, void_at: new Date().toISOString() }); });
+  if (!found) fail('Stamp not found or already removed.');
+  logAction(s.partner.name, 'club: removed stamp', found.stamp_id + ' (sale ' + found.sale_id + ', by ' + found.partner_name + ')');
+  return {};
+}
+
+function clubBlock(req, s) {
+  let c = null; const on = req.blocked === true;
+  withLock(() => { c = updateWhere('Customers', r => String(r.customer_id) === String(req.cid || ''), { blocked: on ? 'yes' : '', blocked_by: on ? s.partner.name : '' }); });
+  if (!c) fail('Customer not found.');
+  logAction(s.partner.name, on ? 'club: hold' : 'club: hold lifted', maskPhone(normPhone(c.phone)));
+  return {};
+}
+
+// Delete a customer's personal data (they asked us to). Stamps and bills stay, without the number.
+function clubForget(req, s) {
+  let c = null;
+  withLock(() => { c = updateWhere('Customers', r => String(r.customer_id) === String(req.cid || '') && !r.deleted_at, { phone: '', name: '', card_token: '', deleted_at: new Date().toISOString() }); });
+  if (!c) fail('Customer not found or already deleted.');
+  logAction(s.partner.name, 'club: deleted customer data', String(c.customer_id));
+  return {};
+}
+
+function clubUndoRedeem(req, s) {
+  let p = null;
+  withLock(() => {
+    p = rows('Passes').find(r => String(r.pass_id) === String(req.pass_id || '') && r.status === 'redeemed');
+    if (!p) fail('That free meal was not found.');
+    updateWhere('Sales', r => String(r.sale_id) === String(p.redeem_sale_id), { status: 'void', void_by: s.partner.name, void_at: new Date().toISOString() });
+    updateWhere('Passes', r => String(r.pass_id) === String(p.pass_id), { status: 'open', redeemed_at: '', redeem_sale_id: '', redeemed_by: '' });
+  });
+  logAction(s.partner.name, 'club: free meal cancelled', String(p.pass_id));
+  return {};
+}
+
+function clubFlagOk(req, s) {
+  const tab = req.kind === 'customer' ? 'Customers' : 'Passes', key = req.kind === 'customer' ? 'customer_id' : 'pass_id';
+  let r = null;
+  withLock(() => { r = updateWhere(tab, x => String(x[key]) === String(req.id || ''), { flag_ok: 'yes' }); });
+  if (!r) fail('Not found.');
+  logAction(s.partner.name, 'club: flag checked', String(req.id));
+  return {};
 }
 
 /* ---------- business helpers ---------- */
@@ -389,11 +835,12 @@ function todaysSales(d) {
 }
 
 function totalsOf(list) {
-  const t = { plates: 0, total: 0, cash: 0, upi: 0, manualPlates: 0 };
+  const t = { plates: 0, total: 0, cash: 0, upi: 0, manualPlates: 0, freePlates: 0 };
   list.forEach(r => {
-    const q = Number(r.qty) || 0, a = Number(r.amount) || (Number(r.price) * q);
+    const q = Number(r.qty) || 0, a = r.pay === 'Free' ? 0 : (Number(r.amount) || (Number(r.price) * q));
     t.plates += q; t.total += a;
-    if (r.pay === 'UPI') t.upi += a; else t.cash += a;
+    if (r.pay === 'Free') t.freePlates += q;
+    else if (r.pay === 'UPI') t.upi += a; else t.cash += a;
     if (r.source === 'manual') t.manualPlates += q;
   });
   return t;
@@ -440,8 +887,10 @@ function hashPin(pin, salt) {
 
 function logAction(by, action, details) { withLock(() => append('Log', { at: new Date().toISOString(), by, action, details })); }
 
+let SETTINGS_CACHE = null;   // reset at the start of every request
 function setting(key, fallback) {
-  const r = rows('Settings').find(x => x.key === key); return r && r.value !== '' ? r.value : fallback;
+  if (!SETTINGS_CACHE) { SETTINGS_CACHE = {}; rows('Settings').forEach(x => SETTINGS_CACHE[x.key] = x.value); }
+  const v = SETTINGS_CACHE[key]; return v !== undefined && v !== '' ? v : fallback;
 }
 
 function dateKey(d) { return Utilities.formatDate(d, tz(), 'yyyy-MM-dd'); }
@@ -457,7 +906,7 @@ function sheet(name) {
 }
 
 // Sheets turns text like "2026-11-04" into real dates, so date-only columns are read back as yyyy-MM-dd.
-const DATE_ONLY = { date: true, start_date: true };
+const DATE_ONLY = { date: true, start_date: true, issued_date: true, valid_till: true };
 let TZ_CACHE = null;
 function tz() {
   if (!TZ_CACHE) {
@@ -519,10 +968,10 @@ function deleteWhere(name, test) {
   }
 }
 
-function withLock(fn) {
+function withLock(fn, after) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) fail('Busy right now. Try again in a moment.');
-  try { return fn(); } finally { lock.releaseLock(); }
+  try { return fn(); } finally { lock.releaseLock(); if (after) after(); }
 }
 
 /* ---------- one-time setup (run from the Apps Script editor) ---------- */
@@ -542,7 +991,11 @@ function setup() {
     sh.setFrozenRows(1);
     sh.getRange(1, 1, 1, sh.getLastColumn()).setFontWeight('bold');
   });
-  if (rows('Settings').length === 0) appendMany('Settings', DEFAULT_SETTINGS.map(r => ({ key: r[0], value: r[1], note: r[2] })));
+  // Add any setting this version needs and the sheet doesn't have yet. Values already there are kept.
+  const haveKeys = rows('Settings').map(r => r.key);
+  appendMany('Settings', DEFAULT_SETTINGS.filter(r => haveKeys.indexOf(r[0]) < 0).map(r => ({ key: r[0], value: r[1], note: r[2] })));
+  // Phone numbers, card codes and bill numbers are text: stop Sheets turning them into numbers.
+  ['Customers', 'Passes', 'Bills'].forEach(n => sheet(n).getRange('A:Z').setNumberFormat('@'));
   if (rows('Carts').length === 0) appendMany('Carts', [{ cart_id: 'C1', name: 'Cart 1', float: 500, active: 'yes' }, { cart_id: 'C2', name: 'Cart 2', float: 500, active: 'yes' }]);
   if (rows('Menu').length === 0) appendMany('Menu', [
     { item_id: 'RPCK', name: 'Reshmi Polao + Chicken Kosha', type: 'nonveg', size: 'Half', price: 50, active: 'yes', sort: 1 },

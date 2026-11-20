@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pedal Club | Pedal Plate</title>
+<meta name="description" content="Your Pedal Club card: stamps, free meal and validity.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#96601A">
+<link rel="icon" href="/images/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+<link rel="preload" as="font" href="/fonts/poppins-800.woff2" type="font/woff2" crossorigin>
+<style>
+  @font-face{font-family:"Poppins";font-weight:400;font-display:optional;src:url(/fonts/poppins-400.woff2) format("woff2");}
+  @font-face{font-family:"Poppins";font-weight:600;font-display:optional;src:url(/fonts/poppins-600.woff2) format("woff2");}
+  @font-face{font-family:"Poppins";font-weight:700;font-display:optional;src:url(/fonts/poppins-700.woff2) format("woff2");}
+  @font-face{font-family:"Poppins";font-weight:800;font-display:optional;src:url(/fonts/poppins-800.woff2) format("woff2");}
+  /* Brand palette: turmeric primary, basil for the free meal, cream background, charcoal ink. */
+  :root{--bg:#FBF6EC;--surface:#FFFFFF;--ink:#2B2620;--soft:#6B5F51;--brand:#96601A;--tint:#F3E3C6;--basil:#3F7D4A;--basil-tint:#E3EFE2;--line:rgba(43,38,32,.12);--logo-green:#1B3E1E;}
+  @media (prefers-color-scheme: dark){:root{--bg:#1E1A15;--surface:#2A241D;--ink:#F3EAD9;--soft:#C9BBA6;--brand:#E3AD57;--tint:#3B2E1B;--basil:#7BC787;--basil-tint:#22301F;--line:rgba(243,234,217,.14);--logo-green:#7BC787;color-scheme:dark;}}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:460px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:calc(22px + env(safe-area-inset-top,0px)) 40px;display:grid;gap:16px}
+  header{display:flex;align-items:center;gap:12px}
+  header img{width:48px;height:48px;border-radius:50%}
+  header b{display:block;font-size:20px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+  header b .pd{color:var(--logo-green)} header b .pl{color:var(--brand)}
+  header small{display:block;font-size:12px;font-weight:600;color:var(--soft)}
+  h1{font-size:24px;font-weight:800;line-height:1.15;letter-spacing:-.02em;text-wrap:balance}
+  h2{font-size:16px;font-weight:700}
+  .muted{color:var(--soft)}
+  .pass{position:relative;overflow:hidden;border-radius:24px;padding:20px;color:#FBF6EC;background:linear-gradient(150deg,#96601A,#6E4513);display:grid;gap:14px;box-shadow:0 18px 34px -22px rgba(70,40,10,.8)}
+  .pass.ready{background:linear-gradient(150deg,#3F7D4A,#2C5C35)}
+  .pass.old{background:linear-gradient(150deg,#6B5F51,#4A4036)}
+  .pass::after{content:"";position:absolute;right:-50px;top:-50px;width:170px;height:170px;border-radius:50%;background:rgba(251,246,236,.08)}
+  .pass > *{position:relative;z-index:1;min-width:0}
+  #app,.pass{min-width:0}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .kick{font-size:12px;font-weight:800;letter-spacing:.14em}
+  .who{font-size:22px;font-weight:800;line-height:1.1}
+  .sm{font-size:12px;opacity:.85}
+  .dots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+  .dots i{aspect-ratio:1;border-radius:50%;border:2px dashed rgba(251,246,236,.55);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
+  .dots i.on{background:#FBF6EC;border:0;color:#96601A}
+  .pass.ready .dots i.on{color:#3F7D4A}
+  .dots i.gift{border:2px solid #FBF6EC}
+  .dots i.gift svg{width:58%;height:58%}
+  .code{text-align:right;font-size:12px;opacity:.9}
+  .code b{display:block;font-size:30px;font-weight:800;letter-spacing:.16em;line-height:1.1}
+  .status{border-radius:14px;padding:12px 14px;font-weight:600;font-size:14px;background:var(--tint)}
+  .status.ok{background:var(--basil-tint)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:10px}
+  ol,ul{padding-left:20px;display:grid;gap:6px}
+  .hist{display:grid;gap:4px;font-size:13px;color:var(--soft)}
+  .hist div{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:3px 0}
+  .fine{font-size:12px;color:var(--soft)}
+  a{color:var(--brand);font-weight:600}
+  .spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;vertical-align:-2px;margin-right:6px}
+  @media (prefers-reduced-motion:no-preference){.spin{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><a href="/" aria-label="Pedal Plate home"><img src="/images/logo-96.webp" width="48" height="48" alt=""></a><div><b><span class="pd">Pedal</span> <span class="pl">Plate</span></b><small>Pedal Club</small></div></header>
+  <main id="app" aria-live="polite"><p class="muted"><span class="spin"></span>Opening your card…</p></main>
+  <section class="card" id="how">
+    <h2>How Pedal Club works</h2>
+    <ol>
+      <li>Ask for your bill on WhatsApp at any Pedal Plate cart. Your card link comes with it.</li>
+      <li>Every combo you buy at the cart adds a stamp, up to <span data-r="cap">2</span> a day.</li>
+      <li>After <span data-r="stamps">9</span> stamps, your <span data-r="nth">10th</span> combo is free. Show the 4-digit code on this card to claim it.</li>
+    </ol>
+    <p class="fine">Free to join. A card is valid for <span data-r="days">30</span> days from its first stamp; after that, or after your free meal, the next plate starts a new card on the same number. Not for corporate, bulk or home delivery orders. Keep your card link to yourself: anyone with it can see your code. To stop messages or delete your number, WhatsApp us on +91 76991 49899.</p>
+  </section>
+  <p class="fine" style="text-align:center"><a href="/">pedalplate.in</a> · <a href="/privacy">Privacy</a></p>
+</div>
+<script>
+/* Pedal Club card. Reads the card key after # in the link from the WhatsApp bill and asks the
+   sales backend (sales/apps-script/Code.gs, action clubCard). API_URL is the same /exec URL as in sales.html.
+   While API_URL is empty, or with #demo, it shows a sample card. */
+const API_URL = '';
+const $ = s => document.querySelector(s), app = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nice = k => k ? new Date(k + 'T12:00').toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '';
+const ord = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ({1:'st',2:'nd',3:'rd'}[n % 10] || 'th'));
+const gift = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v9H5v-9M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>';
+
+function sample() {
+  const k = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+  return {name:'Rahul', masked:'98•••••345', blocked:false, today:k(0), rules:{stamps:9, days:30, cap:2, grace:7, on:true},
+    passes:[{code:'4821', issued:k(-9), valid_till:k(20), claim_till:'', stamps:6, need:9, state:'active', dates:[k(-9), k(-7), k(-6), k(-3), k(-1), k(0)]}]};
+}
+
+function rules(r) { document.querySelectorAll('[data-r]').forEach(e => { const v = {cap:r.cap, stamps:r.stamps, nth:ord(r.stamps + 1), days:r.days}[e.dataset.r]; if (v != null) e.textContent = v; }); }
+
+function passHtml(p, d) {
+  let dots = '';
+  for (let i = 0; i < p.need; i++) dots += `<i class="${i < p.stamps ? 'on' : ''}">${i < p.stamps ? i + 1 : ''}</i>`;
+  dots += `<i class="gift" title="Free meal">${gift}</i>`;
+  const cls = p.state === 'ready' ? 'ready' : p.state === 'active' ? '' : 'old';
+  const status = {
+    active: [`${p.stamps} of ${p.need} stamps. ${p.need - p.stamps} more and your next combo is free.`, ''],
+    ready: [`Your free meal is ready! Show this card at any Pedal Plate cart by ${nice(p.claim_till)} and read out your code.`, 'ok'],
+    redeemed: ['Free meal enjoyed. Your next plate starts a new card.', ''],
+    expired: [`This card ended on ${nice(p.claim_till || p.valid_till)}. Your next plate starts a new card.`, ''],
+  }[p.state];
+  return `<div class="pass ${cls}">
+      <div class="row"><span class="kick">PEDAL CLUB</span><span class="sm">${p.state === 'active' || p.state === 'ready' ? 'Valid till ' + nice(p.claim_till || p.valid_till) : p.state === 'redeemed' ? 'Used' : 'Ended'}</span></div>
+      <div><div class="who">${esc(d.name || 'Pedal Club member')}</div><div class="sm">${esc(d.masked)} · card from ${nice(p.issued)}</div></div>
+      <div class="dots" aria-label="${p.stamps} of ${p.need} stamps">${dots}</div>
+      ${p.code ? `<div class="code">Card code<b>${esc(p.code)}</b>Read it out only at the cart</div>` : ''}
+    </div>
+    <div class="status ${status[1]}">${status[0]}</div>
+    ${p.dates.length ? `<details class="card"><summary style="font-weight:700;cursor:pointer">Stamp dates on this card</summary><div class="hist" style="margin-top:8px">${p.dates.slice().sort().map((x, i) => `<div><span>Stamp ${i + 1}</span><span>${nice(x)}</span></div>`).join('')}</div></details>` : ''}`;
+}
+
+function show(d) {
+  rules(d.rules);
+  const live = d.passes.filter(p => p.state === 'ready').concat(d.passes.filter(p => p.state === 'active'));   // free meal first
+  const old = d.passes.filter(p => p.state !== 'ready' && p.state !== 'active');
+  app.innerHTML = `<div style="display:grid;gap:14px">
+    <h1>Hi ${esc(d.name || 'there')}, here's your Pedal Club card</h1>
+    ${d.blocked ? '<div class="status">Your card is on hold. Please WhatsApp us on +91 76991 49899.</div>' : ''}
+    ${!d.rules.on ? '<div class="status">New stamps are paused for now. A free meal you have already earned can still be claimed.</div>' : ''}
+    ${live.length ? live.map(p => passHtml(p, d)).join('') : `<div class="status">No card running right now. Your next combo at the cart starts a new one.</div>`}
+    ${old.length ? `<details class="card"><summary style="font-weight:700;cursor:pointer">Earlier cards</summary><div style="display:grid;gap:10px;margin-top:10px">${old.map(p => passHtml(p, d)).join('')}</div></details>` : ''}
+  </div>`;
+}
+
+function fail(msg) { app.innerHTML = `<div class="status">${esc(msg)}</div>`; }
+
+(async () => {
+  const key = location.hash.slice(1);
+  if (!API_URL || key === 'demo') { show(sample()); app.insertAdjacentHTML('afterbegin', '<p class="fine" style="margin-bottom:8px">Sample card. Your own card opens from the link in your WhatsApp bill.</p>'); return; }
+  if (!key) { app.innerHTML = '<h1>Pedal Club</h1><p class="muted" style="margin-top:6px">Your card opens from the link in your WhatsApp bill. New here? Ask for your bill on WhatsApp at the cart.</p>'; return; }
+  try {
+    const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubCard', t:key}), redirect:'follow'});
+    const j = await r.json();
+    if (!j.ok) return fail(j.error || 'We could not open your card. Try again.');
+    show(j);
+  } catch (e) { fail(navigator.onLine ? 'We could not open your card. Try again in a moment.' : 'No internet. Your card will open when you are back online.'); }
+})();
+window.addEventListener('hashchange', () => location.reload());
+</script>
+</body>
+</html>
