@@ -282,9 +282,9 @@ const DemoApi = (() => {
   if (!db.customers) clubSeed(db);
   const save = () => store.set('demo_db', db);
   const pub = (p, cart) => ({partner_id:p.partner_id,name:p.name,role:p.role,cart_id:cart!=null?cart:p.cart_id,backup:!!p.backup,active:!!p.active});
-  const cfg = () => ({menu:db.menu.filter(m => m.active !== false).map(({active, ...m}) => m),carts:db.carts,settings:{undo_minutes:'2',club_on:'yes',club_stamps:'9',club_days:'30',club_daily_cap:'2'},date:todayKey()});
+  const cfg = () => ({menu:db.menu.filter(m => m.active !== false).map(({active, ...m}) => m),carts:db.carts,settings:{undo_minutes:'2',club_on:'yes',club_stamps:'9',club_days:'30',club_daily_cap:'4'},date:todayKey()});
   // Pedal Club rules, same defaults as the Settings tab in Code.gs.
-  const CR = {on:true, stamps:9, days:30, cap:2, minutes:60, grace:7, newFlag:15, site:'https://pedalplate.in', footer:'Thank you! Pre-book on WhatsApp: +91 76991 49899'};
+  const CR = {on:true, stamps:9, days:30, cap:4, minutes:60, grace:7, newFlag:15, site:'https://pedalplate.in', footer:'Thank you! Pre-book on WhatsApp: +91 76991 49899'};
   const mask = p => p ? p.slice(0,2) + '•••••' + p.slice(-3) : '';
   const norm = v => { let x = String(v||'').replace(/\D/g,''); if (x.length === 12 && x.startsWith('91')) x = x.slice(2); if (x.length === 11 && x[0] === '0') x = x.slice(1); return /^[6-9]\d{9}$/.test(x) ? x : ''; };
   const pv = p => { const st = db.stamps.filter(x => x.pass_id === p.pass_id && x.status !== 'void').sort((a,b) => a.created_at < b.created_at ? -1 : 1); const n = st.length, today = todayKey(); let state, claim = '';

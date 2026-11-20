@@ -82,7 +82,7 @@ stamps (9), the next combo is free: every 10th meal. Settings:
 | `club_on` | yes | `no` pauses new stamps (earned free meals can still be claimed) |
 | `club_stamps` | 9 | paid plates per card; the next one is free |
 | `club_days` | 30 | a card is valid this many days, counting the day of its first stamp |
-| `club_daily_cap` | 2 | most stamps per phone number per day, across all carts |
+| `club_daily_cap` | 2 (Pedal Plate uses 4) | most stamps per phone number per day, across all carts |
 | `club_stamp_minutes` | 60 | a plate can get its stamp only this long after it was tapped |
 | `club_grace_days` | 7 | a free meal that becomes ready near the end can still be claimed this many days later |
 | `club_new_flag` | 15 | flag a partner who adds this many new customers in a day |
