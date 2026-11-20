@@ -417,7 +417,9 @@
   }
   .dish:hover{transform:translateY(-8px) rotate(-.6deg);box-shadow:var(--shadow);}
   .dish.is-today{border:2px solid var(--brand);box-shadow:0 0 0 6px color-mix(in srgb,var(--brand) 18%,transparent);}
-  .dish-art{position:relative;aspect-ratio:4/3;border-radius:20px;display:grid;place-items:center;margin-bottom:20px;overflow:hidden;}
+  .dish-art{position:relative;aspect-ratio:4/3;border-radius:20px;display:grid;place-items:center;margin-bottom:20px;overflow:hidden;background:radial-gradient(circle at 50% 60%,#F7EEDD,#E3C48F);}
+  .dish-art > svg.pot{width:40%;color:#7A4D15;}
+  .price small{display:block;margin-top:6px;font-size:.8rem;font-weight:600;letter-spacing:0;color:var(--ink-soft);text-align:right;}
   .dish:nth-child(1) .dish-art{background:radial-gradient(circle at 50% 60%,#F6E7CC,#D9A85E);}
   .dish:nth-child(2) .dish-art{background:radial-gradient(circle at 50% 60%,#F7EEDD,#E3C48F);}
   .dish:nth-child(3) .dish-art{background:radial-gradient(circle at 50% 60%,#EFD9B4,#B9834A);}
@@ -840,7 +842,7 @@
         <ul class="chips" aria-label="Highlights">
           <li>🏠 Home-made</li>
           <li>🧼 Hygienic &amp; sealed</li>
-          <li>🍛 Combos from ₹55</li>
+          <li>🍛 Combos from ₹<span data-pfrom>55</span></li>
           <li>🤝 Local jobs</li>
           <li>🚲 Zero emissions</li>
         </ul>
@@ -859,7 +861,7 @@
           </div>
           <div class="sticker sticker-today">
             <span class="ico" aria-hidden="true">🍛</span>
-            <span><small id="todayLabel">On the pedal this week</small><strong id="todayDish">Fresh combos from ₹55</strong></span>
+            <span><small id="todayLabel">On the pedal this week</small><strong id="todayDish">Fresh combos from ₹<span data-pfrom>55</span></strong></span>
           </div>
           <div class="sticker sticker-live">
             <span class="live-dot" aria-hidden="true"></span>
@@ -960,8 +962,8 @@
           <article class="pillar p-price reveal">
             <span class="pillar-ico" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h14M9 12h14M9 6c8 0 8 12 0 12h-1l11 9"/></svg></span>
             <h3>Affordable</h3>
-            <p>A full, filling meal from ₹55. Honest prices with no app commissions or delivery fees.</p>
-            <ul><li>Combos ₹55–₹75</li><li>No hidden charges</li></ul>
+            <p>A full, filling meal from ₹<span data-pfrom>55</span>. Honest prices with no app commissions or delivery fees.</p>
+            <ul><li>Combos ₹<span data-pfrom>55</span>–₹<span data-pto>80</span></li><li>No hidden charges</li></ul>
           </article>
         </div>
       </div>
@@ -1438,17 +1440,20 @@
   // Today's dish (Burdwan time)
   var day = ({Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6})[new Date().toLocaleDateString('en-US',{weekday:'short',timeZone:'Asia/Kolkata'})];
   var label = document.getElementById('todayLabel'), dishEl = document.getElementById('todayDish');
-  if (day === 0){
-    label.textContent = 'Sunday — day off'; dishEl.textContent = 'Back on the pedal Monday';
-  } else {
+  // Runs again when the menu arrives from the Sheet (see the menu script at the end of the page).
+  window.ppMarkToday = function(){
+    if (day === 0){
+      label.textContent = 'Sunday — day off'; dishEl.textContent = 'Back on the pedal Monday'; return;
+    }
     document.querySelectorAll('.dish').forEach(function(card){
       if (card.dataset.days && card.dataset.days.split(',').indexOf(String(day)) > -1){
         card.classList.add('is-today');
         label.textContent = "Today's plate";
-        dishEl.textContent = card.querySelector('h3').textContent + ' · ' + card.querySelector('.price').textContent;
+        dishEl.textContent = card.dataset.label || (card.querySelector('h3').textContent + ' · ' + card.querySelector('.price').textContent);
       }
     });
-  }
+  };
+  window.ppMarkToday();
 
   if (!('IntersectionObserver' in window)){
     document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
@@ -1550,6 +1555,48 @@
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+</script>
+<script>
+/* Menu from the Google Sheet (Menu tab), the same one the sales app uses: one place to edit.
+   The cards above are the fallback; after the page has loaded this replaces them with the Sheet's
+   menu and updates every "from ₹" price. API_URL is the same /exec URL as in sales.html. */
+(function(){
+  var API_URL = 'https://script.google.com/macros/s/AKfycbxOhUUFVpzZqXNz7d4bebHgEiE5m9sKTm_5mKFWmOg6huv_9IelbnmAOia34jJ6tfhQ/exec';
+  var KEY = 'pp_menu_v1', DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var grid = document.querySelector('.menu-grid'); if (!grid || !API_URL) return;
+  var esc = function(x){ return String(x).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var shown = '';
+  function card(m){
+    var full = m.sizes.filter(function(z){ return z.size === 'Full'; })[0] || m.sizes[m.sizes.length - 1];
+    var other = m.sizes.filter(function(z){ return z !== full; });
+    var p = m.photo, art = p
+      ? '<img src="/images/menu/' + p + '-600.webp" srcset="/images/menu/' + p + '-400.webp 400w, /images/menu/' + p + '-600.webp 600w, /images/menu/' + p + '-800.webp 800w" sizes="(max-width:900px) 90vw, 340px" width="600" height="450" loading="lazy" decoding="async" alt="' + esc(m.name) + '">'
+      : '<svg class="pot" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-pot"/></svg>';
+    var name = esc(m.name).replace(/^Rice\b/i, function(w){ return w + '<sup class="ast">*</sup>'; });
+    return '<article class="dish reveal in" data-days="' + m.days.map(function(d){ return DAYS.indexOf(d); }).join(',') + '" data-label="' + esc(m.name + ' · ₹' + full.price) + '">' +
+      '<span class="today-flag">Today</span><div class="dish-art">' + art + '</div>' +
+      (m.days.length ? '<div class="days">' + m.days.map(function(d){ return '<span>' + d + '</span>'; }).join('') + '<i class="ast" aria-hidden="true">**</i></div>' : '') +
+      '<div class="dish-foot"><h3>' + name + '</h3><span class="price"><sup>₹</sup>' + full.price +
+      (other.length ? '<small>' + other.map(function(z){ return esc(z.size) + ' ₹' + z.price; }).join(' · ') + '</small>' : '') + '</span></div></article>';
+  }
+  function show(d){
+    if (!d || !d.items || !d.items.length) return;
+    var key = JSON.stringify(d.items) + d.from + d.to; if (key === shown) return; shown = key;
+    grid.innerHTML = d.items.map(card).join('');
+    if (d.from) document.querySelectorAll('[data-pfrom]').forEach(function(e){ e.textContent = d.from; });
+    if (d.to) document.querySelectorAll('[data-pto]').forEach(function(e){ e.textContent = d.to; });
+    if (window.ppMarkToday) window.ppMarkToday();
+  }
+  try { var c = JSON.parse(localStorage.getItem(KEY) || 'null'); if (c && Date.now() - c.t < 864e5) show(c.d); } catch (e) {}
+  function load(){
+    fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:'{"action":"menuPublic"}'})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if (!j.ok) return; show(j); try { localStorage.setItem(KEY, JSON.stringify({t:Date.now(), d:j})); } catch (e) {} })
+      .catch(function(){});
+  }
+  var later = function(){ ('requestIdleCallback' in window) ? requestIdleCallback(load, {timeout:4000}) : setTimeout(load, 1500); };
+  if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
+})();
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>

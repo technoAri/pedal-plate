@@ -16,7 +16,7 @@
 
 const SCHEMA = {
   Settings: ['key', 'value', 'note'],
-  Menu:     ['item_id', 'name', 'type', 'size', 'price', 'active', 'sort'],
+  Menu:     ['item_id', 'name', 'type', 'size', 'price', 'active', 'sort', 'website', 'days', 'photo'],
   Carts:    ['cart_id', 'name', 'float', 'active'],
   Partners: ['partner_id', 'name', 'role', 'cart_id', 'phone', 'backup', 'active', 'start_date', 'pin_hash', 'salt', 'created_at'],
   Sessions: ['token', 'partner_id', 'cart_id', 'expires_at'],
@@ -110,6 +110,7 @@ const ACTIONS = {
   clubUndoRedeem: { founder: true, fn: clubUndoRedeem },
   clubFlagOk: { founder: true, fn: clubFlagOk },
   clubManual: { founder: true, fn: clubManual },
+  menuPublic: { public: true, fn: menuPublic },
   logout: { fn: (req, s) => { deleteWhere('Sessions', r => r.token === req.token); return {}; } },
   setCart: { fn: (req, s) => {
     const cart = rows('Carts').find(c => String(c.cart_id) === String(req.cart_id) && truthy(c.active));
@@ -318,34 +319,79 @@ function changePin(req, s) {
 
 /* ----- menu (founders change today's combos and prices from the app) ----- */
 
+// Website fields: website = yes (always show) / no (hide) / blank (show while switched on);
+// days = "Mon,Wed,Fri" (card tags and the Today badge); photo = name of a processed photo in images/menu.
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function cleanDays(v) {
+  const out = []; String(v || '').split(/[,\s\/]+/).forEach(x => { const i = DAY_NAMES.findIndex(d => d.toLowerCase() === x.slice(0, 3).toLowerCase()); if (i >= 0 && out.indexOf(DAY_NAMES[i]) < 0) out.push(DAY_NAMES[i]); });
+  return out.sort((a, b) => DAY_NAMES.indexOf(a) - DAY_NAMES.indexOf(b)).join(',');
+}
 function menuAll() {
   const items = {};
   rows('Menu').sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0)).forEach(r => {
-    const it = items[r.item_id] = items[r.item_id] || { item_id: String(r.item_id), name: r.name, type: String(r.type).toLowerCase().indexOf('non') === 0 ? 'nonveg' : 'veg', active: false, sizes: [] };
-    it.sizes.push({ size: r.size || 'Full', price: Number(r.price) });
+    const it = items[r.item_id] = items[r.item_id] || { item_id: String(r.item_id), name: r.name, type: String(r.type).toLowerCase().indexOf('non') === 0 ? 'nonveg' : 'veg', active: false, sizes: [],
+      website: String(r.website || '').toLowerCase(), days: cleanDays(r.days), photo: String(r.photo || '').trim() };
+    if (!it.sizes.some(z => z.size === (r.size || 'Full'))) it.sizes.push({ size: r.size || 'Full', price: Number(r.price) });
     if (truthy(r.active)) it.active = true;
+    if (!it.website && r.website) it.website = String(r.website).toLowerCase();
+    if (!it.days && r.days) it.days = cleanDays(r.days);
+    if (!it.photo && r.photo) it.photo = String(r.photo).trim();
   });
   return Object.keys(items).map(k => items[k]);
 }
 
+// The website's menu (public, read-only). Cached for 5 minutes; app changes clear the cache at once.
+function menuPublic() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('menu_public');
+  if (hit) return JSON.parse(hit);
+  const order = z => ({ Half: 0, Full: 1 })[z] == null ? 2 : ({ Half: 0, Full: 1 })[z];
+  const items = menuAll().filter(m => m.website === 'yes' || (m.website !== 'no' && m.active)).map(m => ({
+    name: m.name, type: m.type, today_on: m.active, days: m.days ? m.days.split(',') : [],
+    photo: /^[a-z0-9-]{1,60}$/.test(m.photo) ? m.photo : '',
+    sizes: m.sizes.filter(z => z.price > 0).sort((a, b) => order(a.size) - order(b.size)),
+  })).filter(m => m.sizes.length);
+  const full = items.map(m => (m.sizes.find(z => z.size === 'Full') || m.sizes[m.sizes.length - 1]).price);
+  const out = { items, from: full.length ? Math.min.apply(null, full) : null, to: full.length ? Math.max.apply(null, full) : null, at: new Date().toISOString() };
+  cache.put('menu_public', JSON.stringify(out), 300);
+  return out;
+}
+function menuChanged() { CacheService.getScriptCache().remove('menu_public'); }
+
+// Change a combo: switch on/off, prices (a new size such as Half adds a row), name, type, website fields.
 function menuUpdate(req, s) {
   const id = String(req.item_id || '');
   const prices = req.prices && typeof req.prices === 'object' ? req.prices : null;
-  if (prices) Object.keys(prices).forEach(z => { if (!(Number(prices[z]) > 0)) fail('Enter a price for ' + z + '.'); });
-  let found = false;
+  if (prices) Object.keys(prices).forEach(z => { if (!(Number(prices[z]) > 0)) fail('Enter a price for ' + z + '.'); if (!/^[A-Za-z ]{1,12}$/.test(z)) fail('Plate size must be a short word, like Half or Full.'); });
+  const name = req.name != null ? String(req.name).trim().slice(0, 60) : null;
+  if (name === '') fail('Enter the combo name.');
+  if (name && rows('Menu').some(r => String(r.item_id) !== id && String(r.name).toLowerCase() === name.toLowerCase())) fail('Another combo already has that name.');
+  const changes = {};
+  if (req.active != null) changes.active = req.active ? 'yes' : 'no';
+  if (name) changes.name = name;
+  if (req.type === 'veg' || req.type === 'nonveg') changes.type = req.type;
+  if (req.website != null) changes.website = req.website === 'yes' ? 'yes' : req.website === 'no' ? 'no' : '';
+  if (req.days != null) changes.days = cleanDays(req.days);
+  if (req.photo != null) changes.photo = /^[a-z0-9-]{0,60}$/.test(String(req.photo)) ? String(req.photo) : fail('Photo name: small letters, numbers and dashes only.');
+  let found = null; const seen = {};
   withLock(() => {
     const sh = sheet('Menu'); const data = sh.getDataRange().getValues(); const h = data[0];
     const c = k => h.indexOf(k);
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][c('item_id')]) !== id) continue;
-      found = true;
-      if (req.active != null) sh.getRange(i + 1, c('active') + 1).setValue(req.active ? 'yes' : 'no');
-      const z = data[i][c('size')] || 'Full';
+      found = found || { name: data[i][c('name')], type: data[i][c('type')], active: data[i][c('active')], sort: data[i][c('sort')], website: c('website') >= 0 ? data[i][c('website')] : '', days: c('days') >= 0 ? data[i][c('days')] : '', photo: c('photo') >= 0 ? data[i][c('photo')] : '' };
+      Object.keys(changes).forEach(k => { if (c(k) >= 0) sh.getRange(i + 1, c(k) + 1).setValue(changes[k]); });
+      const z = data[i][c('size')] || 'Full'; seen[z] = true;
       if (prices && prices[z] != null) sh.getRange(i + 1, c('price') + 1).setValue(Number(prices[z]));
     }
+    if (!found) return;
+    const base = Object.assign({}, found, changes);
+    const extra = prices ? Object.keys(prices).filter(z => !seen[z]) : [];
+    appendMany('Menu', extra.map(z => ({ item_id: id, name: base.name, type: base.type, size: z, price: Number(prices[z]), active: base.active, sort: base.sort, website: base.website, days: base.days, photo: base.photo })));
   });
   if (!found) fail('That combo is not in the Menu tab.');
-  logAction(s.partner.name, 'menu', id + (req.active != null ? (req.active ? ' on' : ' off') : '') + (prices ? ' prices ' + JSON.stringify(prices) : ''));
+  menuChanged();
+  logAction(s.partner.name, 'menu', id + ' ' + JSON.stringify(Object.assign({}, changes, prices ? { prices } : {})));
   return { menu: menuAll() };
 }
 
@@ -359,7 +405,9 @@ function menuAdd(req, s) {
   if (all.some(r => String(r.name).toLowerCase() === name.toLowerCase())) fail('That combo already exists. Switch it on instead.');
   const id = newId('M');
   const sort = all.reduce((m, r) => Math.max(m, Number(r.sort) || 0), 0) + 1;
-  withLock(() => appendMany('Menu', sizes.map(z => ({ item_id: id, name, type, size: z.size, price: z.price, active: 'yes', sort }))));
+  const days = cleanDays(req.days), website = req.website === 'yes' ? 'yes' : req.website === 'no' ? 'no' : '';
+  withLock(() => appendMany('Menu', sizes.map(z => ({ item_id: id, name, type, size: z.size, price: z.price, active: 'yes', sort, website, days, photo: '' }))));
+  menuChanged();
   logAction(s.partner.name, 'menu', 'added ' + name);
   return { menu: menuAll() };
 }

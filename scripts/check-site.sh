@@ -17,6 +17,7 @@ for page in index.html card.html sales.html club.html; do
     grep -oE '(srcset|imagesrcset)="[^"]+"' "$page" | sed -E 's/^[a-z]+="([^"]+)"$/\1/' | tr ',' '\n' | awk '{print $1}'
     grep -oE 'url\(/[^)]+\)' "$page" | sed -E 's/^url\(\/?([^)]+)\)$/\1/'
   } | sed -E 's#^/##; s/[?#].*$//' | sort -u |
+    grep -vE "['+]" |   # URLs built in scripts ('/images/menu/' + name + ...)
     grep -vE '^(\$\{|https?:|//|mailto:|tel:|_vercel/|privacy$|card$|sales$|club$|$)' |
     while read -r path; do
       [ -f "$path" ] || { echo "Missing asset referenced in $page: $path"; exit 1; }

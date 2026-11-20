@@ -31,7 +31,7 @@ Setup takes about 10 minutes and is done once.
 
 ## 3. Connect the page
 
-In **both** `sales.html` and `club.html` (the customer's Pedal Club card), set the same URL:
+In `sales.html`, `club.html` (the customer's Pedal Club card) and `index.html` (the homepage menu), set the same URL:
 
 ```js
 const API_URL = 'https://script.google.com/macros/s/…/exec';
@@ -44,7 +44,7 @@ for training.
 
 | Tab | What to edit |
 |---|---|
-| **Menu** | Easiest from the app: founder → **Menu** to switch today's combos on or off, change prices, or add a combo. In the Sheet: one row per combo **and size**, same `item_id` for the Half and Full rows, `type` is `veg` or `nonveg`, `active` `yes`/`no`. Prices here are what taps use. Partners' phones pick up changes within a minute. |
+| **Menu** | **The one place for the menu**: the sales app, bills, free meals, reports and the website all read it. Easiest from the app: founder → **Menu** to switch today's combos on or off, change prices, add a half price, rename, add a combo, and set **Name and website** (show on website: when switched on / always / never; days; photo). In the Sheet: one row per combo **and size**, same `item_id` for the Half and Full rows, `type` is `veg` or `nonveg`, `active` `yes`/`no`, `website` `yes`/`no`/blank, `days` like `Mon,Wed,Fri`, `photo` the name of a processed photo in `images/menu` (for example `polao-chicken`). Partners' phones pick up changes within a minute; the website within 5 minutes (at once when changed from the app). New combos never need the script redeployed. |
 | **Carts** | One row per cart: `cart_id` (e.g. `C3`), name, `float` (₹ kept in the pouch every morning), `active`. |
 | **Settings** | `undo_minutes`, `session_hours`, `pin_length`, `timezone`, and the Pedal Club rules below. |
 | **Partners** | Add partners from the app (founder → Partners → Add partner). Add more founders by running `addFounder` from the Apps Script editor. Never delete rows: switch people off instead. |
