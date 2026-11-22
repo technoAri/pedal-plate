@@ -31,7 +31,8 @@ Follow these for every change to the site. Ask before deviating.
 - Meal-gifting programme: label "Share a Plate", headline "Gift a meal to someone who needs it.", button "Pedal it forward".
 - Visual motif: green and turmeric leaves, soft waves (from the brand banner).
 
-- Business contact: phone +91 76991 49899 (calls and WhatsApp orders), email pedalplate.food@gmail.com, Instagram @pedalplate.in.
+- Business contact: phones +91 76991 49899 and +91 93305 34430 (calls and WhatsApp orders), email pedalplate.food@gmail.com, Instagram @pedalplate.in.
+- **Every post, poster, caption and print piece shows both numbers** (+91 76991 49899 and +91 93305 34430). If space is tight, re-layout rather than drop one.
 - Visiting card QR points to https://pedalplate.in/card (card.html). Keep that URL working; printed cards depend on it.
 
 ## Working with the owner
