@@ -3,7 +3,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://pedalplate.in/</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -12,5 +12,11 @@
     <image:image>
       <image:loc>https://pedalplate.in/images/partner-vendor.webp</image:loc>
     </image:image>
+  </url>
+  <url>
+    <loc>https://pedalplate.in/club</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

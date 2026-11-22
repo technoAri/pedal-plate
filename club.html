@@ -3,9 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pedal Club | Pedal Plate</title>
-<meta name="description" content="Your Pedal Club card: stamps, free meal and validity.">
-<meta name="robots" content="noindex, nofollow">
+<title>Pedal Club: every 10th combo free | Pedal Plate</title>
+<meta name="description" content="Pedal Plate's free rewards programme: one stamp for every combo, and after 9 stamps your 10th combo is free. Join in 10 seconds, no app needed.">
+<link rel="canonical" href="https://pedalplate.in/club">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pedalplate.in/club">
+<meta property="og:title" content="Pedal Club: every 10th combo free | Pedal Plate">
+<meta property="og:description" content="Pedal Plate's free rewards programme: one stamp for every combo, and after 9 stamps your 10th combo is free. Join in 10 seconds, no app needed.">
+<meta property="og:image" content="https://pedalplate.in/images/hero.jpg">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is Pedal Club?", "acceptedAnswer": {"@type": "Answer", "text": "Pedal Club is Pedal Plate's free rewards programme. Every combo you buy at a Pedal Plate cart adds a stamp, and after 9 stamps your 10th combo is free."}}, {"@type": "Question", "name": "How do I join Pedal Club?", "acceptedAnswer": {"@type": "Answer", "text": "Join free at pedalplate.in/club, or ask for your bill on WhatsApp at any Pedal Plate cart. Your card link comes with your bill. No app and no fee."}}, {"@type": "Question", "name": "How many stamps can I collect in a day?", "acceptedAnswer": {"@type": "Answer", "text": "One stamp for every combo you buy at the cart, up to 4 a day."}}, {"@type": "Question", "name": "How long is a Pedal Club card valid?", "acceptedAnswer": {"@type": "Answer", "text": "A card is valid for 30 days from its first stamp. After that, or after your free meal, the next plate starts a new card on the same number."}}, {"@type": "Question", "name": "Does Pedal Club apply to all orders?", "acceptedAnswer": {"@type": "Answer", "text": "Pedal Club is for combos bought at the cart. It is not for corporate, bulk or home delivery orders."}}]}</script>
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#96601A">
 <link rel="icon" href="/images/favicon.ico" sizes="any">
@@ -92,6 +98,29 @@
   </section>
   <p class="fine" style="text-align:center"><a href="/">pedalplate.in</a> · <a href="/privacy">Privacy</a></p>
 </div>
+<!-- Google Analytics 4 (same property as the homepage). The script file loads after the page has finished loading.
+     The card code after # is never sent: page_location is set to the address without it. -->
+<script>
+(function(){
+  var GA_ID = 'G-4W2S2TX318';
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', GA_ID, {page_location: location.origin + location.pathname + location.search, page_title: 'Pedal Club'});
+  // How people arrive: "direct_or_qr" = no referring site (the printed QR codes, typed or saved links)
+  var entry = /[?&]utm_/.test(location.search) ? 'campaign' : document.referrer ? 'referral' : 'direct_or_qr';
+  window.track = function(name, params){ var o = {entry: entry}; for (var k in params || {}) o[k] = params[k]; gtag('event', name, o); };
+  document.addEventListener('click', function(e){
+    var el = e.target.closest('a, button'); if (!el) return;
+    var href = el.getAttribute('href') || '';
+    if (el.dataset.track) track(el.dataset.track, {link_text: el.textContent.trim()});
+    else if (href.indexOf('tel:') === 0 || href.indexOf('wa.me') > -1) track('call_click', {location: 'club'});
+  });
+  var load = function(){ var sc = document.createElement('script'); sc.async = true; sc.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID; document.head.appendChild(sc); };
+  var idle = window.requestIdleCallback || function(cb){ setTimeout(cb, 1500); };
+  if (document.readyState === 'complete') idle(load); else window.addEventListener('load', function(){ idle(load); });
+})();
+</script>
 <script>
 /* Pedal Club card. Reads the card key after # in the link from the WhatsApp bill and asks the
    sales backend (sales/apps-script/Code.gs, action clubCard). API_URL is the same /exec URL as in sales.html.
@@ -148,6 +177,8 @@ function ending(p, d) {
 // Joined online, not yet been to the cart: a welcome card with a QR for the rider to scan.
 function welcome(d) {
   let joined = false; try { joined = sessionStorage.getItem('pp_joined') === '1'; sessionStorage.removeItem('pp_joined'); } catch (e) {}
+  if (joined) track('sign_up', {method: 'pedal_club_online'});
+  track('club_open', {view: 'welcome'});
   let dots = ''; for (let i = 0; i < d.rules.stamps; i++) dots += '<i></i>'; dots += `<i class="gift" title="Free meal">${gift}</i>`;
   app.innerHTML = `<div style="display:grid;gap:14px">
     <h1>${joined ? `You're in, ${esc(d.name || 'friend')}!` : `Hi ${esc(d.name || 'there')}, welcome to Pedal Club`}</h1>
@@ -173,6 +204,7 @@ function show(d) {
   rules(d.rules);
   if (/^[a-f0-9]{32,48}$/i.test(location.hash.slice(1))) remember(location.hash.slice(1));
   if (d.confirmed === false) return welcome(d);
+  if (location.hash.slice(1) !== 'demo') track('club_open', {view: 'card', free_meal_ready: d.passes.some(p => p.state === 'ready') ? 'yes' : 'no'});
   const live = d.passes.filter(p => p.state === 'ready').concat(d.passes.filter(p => p.state === 'active'));   // free meal first
   const old = d.passes.filter(p => p.state !== 'ready' && p.state !== 'active');
   app.innerHTML = `<div style="display:grid;gap:14px">
@@ -221,11 +253,13 @@ function joinForm(msg) {
     if (!name) { er.textContent = 'Type your name.'; return; }
     if (phone.replace(/\D/g, '').length < 10) { er.textContent = 'Type your 10-digit WhatsApp number.'; return; }
     if (!consent) { er.textContent = 'Tick the box so we can save your number.'; return; }
+    track('club_join_submit');
     $('#jb').disabled = true; $('#jb').textContent = 'Joining…'; er.textContent = '';
     try {
       const j = API_URL ? await (await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubJoin', name, phone, consent, website:$('#jw').value})})).json() : {ok:true, link:'/club#demo'};
       if (!j.ok) { er.textContent = j.error || 'Something went wrong. Try again.'; $('#jb').disabled = false; $('#jb').textContent = 'Join Pedal Club'; return; }
       if (j.link) { try { sessionStorage.setItem('pp_joined', '1'); } catch (x) {} location.hash = j.link.split('#')[1]; return; }   // opens their welcome card on this page
+      track('club_join_existing');
       app.innerHTML = `<div class="status ok" style="display:grid;gap:6px"><b style="font-size:18px">You're already in Pedal Club, ${esc(name.split(' ')[0])}!</b><span>Your card link is in your WhatsApp bill from the cart. Lost it? Ask the rider for a bill on WhatsApp and the link comes with it.</span></div>`;
     } catch (err) { er.textContent = navigator.onLine ? 'Something went wrong. Try again.' : 'No internet. Try again when you are online.'; $('#jb').disabled = false; $('#jb').textContent = 'Join Pedal Club'; }
   };
@@ -245,8 +279,8 @@ function fail(msg) { app.innerHTML = `<div class="status">${esc(msg)}</div>`; }
 (async () => {
   const key = location.hash.slice(1);
   if (!API_URL || key === 'demo') { show(sample()); app.insertAdjacentHTML('afterbegin', '<p class="fine" style="margin-bottom:8px">Sample card. Your own card opens from the link in your WhatsApp bill.</p>'); return; }
-  if (key === 'join') return joinForm();
-  if (!key) return landing();
+  if (key === 'join') { track('club_open', {view: 'join_form'}); return joinForm(); }
+  if (!key) { track('club_open', {view: 'landing'}); return landing(); }
   if (/^[a-f0-9]{32,48}$/i.test(key)) loadQr();
   try {
     const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'clubCard', t:key}), redirect:'follow'});
