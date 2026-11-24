@@ -123,6 +123,21 @@ Business Platform, which Meta charges per message; not set up.
 **Customer data.** Phone numbers are only in the **Customers** tab. If someone asks to be
 removed: Club → find them → **Delete their data**. Their stamps and bills stay without the number.
 
+## Daily report (email + WhatsApp, about 1 am)
+
+Every night at about 1 am (India time) the script sends a report of the day that just ended:
+sales, cash and UPI, what needs a look (carts not closed, cash short or over, UPI not checked),
+each partner, each combo, Pedal Club and the last 7 days.
+
+- **Switch it on once:** in the Apps Script editor pick `installDailyReport` in the function list,
+  press **Run** and allow the permissions (send email, connect to an external service).
+  Then run `sendReportNow` to get yesterday's report straight away.
+- **Who gets it:** Settings tab, `report_emails` (comma list; default pedalplate.food@gmail.com).
+- **WhatsApp:** Settings tab, `report_whatsapp`: one `number:apikey` per phone, comma separated
+  (e.g. `917699149899:123456`). Each phone gets its free API key from CallMeBot once
+  (callmebot.com, "WhatsApp" page). CallMeBot is a free, unofficial service for personal alerts.
+- **Pause it:** set `report_on` to `no`.
+
 ## Updating the script later
 
 1. Paste the new `Code.gs` over the old one and save.

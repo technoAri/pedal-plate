@@ -45,6 +45,9 @@ const DEFAULT_SETTINGS = [
   ['club_new_flag', '15', 'Flag a partner who adds this many new customers in one day'],
   ['site_url', 'https://pedalplate.in', 'Used for the Pedal Club card link in bills'],
   ['bill_footer', 'Thank you! Pre-book on WhatsApp: +91 76991 49899', 'Last line of every WhatsApp bill'],
+  ['report_on', 'yes', 'Daily report at about 1 am (yes/no)'],
+  ['report_emails', 'pedalplate.food@gmail.com', 'Who gets the daily report email (comma list)'],
+  ['report_whatsapp', '', 'Daily report on WhatsApp: number:apikey from CallMeBot, comma list (e.g. 917699149899:123456)'],
 ];
 
 // Edit these two lines before running setup() the first time, then change the PIN from the app.
@@ -1335,4 +1338,126 @@ function addFounder() {
   append('Partners', { partner_id: newId('F'), name, role: 'founder', cart_id: '', phone: '', backup: 'no', active: 'yes',
     start_date: dateKey(new Date()), pin_hash: hashPin(pin, salt), salt, created_at: new Date().toISOString() });
   ui.alert(name + ' added as a founder.');
+}
+
+/* ---------- daily report (email every night at about 1 am, India time) ----------
+   Reports the business day that just ended: money, carts, what needs a look, combos and Pedal Club.
+   One-time setup: run installDailyReport() from the Apps Script editor and allow "send email".
+   sendReportNow() sends yesterday's report straight away (for a test).
+   Settings (optional rows in the Settings tab): report_on (yes/no), report_emails (comma list),
+   report_whatsapp (comma list of number:apikey from CallMeBot, e.g. 917699149899:123456). */
+
+function installDailyReport() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'dailyReport').forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('dailyReport').timeBased().atHour(1).nearMinute(0).everyDays(1).inTimezone('Asia/Kolkata').create();
+  return 'Daily report scheduled for about 1 am every day (India time). Sending a test now.';
+}
+function sendReportNow() { return dailyReport(); }
+
+function dailyReport() {
+  SETTINGS_CACHE = null; READ = {};
+  if (!truthy(setting('report_on', 'yes'))) return 'Report is switched off (Settings > report_on).';
+  // The business day that just ended: 6 hours back from now, so a run anywhere between ~6 pm and ~6 am
+  // still reports the right day (Google may start the 1 am run up to 15 minutes early or late).
+  const day = dateKey(new Date(Date.now() - 6 * 3600 * 1000));
+  const r = buildDailyReport(day);
+  const out = [];
+  const to = String(setting('report_emails', 'pedalplate.food@gmail.com')).split(/[,;\s]+/).filter(Boolean).join(',');
+  if (to) { MailApp.sendEmail({ to, subject: r.subject, htmlBody: r.html, body: r.text, name: 'Pedal Plate reports' }); out.push('email: ' + to); }
+  String(setting('report_whatsapp', '')).split(/[,;\s]+/).filter(Boolean).forEach(entry => {
+    const m = entry.match(/^\+?(\d{10,13}):(\S+)$/); if (!m) { out.push('whatsapp: bad entry ' + entry); return; }
+    try {
+      const res = UrlFetchApp.fetch('https://api.callmebot.com/whatsapp.php?phone=' + m[1] + '&apikey=' + encodeURIComponent(m[2]) + '&text=' + encodeURIComponent(r.whatsapp), { muteHttpExceptions: true });
+      out.push('whatsapp ' + m[1].slice(-4) + ': ' + res.getResponseCode());
+    } catch (e) { out.push('whatsapp ' + m[1].slice(-4) + ': ' + e.message); }
+  });
+  return r.subject + ' -> ' + out.join(' | ');
+}
+
+function buildDailyReport(day) {
+  const salesAll = rowsTail('Sales', 12000).filter(x => x.status !== 'void');
+  const voids = rowsTail('Sales', 12000).filter(x => x.date === day && x.status === 'void');
+  const sales = salesAll.filter(x => x.date === day);
+  const t = totalsOf(sales);
+  const wk = addDaysKey(day, -7), lastWeek = totalsOf(salesAll.filter(x => x.date === wk));
+  const closes = {}; rows('Closes').filter(c => c.date === day).forEach(c => closes[c.partner_id] = c);
+  const carts = {}; rows('Carts').forEach(c => carts[c.cart_id] = c.name || c.cart_id);
+  const by = {}; sales.forEach(x => (by[x.partner_id] = by[x.partner_id] || []).push(x));
+  const partners = rows('Partners').filter(p => by[p.partner_id]);
+  const bank = rows('BankUpi').filter(b => b.date === day).pop() || null;
+  const money = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+  const pct = (a, b) => b ? Math.round((a - b) * 100 / b) : null;
+  const nice = k => Utilities.formatDate(new Date(k + 'T12:00:00+05:30'), 'Asia/Kolkata', 'EEE, d MMM');
+
+  // per partner
+  const rowsP = partners.map(p => {
+    const pt = totalsOf(by[p.partner_id]), c = closes[p.partner_id] || null, diff = c ? Number(c.difference) || 0 : null;
+    const cart = carts[(c && c.cart_id) || (by[p.partner_id][0] || {}).cart_id] || '';
+    return { name: p.name, cart, t: pt, closed: !!c, diff, handed: c ? Number(c.handed_over) || 0 : null, left: c && c.leftover !== '' ? Number(c.leftover) : null };
+  });
+
+  // needs a look
+  const flags = [];
+  rowsP.filter(x => !x.closed).forEach(x => flags.push(`${x.name}${x.cart ? ' (' + x.cart + ')' : ''} did not close the day.`));
+  rowsP.filter(x => x.closed && x.diff !== 0).forEach(x => flags.push(`${x.name}: cash ${money(Math.abs(x.diff))} ${x.diff < 0 ? 'short' : 'over'}.`));
+  if (!bank && t.upi > 0) flags.push(`UPI not checked yet: ${money(t.upi)} tapped. Enter the bank amount in the app (Today, UPI check).`);
+  else if (bank && Number(bank.difference) !== 0) flags.push(`UPI: bank ${money(bank.amount)} vs tapped ${money(bank.upi_tapped)} (${Number(bank.difference) < 0 ? money(-bank.difference) + ' less in the bank' : money(bank.difference) + ' more in the bank'}).`);
+  if (t.manualPlates) flags.push(`${t.manualPlates} plate${t.manualPlates > 1 ? 's' : ''} added later by hand.`);
+  if (voids.length) flags.push(`${voids.length} sale${voids.length > 1 ? 's' : ''} undone.`);
+
+  // combos
+  const items = {}; sales.forEach(x => { const k = x.item_name || x.item_id; const o = items[k] = items[k] || { plates: 0, total: 0, full: 0, half: 0 }; const q = Number(x.qty) || 0; o.plates += q; o.total += x.pay === 'Free' ? 0 : (Number(x.amount) || 0); if ((x.size || 'Full') === 'Half') o.half += q; else o.full += q; });
+  const leftTotal = rowsP.reduce((n, x) => n + (x.left || 0), 0), anyLeft = rowsP.some(x => x.left != null);
+
+  // Pedal Club
+  let club = null;
+  try {
+    const stamps = rows('Stamps').filter(s => s.date === day && s.status !== 'void').length;
+    const newMembers = rows('Customers').filter(c => String(c.created_at).slice(0, 10) === day || dateKey(new Date(c.created_at)) === day).length;
+    const free = sales.filter(x => x.pay === 'Free').reduce((n, x) => n + (Number(x.qty) || 0), 0);
+    const bills = rows('Bills').filter(b => b.date === day).length;
+    club = { stamps, newMembers, free, bills };
+  } catch (e) {}
+
+  // last 7 days
+  const week = [];
+  for (let i = 6; i >= 0; i--) { const k = addDaysKey(day, -i), w = totalsOf(salesAll.filter(x => x.date === k)); week.push({ k, plates: w.plates, total: w.total }); }
+
+  const ch = pct(t.total, lastWeek.total);
+  const subject = `Pedal Plate · ${nice(day)} · ${money(t.total)} · ${t.plates} plates${flags.length ? ' · ' + flags.length + ' to check' : ' · all clear'}`;
+
+  // ---------- HTML (email-safe: tables + inline styles, brand colours) ----------
+  const C = { ink: '#2B2620', soft: '#6B5F51', brand: '#96601A', basil: '#3F7D4A', cream: '#FBF6EC', tint: '#F3E3C6', line: '#E8DCC8', chili: '#C0392B' };
+  const td = (s, x = '') => `<td style="padding:8px 10px;border-bottom:1px solid ${C.line};font-size:14px;${x}">${s}</td>`;
+  const th = (s, x = '') => `<th style="padding:8px 10px;border-bottom:2px solid ${C.line};font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:${C.soft};text-align:left;${x}">${s}</th>`;
+  const h2 = s => `<h2 style="margin:26px 0 10px;font-size:16px;color:${C.brand};letter-spacing:.06em;text-transform:uppercase">${s}</h2>`;
+  const box = (label, val, sub) => `<td style="padding:12px 14px;background:${C.cream};border-radius:12px;vertical-align:top"><div style="font-size:12px;color:${C.soft};text-transform:uppercase;letter-spacing:.06em">${label}</div><div style="font-size:22px;font-weight:800;color:${C.ink};margin-top:2px">${val}</div>${sub ? `<div style="font-size:12px;color:${C.soft};margin-top:2px">${sub}</div>` : ''}</td>`;
+  const R = 'text-align:right';
+  let h = `<div style="font-family:Poppins,Segoe UI,Arial,sans-serif;color:${C.ink};max-width:640px;margin:0 auto">`;
+  h += `<div style="background:${C.ink};color:${C.cream};padding:18px 20px;border-radius:14px"><div style="font-size:13px;color:#E3AD57;letter-spacing:.08em;text-transform:uppercase;font-weight:700">Pedal Plate · Daily report</div><div style="font-size:24px;font-weight:800;margin-top:4px">${nice(day)}</div></div>`;
+  h += `<table role="presentation" style="width:100%;border-collapse:separate;border-spacing:8px;margin:10px -8px 0"><tr>${box('Sales', money(t.total), ch == null ? '' : `${ch >= 0 ? '▲' : '▼'} ${Math.abs(ch)}% vs last ${Utilities.formatDate(new Date(day + 'T12:00:00+05:30'), 'Asia/Kolkata', 'EEE')}`)}${box('Plates', t.plates, t.plates ? 'avg ' + money(t.total / Math.max(1, t.plates - t.freePlates)) + ' / plate' : '')}${box('Cash', money(t.cash))}${box('UPI', money(t.upi))}</tr></table>`;
+  h += h2(flags.length ? `Needs a look (${flags.length})` : 'Needs a look');
+  h += flags.length ? `<ul style="margin:0;padding-left:20px">${flags.map(f => `<li style="margin:4px 0;font-size:14px">${f}</li>`).join('')}</ul>` : `<p style="margin:0;font-size:14px;color:${C.basil};font-weight:700">✓ All clear: every cart closed, cash and UPI match.</p>`;
+  h += h2('By partner');
+  h += rowsP.length ? `<table style="width:100%;border-collapse:collapse"><tr>${th('Partner')}${th('Plates', R)}${th('Cash', R)}${th('UPI', R)}${th('Close', R)}</tr>${rowsP.map(x => `<tr>${td(`<b>${x.name}</b>${x.cart ? `<br><span style="color:${C.soft};font-size:12px">${x.cart}</span>` : ''}`)}${td(x.t.plates, R)}${td(money(x.t.cash), R)}${td(money(x.t.upi), R)}${td(!x.closed ? `<span style="color:${C.chili};font-weight:700">Not closed</span>` : x.diff === 0 ? `<span style="color:${C.basil};font-weight:700">✓ Matches</span><br><span style="font-size:12px;color:${C.soft}">handed ${money(x.handed)}</span>` : `<span style="color:${C.chili};font-weight:700">${money(Math.abs(x.diff))} ${x.diff < 0 ? 'short' : 'over'}</span>`, R)}</tr>`).join('')}</table>` : `<p style="font-size:14px;color:${C.soft}">No sales recorded.</p>`;
+  h += h2('By combo');
+  const il = Object.keys(items).sort((a, b) => items[b].plates - items[a].plates);
+  h += il.length ? `<table style="width:100%;border-collapse:collapse"><tr>${th('Combo')}${th('Full', R)}${th('Half', R)}${th('Sales', R)}</tr>${il.map(k => `<tr>${td(k)}${td(items[k].full, R)}${td(items[k].half || '–', R)}${td(money(items[k].total), R)}</tr>`).join('')}</table>` : '';
+  if (anyLeft) h += `<p style="font-size:14px;margin:10px 0 0">Plates left over at close: <b>${leftTotal}</b>${t.plates ? ` (${Math.round(leftTotal * 100 / (t.plates + leftTotal))}% of what was cooked)` : ''}</p>`;
+  if (club) { h += h2('Pedal Club'); h += `<table role="presentation" style="width:100%;border-collapse:separate;border-spacing:8px;margin:0 -8px"><tr>${box('Stamps given', club.stamps)}${box('New members', club.newMembers)}${box('Free meals', club.free)}${box('Bills sent', club.bills)}</tr></table>`; }
+  h += h2('Last 7 days');
+  const max = Math.max(1, ...week.map(w => w.total));
+  h += `<table style="width:100%;border-collapse:collapse">${week.map(w => `<tr>${td(Utilities.formatDate(new Date(w.k + 'T12:00:00+05:30'), 'Asia/Kolkata', 'EEE d'), 'width:70px;' + (w.k === day ? 'font-weight:700' : ''))}<td style="padding:6px 10px;border-bottom:1px solid ${C.line}"><div style="height:14px;border-radius:7px;background:${w.k === day ? C.brand : '#E3AD57'};width:${Math.max(2, Math.round(w.total * 100 / max))}%"></div></td>${td(money(w.total), R + ';width:90px')}${td(w.plates + ' pl', R + ';width:60px;color:' + C.soft)}</tr>`).join('')}</table>`;
+  h += `<p style="margin:26px 0 0;font-size:12px;color:${C.soft}">Sent automatically every night at about 1 am from the Pedal Plate sales Sheet. Recipients and on/off: Settings tab (report_emails, report_on).</p></div>`;
+
+  const text = [subject, '', 'Needs a look:', ...(flags.length ? flags.map(f => '- ' + f) : ['- All clear']), '',
+    ...rowsP.map(x => `${x.name}: ${x.t.plates} plates, cash ${money(x.t.cash)}, UPI ${money(x.t.upi)}, ${!x.closed ? 'NOT CLOSED' : x.diff === 0 ? 'matches' : money(Math.abs(x.diff)) + (x.diff < 0 ? ' short' : ' over')}`)].join('\n');
+  const wa = [`*Pedal Plate · ${nice(day)}*`,
+    `Sales ${money(t.total)} · ${t.plates} plates${ch == null ? '' : ` (${ch >= 0 ? '+' : ''}${ch}% vs last week)`}`,
+    `Cash ${money(t.cash)} · UPI ${money(t.upi)}`, '',
+    flags.length ? '*Needs a look:*' : '✅ All clear', ...flags.map(f => '• ' + f), '',
+    ...rowsP.map(x => `${x.name}: ${x.t.plates} pl, ${!x.closed ? 'not closed' : x.diff === 0 ? 'cash ok' : money(Math.abs(x.diff)) + (x.diff < 0 ? ' short' : ' over')}`),
+    ...(club ? ['', `Pedal Club: ${club.stamps} stamps · ${club.newMembers} new · ${club.free} free meals`] : []),
+    '', 'Full report in your email.'].join('\n');
+  return { subject, html: h, text, whatsapp: wa, flags, totals: t };
 }
