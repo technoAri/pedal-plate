@@ -53,9 +53,8 @@
   .dots i.gift{border:2px solid #FBF6EC}
   .dots.fh i.on{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
   .dots.fh i b{font-size:17px;font-weight:800} .dots.fh i small{font-size:9.5px;font-weight:600;opacity:.85}
-  .dots i.on.h{background:transparent;border:2px solid #FBF6EC;color:#FBF6EC}
   .fhkey{display:flex;gap:14px;font-size:12px;opacity:.9} .fhkey span{display:flex;align-items:center;gap:5px}
-  .fhkey i{width:14px;height:14px;border-radius:50%;display:inline-block}
+  .fhkey i{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;background:#FBF6EC;color:#96601A;font-style:normal;font-size:10px;font-weight:800}
   .status .half{display:block;margin-top:6px;font-weight:500}
   .dots i.gift svg{width:58%;height:58%}
   .code{text-align:right;font-size:12px;opacity:.9}
@@ -168,7 +167,7 @@ function passHtml(p, d) {
       <div class="row"><span class="kick">PEDAL CLUB</span><span class="sm">${p.state === 'active' || p.state === 'ready' ? 'Valid till ' + nice(p.claim_till || p.valid_till) : p.state === 'redeemed' ? 'Used' : 'Ended'}</span></div>
       <div><div class="who">${esc(d.name || 'Pedal Club member')}</div><div class="sm">${esc(d.masked)} · card from ${nice(p.issued)}</div></div>
       <div class="dots${fh ? ' fh' : ''}" aria-label="${p.stamps} of ${p.need} stamps">${dots}</div>
-      ${fh && p.stamps ? '<div class="fhkey"><span><i style="background:#FBF6EC"></i>Full plate</span><span><i style="border:2px solid #FBF6EC"></i>Half plate</span></div>' : ''}
+      ${fh && p.stamps ? '<div class="fhkey"><span><i>F</i>Full plate</span><span><i>H</i>Half plate</span></div>' : ''}
       ${p.code ? `<div class="code">Card code<b>${esc(p.code)}</b>Read it out only at the cart</div>` : ''}
       ${p.code ? `<div class="qr"><div class="box" data-qr aria-label="Your Pedal Club QR"></div><p><b>Show this at the cart</b>The rider scans it to add your stamp or give your free meal.</p></div>` : ''}
     </div>
