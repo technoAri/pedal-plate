@@ -44,7 +44,7 @@ for training.
 
 | Tab | What to edit |
 |---|---|
-| **Menu** | **The one place for the menu**: the sales app, bills, free meals, reports and the website all read it. Easiest from the app: founder → **Menu** to switch today's combos on or off, change prices, add a half price, rename, add a combo, and set **Name and website** (show on website: when switched on / always / never; days; photo). In the Sheet: one row per combo **and size**, same `item_id` for the Half and Full rows, `type` is `veg` or `nonveg`, `active` `yes`/`no`, `website` `yes`/`no`/blank, `days` like `Mon,Wed,Fri`, `photo` the name of a processed photo in `images/menu` (for example `polao-chicken`). Partners' phones pick up changes within a minute; the website within 5 minutes (at once when changed from the app). New combos never need the script redeployed. |
+| **Menu** | **The one place for the menu**: the sales app, bills, free meals, reports and the website all read it. Easiest from the app: founder → **Menu** to switch today's combos on or off, change prices, add a half price, rename, add a combo, and set **Name and website** (show on website: when switched on / always / never; days; photo). In the Sheet: one row per combo **and size**, same `item_id` for the Half and Full rows, `type` is `veg` or `nonveg`, `active` `yes`/`no`, `website` `yes`/`no`/blank, `days` like `Mon,Wed,Fri`, `photo` the name of a processed photo in `images/menu` (for example `polao-chicken`). Partners' phones pick up changes within a minute; the website within 5 minutes (at once when changed from the app). New combos never need the script redeployed. **Extras** (Extra rice, Extra chicken): rows with `type` `extra`, `size` `Extra`, a `price`, and optionally `unit` (e.g. `piece`, shown as "₹30 a piece"). `setup()` adds Extra rice ₹50 and Extra chicken ₹30 once; change prices or switch them off from the app (founder → **Menu → Extras**). To stop selling an extra, switch it off rather than deleting the row. |
 | **Carts** | One row per cart: `cart_id` (e.g. `C3`), name, `float` (₹ kept in the pouch every morning), `active`. |
 | **Settings** | `undo_minutes`, `session_hours`, `pin_length`, `timezone`, and the Pedal Club rules below. |
 | **Partners** | Add partners from the app (founder → Partners → Add partner). Add more founders by running `addFounder` from the Apps Script editor. Never delete rows: switch people off instead. |
@@ -89,6 +89,24 @@ stamps (9), the next combo is free: every 10th meal. Settings:
 | `site_url`, `bill_footer` | | card link and last line of every bill |
 
 A changed rule applies to cards from then on (validity is fixed when a card starts).
+
+**Extras.** Extra rice and Extra chicken are tapped under the plates (+ / −), with any combo or on their
+own. They are added to the bill and the money, never to the plate count, and never earn stamps. On a
+free-meal order the extras are still charged. Reports show them separately ("Extras" in the daily report).
+
+**Full and Half stamps.** Every paid plate earns one stamp, Full (F) or Half (H); the customer's card
+shows F or H with the date (D/M). Stamps from before this change have no size and count as Full. If the
+daily limit cuts an order short, Full plates get their stamps first. When a card is full:
+- all 9 stamps Full → the free meal is a **Full** plate;
+- any Half stamp → the free meal is a **Half** plate. The rider can tick **Make it Full** and the
+  customer pays the difference (Full price − Half price from the Menu tab, e.g. ₹80 − ₹50 = ₹30). It is
+  saved as the free Half (₹0) plus a "Top-up" sale; the top-up is money, not a plate, and gets no stamp.
+- A combo with no Half price gives a free Full, as before.
+
+**Bill only (no Pedal Club).** For a new number the rider picks what the customer said yes to: **Pedal
+Club** (bills + stamps, the number is saved) or **Bill only**: this one WhatsApp bill, no stamps, and
+the number is not saved (the **Bills** tab keeps only the masked number in `bill_to`). If they come back,
+they show as a new customer again.
 
 **Free meal.** Partner taps **Free meal**, finds the number, and types the 4-digit code from
 the customer's card (pedalplate.in/club, link in their bill). It is saved as a ₹0 sale
@@ -144,6 +162,11 @@ each partner, each combo, Pedal Club and the last 7 days.
 2. Run **setup** again. It only adds missing tabs and columns (for example the `leftover`
    column in **Closes**); it never deletes data.
 3. **Deploy → Manage deployments → Edit → Version: New version → Deploy.** The URL stays the same.
+
+Update the script **before** the website (sales.html, club.html): a phone with the new page on the old
+script simply shows the old screens (no extras, the old tick box, free Full), and an old page on the new
+script keeps working as before. The new script adds the `size` column in **Stamps**, `bill_to` in
+**Bills** and `unit` in **Menu**, plus the two extras rows, when **setup** is run.
 
 ## How the money check works
 

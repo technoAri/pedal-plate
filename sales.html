@@ -139,6 +139,23 @@
   .sdots i{width:18px;height:18px;border-radius:50%;border:2px solid var(--brand);opacity:.55}
   .sdots i.on{background:var(--brand);opacity:1}
   .sdots i.free{border-color:var(--basil);border-style:dashed;opacity:1}
+  .sdots.fh i{width:24px;height:24px;font-style:normal;font-size:.68rem;font-weight:800;display:grid;place-items:center;line-height:1}
+  .sdots i.on{color:var(--on)} .sdots i.on.h{background:var(--surface);color:var(--brand)}
+  .extras{display:grid;gap:6px;margin:-2px 0 12px}
+  .extras > small{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+  .ex{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+  .ex.on{border:2px solid var(--brand);background:var(--tint);padding:7px 9px}
+  .ex .n{flex:1;font-weight:700;line-height:1.2;min-width:0} .ex .n small{display:block;font-weight:500;color:var(--soft);font-size:.78rem}
+  .ex button{width:42px;height:42px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-weight:800;font-size:1.15rem}
+  .ex button.p{background:var(--brand);color:var(--on);border:0} .ex button:disabled{opacity:.35}
+  .ex .q{min-width:22px;text-align:center;font-weight:800;font-size:1.1rem;color:var(--brand)}
+  .freeq.up{color:var(--brand)} .freeq.up input{accent-color:var(--brand)}
+  .ask{font-size:.8rem;font-weight:700;color:var(--soft)}
+  .choice{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border-radius:12px;background:var(--surface);border:2px solid var(--line);font-weight:700;font-size:.88rem;line-height:1.35}
+  .choice[aria-pressed="true"]{border-color:var(--brand)}
+  .choice i{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--soft);margin-top:1px}
+  .choice[aria-pressed="true"] i{border:7px solid var(--brand)}
+  .choice small{display:block;font-weight:500;color:var(--soft);font-size:.76rem}
   .chipline{display:flex;flex-wrap:wrap;gap:6px}
   .chipline span{padding:3px 9px;border-radius:999px;background:var(--chip);font-size:.76rem;font-weight:600}
   .flag{border-left:4px solid var(--warn);background:var(--warn-tint);border-radius:12px;padding:10px 12px;display:grid;gap:6px;font-size:.86rem}
@@ -262,6 +279,7 @@ const DemoApi = (() => {
     };
     d.menu.forEach(m => m.active = true);
     d.menu.push({item_id:'DKAD',name:'Dal Khichdi + Aloo Dum',type:'veg',active:false,sizes:[{size:'Full',price:55}]});
+    addExtras(d);
     const t = Date.now(), add = (pid, item, size, price, pay, mins, src) => d.sales.push({sale_id:uid(),created_at:new Date(t-mins*6e4).toISOString(),date:todayKey(),partner_id:pid,partner_name:'Bapi',cart_id:'C2',item_id:item,item_name:item==='RPCK'?'Reshmi Polao + Chicken Kosha':'Polao + Matar Paneer',size,price,qty:1,amount:price,pay,source:src||'tap',status:'ok'});
     for (let i = 0; i < 18; i++) add('P2','RPCK','Full',80,i%3?'UPI':'Cash',180-i*8);
     for (let i = 0; i < 7; i++) add('P2','PMP','Full',70,i%2?'Cash':'UPI',150-i*10);
@@ -272,7 +290,8 @@ const DemoApi = (() => {
     clubSeed(d);
     return d;
   }
-  // Two sample Pedal Club members: Rahul (5 stamps) and Priya (free meal ready, card code 3107).
+  function addExtras(d) { if (!d.menu.some(m => m.type === 'extra')) d.menu.push({item_id:'XRICE',name:'Extra rice',type:'extra',unit:'',active:true,sizes:[{size:'Extra',price:50}]}, {item_id:'XCHK',name:'Extra chicken',type:'extra',unit:'piece',active:true,sizes:[{size:'Extra',price:30}]}); }
+  // Two sample Pedal Club members: Rahul (5 stamps from before Half stamps: all Full) and Priya (free meal ready, one Half stamp, card code 3107).
   function clubSeed(d) {
     d.customers = [
       {customer_id:'CU1',phone:'9830012345',name:'Rahul',card_token:'d'.repeat(40),consent_by:'Raju',created_at:new Date(Date.now()-9*864e5).toISOString(),blocked:false},
@@ -281,28 +300,33 @@ const DemoApi = (() => {
     d.passes = [{pass_id:'PS1',customer_id:'CU1',code:'4821',issued_date:daysAgo(9),valid_till:addK(daysAgo(9),29),status:'open'},{pass_id:'PS2',customer_id:'CU2',code:'3107',issued_date:daysAgo(12),valid_till:addK(daysAgo(12),29),status:'open'}];
     d.stamps = []; d.bills = [];
     for (let i = 0; i < 5; i++) d.stamps.push({stamp_id:'S1'+i,pass_id:'PS1',customer_id:'CU1',sale_id:'old'+i,date:daysAgo(9-i*2),created_at:new Date(Date.now()-(9-i*2)*864e5).toISOString(),partner_name:'Raju',cart_id:'C1',status:'ok'});
-    for (let i = 0; i < 9; i++) d.stamps.push({stamp_id:'S2'+i,pass_id:'PS2',customer_id:'CU2',sale_id:'olp'+i,date:daysAgo(12-i),created_at:new Date(Date.now()-(12-i)*864e5).toISOString(),partner_name:'Bapi',cart_id:'C2',status:'ok'});
+    for (let i = 0; i < 9; i++) d.stamps.push({stamp_id:'S2'+i,pass_id:'PS2',customer_id:'CU2',sale_id:'olp'+i,date:daysAgo(12-i),created_at:new Date(Date.now()-(12-i)*864e5).toISOString(),partner_name:'Bapi',cart_id:'C2',status:'ok',size:i===3?'Half':'Full'});
   }
   function addK(k, n) { const x = new Date(k + 'T12:00:00'); x.setDate(x.getDate() + n); return keyOf(x); }
   if (!db.customers) clubSeed(db);
+  addExtras(db);
+  const isPl = r => r.size !== 'Extra' && r.size !== 'Top-up';
+  const fullFirst = u => u.filter(x => x.size !== 'Half').concat(u.filter(x => x.size === 'Half'));
   const save = () => store.set('demo_db', db);
   const pub = (p, cart) => ({partner_id:p.partner_id,name:p.name,role:p.role,cart_id:cart!=null?cart:p.cart_id,backup:!!p.backup,active:!!p.active});
-  const cfg = () => ({menu:db.menu.filter(m => m.active !== false).map(({active, ...m}) => m),carts:db.carts,settings:{undo_minutes:'2',club_on:'yes',club_stamps:'9',club_days:'30',club_daily_cap:'4'},date:todayKey()});
+  const cfg = () => ({menu:db.menu.filter(m => m.active !== false && m.type !== 'extra').map(({active, ...m}) => m),
+    extras:db.menu.filter(m => m.active !== false && m.type === 'extra').map(m => ({item_id:m.item_id, name:m.name, price:m.sizes[0].price, unit:m.unit||''})),carts:db.carts,settings:{undo_minutes:'2',club_on:'yes',club_stamps:'9',club_days:'30',club_daily_cap:'4'},date:todayKey()});
   // Pedal Club rules, same defaults as the Settings tab in Code.gs.
   const CR = {on:true, stamps:9, days:30, cap:4, minutes:60, grace:7, newFlag:15, site:'https://pedalplate.in', footer:'Thank you! Pre-book on WhatsApp: +91 76991 49899'};
   const mask = p => p ? p.slice(0,2) + '•••••' + p.slice(-3) : '';
   const norm = v => { let x = String(v||'').replace(/\D/g,''); if (x.length === 12 && x.startsWith('91')) x = x.slice(2); if (x.length === 11 && x[0] === '0') x = x.slice(1); return /^[6-9]\d{9}$/.test(x) ? x : ''; };
   const pv = p => { const st = db.stamps.filter(x => x.pass_id === p.pass_id && x.status !== 'void').sort((a,b) => a.created_at < b.created_at ? -1 : 1); const n = st.length, today = todayKey(); let state, claim = '';
     if (p.status === 'redeemed') state = 'redeemed'; else if (n >= CR.stamps) { const g = addK(st[CR.stamps-1].date, CR.grace); claim = p.valid_till > g ? p.valid_till : g; state = today <= claim ? 'ready' : 'expired'; } else state = today > p.valid_till ? 'expired' : 'active';
-    return {pass_id:p.pass_id, customer_id:p.customer_id, code:p.code, issued:p.issued_date, valid_till:p.valid_till, claim_till:claim, stamps:Math.min(n, CR.stamps), need:CR.stamps, state, redeemed_at:p.redeemed_at||'', stampList:st}; };
+    const sizes = st.slice(0, CR.stamps).map(x => x.size === 'Half' ? 'H' : 'F');
+    return {pass_id:p.pass_id, customer_id:p.customer_id, code:p.code, issued:p.issued_date, valid_till:p.valid_till, claim_till:claim, stamps:Math.min(n, CR.stamps), need:CR.stamps, state, redeemed_at:p.redeemed_at||'', stampList:st, sizes, free_size:sizes.includes('H')?'Half':'Full'}; };
   const ccard = c => { const views = db.passes.filter(p => p.customer_id === c.customer_id).map(pv); const used = db.stamps.filter(x => x.customer_id === c.customer_id && x.status !== 'void' && x.date === todayKey()).length;
     return {views, active:views.find(v => v.state === 'active') || null, ready:views.filter(v => v.state === 'ready'), capLeft:Math.max(0, CR.cap - used)}; };
-  const psafe = c => { const k = ccard(c); return {cid:c.customer_id, name:c.name||'', masked:mask(c.phone), blocked:!!c.blocked, stamps:k.active?k.active.stamps:0, need:CR.stamps, valid_till:k.active?k.active.valid_till:'', ready:k.ready.map(v => ({pass_id:v.pass_id, claim_till:v.claim_till})), capLeft:k.capLeft}; };
+  const psafe = c => { const k = ccard(c); return {cid:c.customer_id, name:c.name||'', masked:mask(c.phone), blocked:!!c.blocked, stamps:k.active?k.active.stamps:0, need:CR.stamps, valid_till:k.active?k.active.valid_till:'', sizes:k.active?k.active.sizes:[], ready:k.ready.map(v => ({pass_id:v.pass_id, claim_till:v.claim_till, free_size:v.free_size, sizes:v.sizes})), capLeft:k.capLeft}; };
   const liveC = () => db.customers.filter(c => !c.deleted_at);
   const wrong = {};
   const menuAll = () => db.menu.map(m => Object.assign({}, m, {active: m.active !== false}));
   const sess = tok => { const s = db.sessions[tok]; if (!s) throw new Error('Your login has expired. Enter your PIN again.'); const p = db.partners.find(x=>x.partner_id===s.pid); if (!p||!p.active) throw new Error('Your login has expired. Enter your PIN again.'); return {p, cart:s.cart}; };
-  const tot = list => { const t={plates:0,total:0,cash:0,upi:0,manualPlates:0,freePlates:0}; list.forEach(r=>{t.plates+=r.qty;t.total+=r.amount;if(r.pay==='Free')t.freePlates+=r.qty;else if(r.pay==='UPI')t.upi+=r.amount;else t.cash+=r.amount;if(r.source==='manual')t.manualPlates+=r.qty;}); return t; };
+  const tot = list => { const t={plates:0,total:0,cash:0,upi:0,manualPlates:0,freePlates:0,extras:0,extrasTotal:0}; list.forEach(r=>{if(r.size!=='Extra'&&r.size!=='Top-up')t.plates+=r.qty;else if(r.size==='Extra'){t.extras+=r.qty;t.extrasTotal+=r.amount;}t.total+=r.amount;if(r.pay==='Free')t.freePlates+=r.qty;else if(r.pay==='UPI')t.upi+=r.amount;else t.cash+=r.amount;if(r.source==='manual')t.manualPlates+=r.qty;}); return t; };
   const live = d => db.sales.filter(r => r.date === (d || todayKey()) && r.status !== 'void');
   const founder = s => { if (s.p.role !== 'founder') throw new Error('Only founders can do this.'); };
   const log = (by, action, details) => db.log.push({at:new Date().toISOString(),by,action,details});
@@ -334,17 +358,18 @@ const DemoApi = (() => {
       const missing = sale_ids.filter(id => !db.sales.some(r => r.sale_id === id)); if (missing.length) throw new Error(missing.length + ' plate(s) not reached the Sheet yet. Wait for signal and try again.');
       const sales = db.sales.filter(r => sale_ids.includes(r.sale_id) && r.status !== 'void' && r.partner_id === s.p.partner_id); if (!sales.length) throw new Error('These plates are not yours or were cancelled.');
       const stamped = new Set(db.stamps.filter(x => x.status !== 'void').map(x => x.sale_id)); const skip = {excluded:0, old:0, already:0, free:0, cap:0, off:0, blocked:0}; const units = [];
-      sales.forEach(r => { const q = r.qty || 1; if (r.pay === 'Free') skip.free += q; else if ((r.order_type||'walkin') !== 'walkin') skip.excluded += q; else if (stamped.has(r.sale_id)) skip.already += q; else if (r.date !== today || Date.now() - new Date(r.created_at) > CR.minutes*6e4) skip.old += q; else for (let i = 0; i < q; i++) units.push(r.sale_id); });
+      sales.forEach(r => { const q = r.qty || 1; if (r.pay === 'Free') skip.free += q; else if ((r.order_type||'walkin') !== 'walkin') skip.excluded += q; else if (stamped.has(r.sale_id)) skip.already += q; else if (r.date !== today || Date.now() - new Date(r.created_at) > CR.minutes*6e4) skip.old += q; else if (!isPl(r)) {} else for (let i = 0; i < q; i++) units.push({sale_id:r.sale_id, size:r.size === 'Half' ? 'Half' : 'Full'}); });
+      units.splice(0, units.length, ...fullFirst(units));
       let given = 0, newPass = false; const k0 = ccard(c);
       if (units.length && stamp === false) {} else if (units.length && c.blocked) skip.blocked += units.length;
       else if (units.length) { const allow = Math.min(units.length, k0.capLeft); skip.cap += units.length - allow; let act = k0.active;
         for (let i = 0; i < allow; i++) { if (!act || act.stamps >= CR.stamps) { const p = {pass_id:'PS'+uid().slice(0,8), customer_id:c.customer_id, code:String(Math.floor(1000+Math.random()*9000)), issued_date:today, valid_till:addK(today, CR.days-1), status:'open'}; db.passes.push(p); newPass = true; act = {pass_id:p.pass_id, stamps:0}; }
-          db.stamps.push({stamp_id:'ST'+uid().slice(0,8), pass_id:act.pass_id, customer_id:c.customer_id, sale_id:units[i], date:today, created_at:new Date(Date.now()+i).toISOString(), partner_name:s.p.name, cart_id:s.cart, status:'ok'}); act.stamps++; given++; } }
+          db.stamps.push({stamp_id:'ST'+uid().slice(0,8), pass_id:act.pass_id, customer_id:c.customer_id, sale_id:units[i].sale_id, date:today, created_at:new Date(Date.now()+i).toISOString(), partner_name:s.p.name, cart_id:s.cart, status:'ok', size:units[i].size}); act.stamps++; given++; } }
       const no = 'PP' + today.replace(/-/g,'').slice(2) + '-' + String(db.bills.filter(b => b.date === today).length + 1).padStart(3,'0');
       const lines = {}, pay = {Cash:0, UPI:0}; let total = 0;
       sales.forEach(r => { const free = r.pay === 'Free', k2 = r.item_name+'|'+r.size+'|'+(free?'f':r.price); const l = lines[k2] = lines[k2] || {name:r.item_name, size:r.size, qty:0, price:free?0:r.price, amount:0, free}; const a = free ? 0 : r.amount; l.qty += r.qty||1; l.amount += a; total += a; if (r.pay === 'UPI') pay.UPI += a; else if (r.pay === 'Cash') pay.Cash += a; });
       const k = ccard(c); db.bills.push({bill_no:no, date:today, customer_id:c.customer_id, partner_name:s.p.name, amount:total, stamps:given}); save();
-      return {bill:{no, at:new Date().toISOString(), cart_id:s.cart, lines:Object.values(lines), total, pay}, club:{on:CR.on, given, newPass, skip, need:CR.stamps, stamps:k.active?k.active.stamps:0, valid_till:k.active?k.active.valid_till:'', ready:k.ready.map(v => ({claim_till:v.claim_till})), blocked:!!c.blocked, link:CR.site+'/club#'+c.card_token},
+      return {bill:{no, at:new Date().toISOString(), cart_id:s.cart, lines:Object.values(lines), total, pay}, club:{on:CR.on, given, newPass, skip, need:CR.stamps, stamps:k.active?k.active.stamps:0, valid_till:k.active?k.active.valid_till:'', sizes:k.active?k.active.sizes:[], ready:k.ready.map(v => ({claim_till:v.claim_till, free_size:v.free_size})), blocked:!!c.blocked, link:CR.site+'/club#'+c.card_token},
         customer:{cid:c.customer_id, name:c.name||'', masked:mask(c.phone), isNew}, wa_phone:'91'+c.phone, footer:CR.footer}; },
     // One order saved whole (same rules as orderSave in Code.gs, for training)
     orderSave({token, order: o}) { const s = sess(token);
@@ -352,25 +377,40 @@ const DemoApi = (() => {
         const fr = sales.find(r => r.pay === 'Free'); if (fr) out.free = {sale_id: fr.sale_id, item_name: fr.item_name, size: fr.size, value: (db.menu.find(m => m.item_id === fr.item_id).sizes.find(z => z.size === fr.size) || {}).price || 0};
         return out; };
       if (db.sales.some(r => r.order_id === o.order_id)) return Object.assign(reply(), o._bill || {}, {repeat: true});
-      const it = db.menu.find(m => m.item_id === o.item_id); if (!it) throw new Error('That combo or plate size is not on the menu.');
-      const top = it.sizes.slice().sort((a, b) => b.price - a.price)[0];
-      let c = null, note = '';
+      const lines = (o.lines || []).filter(l => l.qty > 0), xs = (o.extras || []).filter(x => x.qty > 0);
+      if (!lines.length && !xs.length) throw new Error('Add at least one plate.');
+      const it = db.menu.find(m => m.item_id === o.item_id && m.type !== 'extra'); if (lines.length && !it) throw new Error('That combo or plate size is not on the menu.');
+      xs.forEach(x => { if (!db.menu.some(m => m.item_id === x.item_id && m.type === 'extra')) throw new Error('That extra is not on the menu.'); });
+      const top = it ? it.sizes.slice().sort((a, b) => b.price - a.price)[0] : null, half = it && it.sizes.find(z => z.size === 'Half');
+      let c = null, note = '', only = '';
       if (o.cust && o.cust.card != null) { const m = String(o.cust.card).match(/([a-f0-9]{32,48})\s*$/i); c = m ? liveC().find(x => x.card_token === m[1].toLowerCase()) || null : null; if (!c) note = 'card_unknown'; }
       else if (o.cust && o.cust.cid) c = liveC().find(x => x.customer_id === o.cust.cid) || null;
       else if (o.cust && o.cust.phone != null) { const ph = norm(o.cust.phone); c = ph ? liveC().find(x => x.phone === ph) || null : null;
-        if (!c && ph && o.cust.consent === true) { c = {customer_id:'CU'+uid().slice(0,8), phone:ph, name:String(o.cust.name||'').trim(), card_token:uid().replace(/-/g,'').padEnd(40,'0').slice(0,40), consent_by:s.p.name, created_at:new Date().toISOString(), blocked:false}; db.customers.push(c); } else if (!c) note = 'needs_consent'; }
-      let pv = null;
+        if (!c && ph && o.cust.consent === true) { c = {customer_id:'CU'+uid().slice(0,8), phone:ph, name:String(o.cust.name||'').trim(), card_token:uid().replace(/-/g,'').padEnd(40,'0').slice(0,40), consent_by:s.p.name, created_at:new Date().toISOString(), blocked:false}; db.customers.push(c); }
+        else if (!c && ph && o.cust.bill_only === true) only = ph; else if (!c) note = 'needs_consent'; }
+      let pv = null, freeSize = '', use = '', topup = 0;
       if (o.free) { if (!c) throw new Error('The free meal needs the customer. Scan their card or type their number.'); const ready = ccard(c).ready; if (!ready.length) throw new Error('No free meal is ready on this number.');
-        if (!o.lines.some(l => l.size === top.size)) throw new Error('Add a ' + top.size + ' plate for the free meal.');
         if (o.free.override === true && s.p.role !== 'founder') throw new Error('Only founders can give a free meal without the code.');
         const scanned = o.cust && o.cust.card != null; pv = o.free.override === true || scanned ? ready[0] : ready.find(v => v.code === String(o.free.code || '')) || null;
-        if (!pv) throw new Error("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code."); }
+        if (!pv) throw new Error("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code.");
+        if (pv.free_size === 'Half' && half && o.free.size) { freeSize = 'Half'; if (o.free.upgrade === true) { use = top.size; topup = top.price - half.price; } else use = 'Half'; } else { freeSize = top.size; use = top.size; }
+        if (!lines.some(l => l.size === use)) throw new Error('Add a ' + use + ' plate for the free meal.'); }
       const day = keyOf(new Date(Math.min(Date.now(), new Date(o.created_at).getTime() || Date.now()))), ids = [];
-      o.lines.forEach(l => { const z = it.sizes.find(x => x.size === l.size); if (!z) throw new Error('That combo or plate size is not on the menu.'); const q = l.qty - (pv && l.size === top.size ? 1 : 0);
-        if (q > 0) { db.sales.push({sale_id: o.order_id + '-' + l.size, order_id: o.order_id, created_at: o.created_at, date: day, partner_id: s.p.partner_id, partner_name: s.p.name, cart_id: s.cart, item_id: it.item_id, item_name: it.name, size: l.size, price: z.price, qty: q, amount: z.price * q, pay: o.pay, source: 'tap', status: 'ok', order_type: 'walkin'}); ids.push(o.order_id + '-' + l.size); } });
-      if (pv) { db.sales.push({sale_id: o.order_id + '-free', order_id: o.order_id, created_at: o.created_at, date: day, partner_id: s.p.partner_id, partner_name: s.p.name, cart_id: s.cart, item_id: it.item_id, item_name: it.name, size: top.size, price: 0, qty: 1, amount: 0, pay: 'Free', source: 'club', status: 'ok', order_type: 'walkin', ref: 'club:' + pv.pass_id});
-        const pp = db.passes.find(x => x.pass_id === pv.pass_id); pp.status = 'redeemed'; pp.redeem_sale_id = o.order_id + '-free'; ids.push(o.order_id + '-free'); }
+      const row = (x) => { db.sales.push(Object.assign({order_id: o.order_id, created_at: o.created_at, date: day, partner_id: s.p.partner_id, partner_name: s.p.name, cart_id: s.cart, item_id: o.item_id, status: 'ok', order_type: 'walkin', source: 'tap', pay: o.pay}, x)); ids.push(x.sale_id); };
+      lines.forEach(l => { const z = it.sizes.find(x => x.size === l.size); if (!z) throw new Error('That combo or plate size is not on the menu.'); });
+      lines.forEach(l => { const z = it.sizes.find(x => x.size === l.size), q = l.qty - (pv && l.size === use ? 1 : 0);
+        if (q > 0) row({sale_id: o.order_id + '-' + l.size, item_name: it.name, size: l.size, price: z.price, qty: q, amount: z.price * q}); });
+      if (pv) { row({sale_id: o.order_id + '-free', item_name: it.name, size: freeSize, price: 0, qty: 1, amount: 0, pay: 'Free', source: 'club', ref: 'club:' + pv.pass_id});
+        if (topup > 0) row({sale_id: o.order_id + '-topup', item_name: it.name, size: 'Top-up', price: topup, qty: 1, amount: topup, source: 'club', ref: 'topup:' + pv.pass_id});
+        const pp = db.passes.find(x => x.pass_id === pv.pass_id); pp.status = 'redeemed'; pp.redeem_sale_id = o.order_id + '-free'; }
+      xs.forEach(x => { const m = db.menu.find(y => y.item_id === x.item_id); row({sale_id: o.order_id + '-x-' + x.item_id, item_id: x.item_id, item_name: m.name, size: 'Extra', price: m.sizes[0].price, qty: x.qty, amount: m.sizes[0].price * x.qty}); });
       save();
+      if (only) { const sales = db.sales.filter(r => r.order_id === o.order_id), today = todayKey(); const no = 'PP' + today.replace(/-/g,'').slice(2) + '-' + String(db.bills.filter(b => b.date === today).length + 1).padStart(3,'0');
+        const lines2 = {}, pay = {Cash:0, UPI:0}; let total = 0; sales.forEach(r => { const k2 = r.item_name+'|'+r.size+'|'+r.price; const l = lines2[k2] = lines2[k2] || {name:r.item_name, size:r.size, qty:0, price:r.price, amount:0, free:false}; l.qty += r.qty; l.amount += r.amount; total += r.amount; pay[r.pay] += r.amount; });
+        db.bills.push({bill_no:no, date:today, customer_id:'', bill_to:mask(only), partner_name:s.p.name, amount:total, stamps:0}); save();
+        const bill = {bill:{no, at:new Date().toISOString(), cart_id:s.cart, lines:Object.values(lines2), total, pay}, club:{on:CR.on, given:0, newPass:false, skip:{excluded:0, old:0, already:0, free:0, cap:0, off:0, blocked:0}, need:CR.stamps, stamps:0, valid_till:'', ready:[], blocked:false, link:'', billOnly:true},
+          customer:{cid:'', name:'', masked:mask(only), isNew:false, billOnly:true}, wa_phone:'91'+only, footer:CR.footer};
+        o._bill = bill; return Object.assign(reply(), bill, {note}); }
       if (!c) return Object.assign(reply(), {note});
       const bill = A.clubBill({token, sale_ids: ids, cid: c.customer_id}); o._bill = bill;
       return Object.assign(reply(), bill, {note}); },
@@ -537,7 +577,7 @@ setInterval(() => { if (S.session && navigator.onLine && S.view === 'sell' && !p
 
 function myTotals() {
   const t = Object.assign({plates:0,total:0,cash:0,upi:0,manualPlates:0,freePlates:0}, S.base || {});
-  S.local.forEach(x => { if (x.inBase) return; t.plates += x.qty; t.total += x.price * x.qty; if (x.pay === 'Free') t.freePlates += x.qty; else if (x.pay === 'UPI') t.upi += x.price * x.qty; else t.cash += x.price * x.qty; if (x.source === 'manual') t.manualPlates += x.qty; });
+  S.local.forEach(x => { if (x.inBase) return; if (x.size !== 'Extra' && x.size !== 'Top-up') t.plates += x.qty; t.total += x.price * x.qty; if (x.pay === 'Free') t.freePlates += x.qty; else if (x.pay === 'UPI') t.upi += x.price * x.qty; else t.cash += x.price * x.qty; if (x.source === 'manual') t.manualPlates += x.qty; });
   return t;
 }
 
@@ -686,13 +726,18 @@ async function scanCard(onCode) {
 }
 
 /* ----- WhatsApp bill text (also used for Pedal Club stamps) ----- */
-function dots(n, need) { let h = ''; for (let i = 0; i < need; i++) h += `<i class="${i < n ? 'on' : ''}"></i>`; return `<div class="sdots" aria-label="${n} of ${need} stamps">${h}<i class="free" title="Free meal"></i></div>`; }
+// Stamp dots. With sizes (from newer servers) each stamp shows F (Full plate) or H (Half plate).
+function dots(n, need, sizes) {
+  const fh = Array.isArray(sizes); let h = '';
+  for (let i = 0; i < need; i++) { const z = fh && i < n ? (sizes[i] === 'H' ? 'H' : 'F') : ''; h += `<i class="${i < n ? 'on' : ''}${z === 'H' ? ' h' : ''}">${z}</i>`; }
+  return `<div class="sdots${fh ? ' fh' : ''}" aria-label="${n} of ${need} stamps">${h}<i class="free" title="Free meal"></i></div>`;
+}
 function billText(r) {
   const b = r.bill, c = r.club, L = [];
   L.push('Pedal Plate · Bill ' + b.no);
   L.push(new Date(b.at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) + ', ' + hm(b.at) + ' · ' + cartName(b.cart_id));
   L.push('');
-  b.lines.forEach(l => L.push(`${l.qty} × ${l.name}${l.size && l.size !== 'Full' ? ' (' + l.size + ')' : ''}: ${l.free ? 'free (Pedal Club)' : rs(l.amount)}`));
+  b.lines.forEach(l => L.push(l.size === 'Top-up' ? `${l.qty} × Top-up to Full: ${rs(l.amount)}` : `${l.qty} × ${l.name}${l.size && l.size !== 'Full' && l.size !== 'Extra' ? ' (' + l.size + ')' : ''}: ${l.free ? 'free (Pedal Club)' : rs(l.amount)}`));
   const pays = ['Cash', 'UPI'].filter(k => b.pay[k]);
   L.push('');
   L.push('Total ' + rs(b.total) + (pays.length === 1 ? ', paid by ' + pays[0] : pays.length === 2 ? `, paid by Cash ${rs(b.pay.Cash)} + UPI ${rs(b.pay.UPI)}` : ''));
@@ -702,7 +747,7 @@ function billText(r) {
     const left = c.valid_till ? daysTo(c.valid_till, keyOf(new Date(b.at))) : 99;
     if (c.stamps) L.push(`Pedal Club: ${c.stamps} of ${c.need} stamps${c.given ? ` (+${c.given} today)` : ''}. ${c.need - c.stamps} more and your next combo is free. ${left >= 0 && left <= ENDING_DAYS ? `Your stamps expire on ${nice(c.valid_till)} (${whenLeft(left)}), so come back soon!` : `Valid till ${nice(c.valid_till)}.`}`);
     else if (!c.ready.length && c.on) L.push(`Pedal Club: every ${ord(c.need + 1)} combo at our carts is free. Ask for a stamp next time.`);
-    L.push('Your card: ' + c.link);
+    if (c.link) L.push('Your card: ' + c.link);
   }
   L.push(''); L.push(r.footer);
   return L.join('\n');
@@ -720,13 +765,33 @@ function todaysCombo() {
 }
 const bySize = (a, b) => ((a.size === 'Full' ? 0 : a.size === 'Half' ? 1 : 2) - (b.size === 'Full' ? 0 : b.size === 'Half' ? 1 : 2));
 const topSize = it => it.sizes.slice().sort((a, b) => b.price - a.price)[0];   // the free meal is the biggest plate
-const newOrder = () => ({counts: {}, cust: null, free: false, code: '', override: false, why: '', consent: false, typing: null});
+const newOrder = () => ({counts: {}, extras: {}, cust: null, free: false, upgrade: false, code: '', override: false, why: '', consent: false, billOnly: false, typing: null});
 const order = () => S.order || (S.order = newOrder());
+const newServer = () => Array.isArray(cfg().extras);   // Code.gs with extras, F/H stamps and bill-only bills
+const extrasMenu = () => cfg().extras || [];   // [] from a server without extras
+// The free meal on this order: a card with a Half stamp gives a free Half (pay the difference for a Full).
+function freeInfo(it) {
+  const o = order(), c = o.cust, top = topSize(it), half = it.sizes.find(z => z.size === 'Half');
+  const rd = c && c.ready && c.ready[0];
+  if (rd && rd.free_size === 'Half' && half) { const up = Math.max(0, top.price - half.price);
+    return {size: 'Half', use: o.upgrade ? top.size : 'Half', value: half.price, topup: o.upgrade ? up : 0, upPrice: up, canUp: up > 0, top}; }
+  return {size: top.size, use: top.size, value: top.price, topup: 0, upPrice: 0, canUp: false, top};
+}
 function orderTotals(it) {
-  const o = order(); let plates = 0, total = 0;
+  const o = order(); let plates = 0, total = 0, extras = 0;
   it.sizes.forEach(z => { const n = o.counts[z.size] || 0; plates += n; total += n * z.price; });
-  const top = topSize(it), freeVal = o.free && (o.counts[top.size] || 0) > 0 ? top.price : 0;
-  return {plates, total: total - freeVal, freeVal};
+  extrasMenu().forEach(x => { const n = (o.extras || {})[x.item_id] || 0; extras += n; total += n * x.price; });
+  const F = freeInfo(it), freeVal = o.free && (o.counts[F.use] || 0) > 0 ? F.value : 0;
+  return {plates, extras, total: total - freeVal, freeVal};
+}
+// Stamps this order would add (one per paid plate, Full first when the daily limit cuts it short).
+function stampPreview(it) {
+  const o = order(), c = o.cust, F = freeInfo(it);
+  let f = o.counts.Full || 0, h = o.counts.Half || 0;
+  it.sizes.forEach(z => { if (z.size !== 'Full' && z.size !== 'Half') f += o.counts[z.size] || 0; });
+  if (o.free && c && c.ready && c.ready.length) { if (F.use === 'Half') h = Math.max(0, h - 1); else f = Math.max(0, f - 1); }
+  const cap = c && c.capLeft != null ? c.capLeft : f + h, gf = Math.min(f, cap), gh = Math.min(h, cap - gf);
+  return {f: gf, h: gh, n: gf + gh};
 }
 
 function vPickCombo() {
@@ -738,21 +803,31 @@ function vPickCombo() {
 
 function custBox(it) {
   const o = order(), c = o.cust;
+  // A new number: the rider picks what the customer said yes to (Pedal Club, or just this bill). Servers
+  // from before "bill only" don't send cfg().extras: they get the single Pedal Club box as before.
+  const nameBox = () => o.billOnly ? '' : `<label>Name <span class="muted" style="font-weight:500">optional</span><input id="oName" maxlength="40" autocomplete="off" value="${esc(c.name || '')}"></label>`;
+  const choices = (clubText, onlyText) => !newServer() ? `<label class="chk"><input type="checkbox" id="oOk" ${o.consent ? 'checked' : ''}><span>${clubText}</span></label>`
+    : `<span class="ask">What did the customer say yes to?</span>
+      <button type="button" class="choice" data-a="custClub" aria-pressed="${o.consent ? 'true' : 'false'}"><i></i><span>${clubText}</span></button>
+      <button type="button" class="choice" data-a="custBillOnly" aria-pressed="${o.billOnly ? 'true' : 'false'}"><i></i><span>Bill only, no Pedal Club<small>${onlyText}</small></span></button>`;
   if (c && c.isNew) return `<div class="member"><div class="mtop"><b>New customer · ${esc(c.masked)}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
-     <label>Name <span class="muted" style="font-weight:500">optional</span><input id="oName" maxlength="40" autocomplete="off" value="${esc(c.name || '')}"></label>
-     <label class="chk"><input type="checkbox" id="oOk" ${o.consent ? 'checked' : ''}><span>Customer said yes to bills and Pedal Club on WhatsApp<small>Ask first. They can ask us to delete it anytime.</small></span></label></div>`;
+     ${nameBox()}
+     ${choices('Customer said yes to bills and Pedal Club on WhatsApp<small>Ask first. They can ask us to delete it anytime.</small>', 'We send this one bill. The number is not saved and no stamps are added.')}</div>`;
   if (c && c.offline) return `<div class="member"><div class="mtop"><b>${c.card ? 'Card scanned' : esc(c.masked)} <span class="pill off">no signal</span></b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
       <small class="hint">Stamps are added and the bill is made when the phone is back online. Free meals need signal.</small>
-      ${c.phone ? `<label>Name <span class="muted" style="font-weight:500">optional</span><input id="oName" maxlength="40" autocomplete="off" value="${esc(c.name || '')}"></label>
-      <label class="chk"><input type="checkbox" id="oOk" ${o.consent ? 'checked' : ''}><span>If this is a new customer: they said yes to bills and Pedal Club on WhatsApp</span></label>` : ''}</div>`;
+      ${c.phone ? `${nameBox()}
+      ${choices('If this is a new customer: they said yes to bills and Pedal Club on WhatsApp', 'If this is a new customer: we send this one bill. The number is not saved.')}` : ''}</div>`;
   if (c) {
-    const ready = c.ready && c.ready.length && !c.blocked, top = topSize(it);
+    const ready = c.ready && c.ready.length && !c.blocked, F = freeInfo(it), sp = stampPreview(it);
+    const adds = !c.blocked && clubOn() && Array.isArray(c.sizes) && sp.n ? ` · <b style="color:var(--brand)">this order adds ${sp.n}: ${[sp.f ? sp.f + ' F' : '', sp.h ? sp.h + ' H' : ''].filter(Boolean).join(' + ')}</b>` : '';
     const left = c.stamps && c.valid_till && !c.blocked && !ready ? daysTo(c.valid_till, todayKey()) : 99;
     return `<div class="member ${ready ? 'ready' : ''}"><div class="mtop"><b>${esc(c.name || 'Customer')} · ${esc(c.masked)}${c.card ? ' <span class="pill act">scanned</span>' : ''}${left >= 0 && left <= ENDING_DAYS ? ` <span class="pill end">Card ends ${whenLeft(left)}</span>` : ''}</b><button class="x" data-a="custRemove" aria-label="Remove customer">✕</button></div>
-      ${c.blocked ? '<p class="hint">Pedal Club is on hold for this number. The bill still goes.</p>' : ready ? `${dots(c.need, c.need)}<small class="hint">Card full: free meal ready${c.stamps ? ` · ${c.stamps} stamp${c.stamps > 1 ? 's' : ''} on their next card` : ''}</small>` : `${dots(c.stamps, c.need)}<small class="hint num">${c.stamps} of ${c.need} stamps</small>`}
+      ${c.blocked ? '<p class="hint">Pedal Club is on hold for this number. The bill still goes.</p>' : ready ? `${dots(c.need, c.need, c.ready[0].sizes)}<small class="hint">Card full: free meal ready${c.stamps ? ` · ${c.stamps} stamp${c.stamps > 1 ? 's' : ''} on their next card` : ''}${adds}</small>` : `${dots(c.stamps, c.need, c.sizes)}<small class="hint num">${c.stamps} of ${c.need} stamps${adds}</small>`}
       ${capWarning(it)}
-      ${ready ? `<label class="freeq"><span>🎁 Free meal ready: 1 ${esc(top.size)} plate free</span><input type="checkbox" id="oFree" ${o.free ? 'checked' : ''} role="switch"></label>
-        ${o.free && !(o.counts[top.size] > 0) ? `<p class="hint" style="color:var(--warn)">Add a ${esc(top.size)} plate for the free meal.</p>` : ''}
+      ${ready ? `<label class="freeq"><span>🎁 Free meal ready: 1 ${esc(F.size)} plate free</span><input type="checkbox" id="oFree" ${o.free ? 'checked' : ''} role="switch"></label>
+        ${o.free && F.canUp ? `<label class="freeq up"><span>⬆ Make it Full: customer pays ${rs(F.upPrice)}</span><input type="checkbox" id="oUp" ${o.upgrade ? 'checked' : ''} role="switch"></label>` : ''}
+        ${o.free && F.size === 'Half' ? '<small class="hint">One stamp on this card is Half, so the free meal is a Half.</small>' : ''}
+        ${o.free && !(o.counts[F.use] > 0) ? `<p class="hint" style="color:var(--warn)">Add a ${esc(F.use)} plate for the free meal.</p>` : ''}
         ${o.free && !c.card ? (o.override ? `<label>Why there's no code (founders only, logged)<input id="oWhy" maxlength="120" value="${esc(o.why)}"></label>` : `<label>Card code from their Pedal Club card<input id="oCode" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" value="${esc(o.code)}" style="letter-spacing:.3em;text-align:center;font-size:1.2rem"></label>`) + (isFounder() ? `<label class="chk"><input type="checkbox" id="oOv" ${o.override ? 'checked' : ''}><span>Customer can't show the code (founder)</span></label>` : '') : ''}` : ''}</div>`;
   }
   if (o.typing) {
@@ -788,6 +863,24 @@ function lastBillStrip() {
 }
 
 
+// Extras (Extra rice, Extra chicken…): from the Menu tab, sold alone or with plates, never stamped.
+function extrasBox() {
+  const xs = extrasMenu(), o = order(); o.extras = o.extras || {};
+  if (!xs.length) return '';
+  return `<div class="extras"><small>Extras · no stamps</small>${xs.map(x => { const n = o.extras[x.item_id] || 0, nm = esc(x.name);
+    return `<div class="ex ${n ? 'on' : ''}"><span class="n">${nm}<small>${rs(x.price)}${x.unit ? ' a ' + esc(x.unit) : ''}</small></span><button type="button" data-ex="${esc(x.item_id)}|-1" aria-label="One ${nm} less" ${n ? '' : 'disabled'}>−</button><span class="q num" aria-label="${n} ${nm}">${n}</span><button type="button" class="p" data-ex="${esc(x.item_id)}|1" aria-label="Add one ${nm}">+</button></div>`; }).join('')}</div>`;
+}
+// With a free meal on: what the customer pays for, line by line.
+function freeBill(it) {
+  const o = order(), T = orderTotals(it), F = freeInfo(it);
+  if (!o.free || !T.freeVal) return '';
+  const L = [];
+  it.sizes.slice().sort(bySize).forEach(z => { const n = o.counts[z.size] || 0; if (n) L.push([`${n} × ${z.size}`, rs(n * z.price)]); });
+  L.push([`Pedal Club: ${F.size} free`, '−' + rs(F.value), 'g']);
+  extrasMenu().forEach(x => { const n = (o.extras || {})[x.item_id] || 0; if (n) L.push([`${x.name} × ${n}`, rs(n * x.price)]); });
+  return `<div class="card" style="padding:10px 12px;margin-bottom:10px;font-size:.88rem;gap:2px">${L.map(l => `<div style="display:flex;justify-content:space-between${l[2] ? ';color:var(--basil);font-weight:600' : ''}"><span>${esc(l[0])}</span><span class="num">${l[1]}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;border-top:1px dashed var(--line);margin-top:6px;padding-top:6px;font-weight:800"><span>To pay</span><span class="num">${rs(T.total)}</span></div></div>`;
+}
+
 function vSell() {
   const cart = me().cart_id;
   if (!cart || !cartOf(cart)) { vCart(); return; }
@@ -798,16 +891,19 @@ function vSell() {
     ${lastBillStrip()}
     <button class="combo-pick" data-v="combo"><span class="mark ${it.type}" aria-hidden="true"><i></i></span><span><small>Today's combo · tap to change</small><b>${esc(it.name)}</b></span></button>
     <div class="plates">${sizes.map(z => { const n = o.counts[z.size] || 0; return `<div class="pl ${n ? 'on' : ''}"><button class="add" data-cnt="${esc(z.size)}|1" aria-label="Add one ${esc(z.size)} plate"><small>${esc(z.size)}</small><b class="num">${rs(z.price)}</b><em class="num">${n}</em><span class="plus">+ add</span></button><button class="minus" data-cnt="${esc(z.size)}|-1" aria-label="One ${esc(z.size)} less" ${n ? '' : 'disabled'}>− 1</button></div>`; }).join('')}</div>
+    ${extrasBox()}
     ${custBox(it)}
-    <div class="ototal"><span>${T.plates} plate${T.plates === 1 ? '' : 's'}${T.freeVal ? ' · 1 free' : ''}</span><b class="num">${rs(T.total)}</b></div>
-    <div class="paybtns big"><button class="paybtn cash" data-pay="Cash" ${T.plates && !S.busy ? '' : 'disabled'}>Cash<small>${o.cust ? 'finish + WhatsApp' : 'finish order'}</small></button><button class="paybtn upi" data-pay="UPI" ${T.plates && !S.busy ? '' : 'disabled'}>UPI<small>${o.cust ? 'finish + WhatsApp' : 'finish order'}</small></button></div>
+    ${freeBill(it)}
+    <div class="ototal"><span>${T.plates} plate${T.plates === 1 ? '' : 's'}${T.extras ? ` + ${T.extras} extra${T.extras === 1 ? '' : 's'}` : ''}${T.freeVal ? ' · 1 free' : ''}</span><b class="num">${rs(T.total)}</b></div>
+    <div class="paybtns big"><button class="paybtn cash" data-pay="Cash" ${(T.plates || T.extras) && !S.busy ? '' : 'disabled'}>Cash<small>${o.cust ? 'finish + WhatsApp' : 'finish order'}</small></button><button class="paybtn upi" data-pay="UPI" ${(T.plates || T.extras) && !S.busy ? '' : 'disabled'}>UPI<small>${o.cust ? 'finish + WhatsApp' : 'finish order'}</small></button></div>
     <p class="hint" style="text-align:center;margin-top:10px">Today: <b class="num">${rs(t.total)}</b> · ${t.plates} plates${pend() ? ` · <span style="color:var(--warn)">${pend()} waiting for signal</span>` : ''}</p>
     ${isFounder() ? '<div class="row"><button class="btn ghost" data-v="day">My day</button><button class="btn ghost" data-v="more">More</button></div>' : ''}
     ${S.busy ? '<div class="busy"><span class="spin"></span>Saving the order and making the bill…</div>' : ''}`;
   const on = (id, ev, fn) => { const el = $('#' + id); if (el) el[ev] = fn; };
   on('oName', 'oninput', e => { o.cust.name = e.target.value; });
   on('oOk', 'onchange', e => { o.consent = e.target.checked; });
-  on('oFree', 'onchange', e => { o.free = e.target.checked; vSell(); });
+  on('oFree', 'onchange', e => { o.free = e.target.checked; if (!o.free) o.upgrade = false; vSell(); });
+  on('oUp', 'onchange', e => { o.upgrade = e.target.checked; vSell(); });
   on('oCode', 'oninput', e => { o.code = e.target.value.replace(/\D/g, ''); });
   on('oOv', 'onchange', e => { o.override = e.target.checked; vSell(); });
   on('oWhy', 'oninput', e => { o.why = e.target.value; });
@@ -818,7 +914,7 @@ function vSell() {
 
 /* ----- the customer for this order (online: looked up at once; no signal: checked when it syncs) ----- */
 function setCust(m, card) {
-  const o = order(); o.cust = Object.assign({}, m, card ? {card} : {}); o.typing = null; o.code = ''; o.override = false; o.why = '';
+  const o = order(); o.cust = Object.assign({}, m, card ? {card} : {}); o.typing = null; o.code = ''; o.override = false; o.why = ''; o.upgrade = false; o.consent = false; o.billOnly = false;
   o.free = !!(m.ready && m.ready.length && !m.blocked);   // a ready free meal is offered, already switched on
 }
 const netErr = e => !(e && e.server);   // no answer from the server (no or weak signal)
@@ -842,11 +938,11 @@ async function custFind() {
   S.finding = true; vSell();
   try {
     const r = await api('clubFind', {q});
-    if (r.isNew) { o.cust = {isNew: true, phone: q, masked: r.masked, name: ''}; o.typing = null; o.consent = false; }
+    if (r.isNew) { o.cust = {isNew: true, phone: q, masked: r.masked, name: ''}; o.typing = null; o.consent = false; o.billOnly = false; }
     else if (r.matches.length === 1) setCust(r.matches[0]);
     else { o.typing.matches = r.matches; o.typing.none = !r.matches.length; }
   } catch (e) {
-    if (netErr(e) && ten && /^[6-9]/.test(ten)) { o.cust = {offline: true, phone: ten, masked: ten.slice(0, 2) + '•••••' + ten.slice(-3), name: ''}; o.typing = null; o.consent = false; o.free = false; toast('No signal: the number is saved with the order.'); }
+    if (netErr(e) && ten && /^[6-9]/.test(ten)) { o.cust = {offline: true, phone: ten, masked: ten.slice(0, 2) + '•••••' + ten.slice(-3), name: ''}; o.typing = null; o.consent = false; o.billOnly = false; o.free = false; toast('No signal: the number is saved with the order.'); }
     else if (netErr(e)) toast('No signal: type the full 10-digit number.');
     else handleError(e);
   }
@@ -855,26 +951,31 @@ async function custFind() {
 
 /* ----- finish the order: saved whole on the phone, sent as one package ----- */
 async function finishOrder(pay) {
-  const it = todaysCombo(), o = order(), T = orderTotals(it), top = topSize(it);
-  if (!it || !T.plates || S.busy) return;
+  const it = todaysCombo(), o = order(), T = orderTotals(it), F = freeInfo(it);
+  if (!it || !(T.plates || T.extras) || S.busy) return;
   const c = o.cust;
-  if (c && (c.isNew || (c.offline && c.phone)) && !o.consent) { toast(c.offline ? 'Tick the box if the customer is new and said yes' : 'Ask the customer first, then tick the box'); return; }
+  if (c && (c.isNew || (c.offline && c.phone)) && !o.consent && !o.billOnly) { toast(!newServer() ? (c.offline ? 'Tick the box if the customer is new and said yes' : 'Ask the customer first, then tick the box') : (c.offline ? 'If the customer is new, ask them and pick one' : 'Ask the customer first, then pick one')); return; }
   if (o.free) {
-    if (!T.freeVal) { toast('Add a ' + top.size + ' plate for the free meal'); return; }
+    if (!T.freeVal) { toast('Add a ' + F.use + ' plate for the free meal'); return; }
     if (!c.card && !o.override && !/^\d{4}$/.test(o.code)) { toast('Type the 4-digit code from their card'); return; }
     if (o.override && o.why.trim().length < 3) { toast("Write why there's no code"); return; }
     if (!navigator.onLine) { toast('The free meal needs signal. Wait for signal, or switch it off to sell normally.'); return; }
   }
   const oid = 'O' + Date.now().toString(36) + uid().replace(/-/g, '').slice(0, 6);
   const lines = it.sizes.slice().sort(bySize).map(z => ({size: z.size, qty: o.counts[z.size] || 0})).filter(l => l.qty > 0);
+  const xs = extrasMenu().map(x => ({item_id: x.item_id, qty: (o.extras || {})[x.item_id] || 0, x})).filter(x => x.qty > 0);
   const pkg = {order_id: oid, created_at: new Date().toISOString(), item_id: it.item_id, pay, lines, _t: S.session.token, label: c ? (c.name || c.masked) : ''};
-  if (c) pkg.cust = c.cid && !c.offline ? Object.assign({cid: c.cid}, c.card ? {card: c.card} : {}) : c.card ? {card: c.card} : {phone: c.phone, name: c.name || '', consent: o.consent === true};
-  if (o.free) pkg.free = c.card ? {} : o.override ? {override: true, reason: o.why.trim()} : {code: o.code};
+  if (xs.length) pkg.extras = xs.map(x => ({item_id: x.item_id, qty: x.qty}));
+  if (c) pkg.cust = c.cid && !c.offline ? Object.assign({cid: c.cid}, c.card ? {card: c.card} : {}) : c.card ? {card: c.card}
+    : Object.assign({phone: c.phone, name: o.billOnly ? '' : c.name || '', consent: o.consent === true}, o.billOnly ? {bill_only: true} : {});
+  if (o.free) pkg.free = Object.assign(c.card ? {} : o.override ? {override: true, reason: o.why.trim()} : {code: o.code}, {size: F.size, upgrade: !!(o.upgrade && F.canUp)});
   // the phone's own record (feed, totals, undo); sale ids match the server's
   const now = Date.now();
-  lines.forEach(l => { const z = it.sizes.find(x => x.size === l.size), q = l.qty - (o.free && l.size === top.size ? 1 : 0);
+  lines.forEach(l => { const z = it.sizes.find(x => x.size === l.size), q = l.qty - (o.free && l.size === F.use ? 1 : 0);
     if (q > 0) S.local.push({sale_id: oid + '-' + l.size, created_at: pkg.created_at, at: now, item_id: it.item_id, item_name: it.name, size: l.size, pay, qty: q, price: z.price, source: 'tap', order_type: 'walkin', synced: false, order: oid}); });
-  if (o.free) S.local.push({sale_id: oid + '-free', created_at: pkg.created_at, at: now, item_id: it.item_id, item_name: it.name, size: top.size, pay: 'Free', qty: 1, price: 0, source: 'club', synced: false, order: oid});
+  if (o.free) S.local.push({sale_id: oid + '-free', created_at: pkg.created_at, at: now, item_id: it.item_id, item_name: it.name, size: F.size, pay: 'Free', qty: 1, price: 0, source: 'club', synced: false, order: oid});
+  if (o.free && F.topup) S.local.push({sale_id: oid + '-topup', created_at: pkg.created_at, at: now, item_id: it.item_id, item_name: it.name, size: 'Top-up', pay, qty: 1, price: F.topup, source: 'club', synced: false, order: oid});
+  xs.forEach(x => S.local.push({sale_id: oid + '-x-' + x.item_id, created_at: pkg.created_at, at: now, item_id: x.item_id, item_name: x.x.name, size: 'Extra', pay, qty: x.qty, price: x.x.price, source: 'tap', order_type: 'walkin', synced: false, order: oid}));
   S.outbox = (S.outbox || []).concat(pkg); persist();
   const keep = Object.assign({}, o);   // to put back if the server refuses a free meal
   S.order = newOrder();
@@ -1150,7 +1251,11 @@ function vMe() {
 function vMenu() {
   const d = S.founderData;
   if (!d || !d.menu) { app.innerHTML = topbar() + '<p class="muted"><span class="spin"></span>Loading menu…</p>'; if (!d) load('menuList'); return; }
-  const on = d.menu.filter(m => m.active), off = d.menu.filter(m => !m.active);
+  const combos = d.menu.filter(m => m.type !== 'extra'), xs = d.menu.filter(m => m.type === 'extra');
+  const on = combos.filter(m => m.active), off = combos.filter(m => !m.active);
+  const xcard = m => `<div class="pp"><div class="line"><div class="meta"><b>${esc(m.name)}</b><small><span class="pill ${m.active?'act':'off'}">${m.active?'On':'Off'}</span>${m.unit ? ' · price a ' + esc(m.unit) : ''}</small></div>
+     <button class="mini" data-mtoggle="${esc(m.item_id)}" data-on="${m.active?0:1}">${m.active?'Switch off':'Switch on'}</button></div>
+     <form class="grid2" data-mprice="${esc(m.item_id)}" style="align-items:end">${m.sizes.map(z => `<label>Price (₹)<input type="number" inputmode="numeric" min="1" name="${esc(z.size)}" value="${z.price}"></label>`).join('')}<button class="mini" style="min-height:44px">Save price</button></form></div>`;
   const card = m => `<div class="pp"><div class="line"><span class="mark ${m.type}" aria-label="${m.type==='veg'?'Veg':'Non-veg'}"><i></i></span><div class="meta"><b>${esc(m.name)}</b><small><span class="pill ${m.active?'act':'off'}">${m.active?'On today':'Off'}</span></small></div>
      <button class="mini" data-mtoggle="${esc(m.item_id)}" data-on="${m.active?0:1}">${m.active?'Switch off':'Switch on'}</button></div>
      <form class="grid2" data-mprice="${esc(m.item_id)}" style="align-items:end">${m.sizes.map(z => `<label>${esc(z.size)} (₹)<input type="number" inputmode="numeric" min="1" name="${esc(z.size)}" value="${z.price}"></label>`).join('')}${m.sizes.some(z => z.size === 'Half') ? '' : `<label>Half (₹) <span class="muted" style="font-weight:500">add</span><input type="number" inputmode="numeric" min="1" name="Half" placeholder="optional"></label>`}<button class="mini" style="min-height:44px">Save prices</button></form>
@@ -1164,7 +1269,8 @@ function vMenu() {
   app.innerHTML = topbar() + `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h1>Menu</h1><button class="btn primary" style="flex:none" data-v="madd">+ Add combo</button></div>
    <p class="hint" style="margin-bottom:10px">Switch on only today's combos. Partners' phones pick up changes within a minute, and the website menu within 5 minutes.</p>
    <div class="plist">${on.map(card).join('') || '<p class="muted">Nothing is on today. Switch a combo on below.</p>'}</div>
-   ${off.length ? `<h2 style="margin:18px 0 8px">Not on today</h2><div class="plist">${off.map(card).join('')}</div>` : ''}`;
+   ${off.length ? `<h2 style="margin:18px 0 8px">Not on today</h2><div class="plist">${off.map(card).join('')}</div>` : ''}
+   ${xs.length ? `<h2 style="margin:18px 0 4px">Extras</h2><p class="hint" style="margin-bottom:8px">Sold with any combo or on their own. No Pedal Club stamps. To add another extra, add a row in the Menu tab with type "extra".</p><div class="plist">${xs.map(xcard).join('')}</div>` : ''}`;
   app.querySelectorAll('[data-mmore]').forEach(f => f.onsubmit = async e => { e.preventDefault();
     const days = [...f.querySelectorAll('input[name="d"]:checked')].map(i => i.value).join(',');
     try { S.founderData = await api('menuUpdate', {item_id: f.dataset.mmore, name: f.elements.name.value.trim(), website: f.elements.website.value, days, photo: f.elements.photo.value.trim()}); toast('Saved'); render(); } catch (err) { handleError(err); } });
@@ -1245,6 +1351,7 @@ async function copy(text) { try { await navigator.clipboard.writeText(text); toa
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.k !== undefined) { key(b.dataset.k); return; }
+  if (b.dataset.ex) { const [id, d] = b.dataset.ex.split('|'); const o = order(); o.extras = o.extras || {}; o.extras[id] = Math.max(0, (o.extras[id] || 0) + Number(d)); vSell(); return; }
   if (b.dataset.cnt) { const [z, d] = b.dataset.cnt.split('|'); const o = order(); o.counts[z] = Math.max(0, (o.counts[z] || 0) + Number(d)); vSell(); return; }
   if (b.dataset.pay) { finishOrder(b.dataset.pay); return; }
   if (b.dataset.pick) { store.set(comboKey(), {day: todayKey(), item_id: b.dataset.pick}); S.order = newOrder(); S.view = 'sell'; render(); toast('Selling ' + ((cfg().menu.find(m => m.item_id === b.dataset.pick) || {}).name || '')); return; }
@@ -1262,7 +1369,9 @@ document.addEventListener('click', async e => {
   else if (a === 'custScan') custScan();
   else if (a === 'custType') { order().typing = {q: ''}; vSell(); }
   else if (a === 'custFind') custFind();
-  else if (a === 'custRemove') { const o = order(); o.cust = null; o.typing = null; o.free = false; vSell(); }
+  else if (a === 'custRemove') { const o = order(); o.cust = null; o.typing = null; o.free = false; o.upgrade = false; o.consent = false; o.billOnly = false; vSell(); }
+  else if (a === 'custClub') { const o = order(); o.consent = true; o.billOnly = false; vSell(); }
+  else if (a === 'custBillOnly') { const o = order(); o.billOnly = true; o.consent = false; vSell(); }
   else if (a === 'billsClear') { S.toSend = []; persist(); render(); }
   else if (a === 'copy') copy($('#cPre').textContent);
   else if (a === 'copypin' && S.newPin) copy(S.newPin.pin);

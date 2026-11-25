@@ -51,6 +51,12 @@
   .dots i.on{background:#FBF6EC;border:0;color:#96601A}
   .pass.ready .dots i.on{color:#3F7D4A}
   .dots i.gift{border:2px solid #FBF6EC}
+  .dots.fh i.on{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
+  .dots.fh i b{font-size:17px;font-weight:800} .dots.fh i small{font-size:9.5px;font-weight:600;opacity:.85}
+  .dots i.on.h{background:transparent;border:2px solid #FBF6EC;color:#FBF6EC}
+  .fhkey{display:flex;gap:14px;font-size:12px;opacity:.9} .fhkey span{display:flex;align-items:center;gap:5px}
+  .fhkey i{width:14px;height:14px;border-radius:50%;display:inline-block}
+  .status .half{display:block;margin-top:6px;font-weight:500}
   .dots i.gift svg{width:58%;height:58%}
   .code{text-align:right;font-size:12px;opacity:.9}
   .code b{display:block;font-size:30px;font-weight:800;letter-spacing:.16em;line-height:1.1}
@@ -138,14 +144,18 @@ const gift = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 function sample() {
   const k = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
   return {name:'Rahul', masked:'98•••••345', blocked:false, today:k(0), rules:{stamps:9, days:30, cap:4, grace:7, on:true},
-    passes:[{code:'4821', issued:k(-9), valid_till:k(20), claim_till:'', stamps:6, need:9, state:'active', dates:[k(-9), k(-7), k(-6), k(-3), k(-1), k(0)]}]};
+    passes:[{code:'4821', issued:k(-9), valid_till:k(20), claim_till:'', stamps:6, need:9, state:'active', dates:[k(-9), k(-7), k(-6), k(-3), k(-1), k(0)], sizes:['F', 'F', 'F', 'H', 'F', 'F']}]};
 }
 
 function rules(r) { document.querySelectorAll('[data-r]').forEach(e => { const v = {cap:r.cap, stamps:r.stamps, nth:ord(r.stamps + 1), days:r.days}[e.dataset.r]; if (v != null) e.textContent = v; }); }
 
 function passHtml(p, d) {
+  // Each stamp shows F (Full plate) or H (Half plate) and its date (D/M). Older stamps are Full.
+  const fh = Array.isArray(p.sizes), dm = k => k ? +k.slice(8, 10) + '/' + +k.slice(5, 7) : '';
   let dots = '';
-  for (let i = 0; i < p.need; i++) dots += `<i class="${i < p.stamps ? 'on' : ''}">${i < p.stamps ? i + 1 : ''}</i>`;
+  for (let i = 0; i < p.need; i++) dots += i >= p.stamps ? '<i></i>' : fh ? `<i class="on${p.sizes[i] === 'H' ? ' h' : ''}" aria-label="${p.sizes[i] === 'H' ? 'Half' : 'Full'} plate, ${nice(p.dates[i])}"><b>${p.sizes[i] === 'H' ? 'H' : 'F'}</b><small>${dm(p.dates[i])}</small></i>` : `<i class="on">${i + 1}</i>`;
+  const half = fh && (p.state === 'active' || p.state === 'ready') && p.sizes.indexOf('H') >= 0
+    ? '<span class="half">Your free meal will be a Half plate, because one stamp is Half. Pay the difference at the cart to make it Full.</span>' : '';
   dots += `<i class="gift" title="Free meal">${gift}</i>`;
   const cls = p.state === 'ready' ? 'ready' : p.state === 'active' ? '' : 'old';
   const status = {
@@ -157,11 +167,12 @@ function passHtml(p, d) {
   return `<div class="pass ${cls}">
       <div class="row"><span class="kick">PEDAL CLUB</span><span class="sm">${p.state === 'active' || p.state === 'ready' ? 'Valid till ' + nice(p.claim_till || p.valid_till) : p.state === 'redeemed' ? 'Used' : 'Ended'}</span></div>
       <div><div class="who">${esc(d.name || 'Pedal Club member')}</div><div class="sm">${esc(d.masked)} · card from ${nice(p.issued)}</div></div>
-      <div class="dots" aria-label="${p.stamps} of ${p.need} stamps">${dots}</div>
+      <div class="dots${fh ? ' fh' : ''}" aria-label="${p.stamps} of ${p.need} stamps">${dots}</div>
+      ${fh && p.stamps ? '<div class="fhkey"><span><i style="background:#FBF6EC"></i>Full plate</span><span><i style="border:2px solid #FBF6EC"></i>Half plate</span></div>' : ''}
       ${p.code ? `<div class="code">Card code<b>${esc(p.code)}</b>Read it out only at the cart</div>` : ''}
       ${p.code ? `<div class="qr"><div class="box" data-qr aria-label="Your Pedal Club QR"></div><p><b>Show this at the cart</b>The rider scans it to add your stamp or give your free meal.</p></div>` : ''}
     </div>
-    ${ending(p, d) || `<div class="status ${status[1]}">${status[0]}</div>`}
+    ${half ? (ending(p, d) || `<div class="status ${status[1]}">${status[0]}</div>`).replace(/<\/div>$/, half + '</div>') : ending(p, d) || `<div class="status ${status[1]}">${status[0]}</div>`}
     ${p.dates.length ? `<details class="card"><summary style="font-weight:700;cursor:pointer">Stamp dates on this card</summary><div class="hist" style="margin-top:8px">${p.dates.slice().sort().map((x, i) => `<div><span>Stamp ${i + 1}</span><span>${nice(x)}</span></div>`).join('')}</div></details>` : ''}`;
 }
 

@@ -16,7 +16,7 @@
 
 const SCHEMA = {
   Settings: ['key', 'value', 'note'],
-  Menu:     ['item_id', 'name', 'type', 'size', 'price', 'active', 'sort', 'website', 'days', 'photo'],
+  Menu:     ['item_id', 'name', 'type', 'size', 'price', 'active', 'sort', 'website', 'days', 'photo', 'unit'],
   Carts:    ['cart_id', 'name', 'float', 'active'],
   Partners: ['partner_id', 'name', 'role', 'cart_id', 'phone', 'backup', 'active', 'start_date', 'pin_hash', 'salt', 'created_at'],
   Sessions: ['token', 'partner_id', 'cart_id', 'expires_at'],
@@ -27,9 +27,19 @@ const SCHEMA = {
   // Pedal Club and bills. Phone numbers live only in Customers, so deleting a customer is one row.
   Customers: ['customer_id', 'phone', 'name', 'card_token', 'consent_at', 'consent_by', 'created_at', 'blocked', 'blocked_by', 'deleted_at', 'flag_ok', 'verified'],
   Passes:   ['pass_id', 'customer_id', 'code', 'issued_date', 'issued_at', 'valid_till', 'status', 'redeemed_at', 'redeem_sale_id', 'redeemed_by', 'issued_by', 'flag_ok'],
-  Stamps:   ['stamp_id', 'pass_id', 'customer_id', 'sale_id', 'date', 'created_at', 'partner_id', 'partner_name', 'cart_id', 'status', 'void_by', 'void_at'],
-  Bills:    ['bill_no', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'customer_id', 'sale_ids', 'amount', 'stamps', 'pass_id', 'order_id'],
+  // Stamps.size: Full or Half (the plate that earned it). Blank = a stamp from before Half stamps, counted as Full.
+  Stamps:   ['stamp_id', 'pass_id', 'customer_id', 'sale_id', 'date', 'created_at', 'partner_id', 'partner_name', 'cart_id', 'status', 'void_by', 'void_at', 'size'],
+  // Bills.bill_to: the masked number of a "bill only" customer (not a Pedal Club member, number not saved).
+  Bills:    ['bill_no', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'customer_id', 'sale_ids', 'amount', 'stamps', 'pass_id', 'order_id', 'bill_to'],
 };
+
+// Extras (Menu rows with type "extra", e.g. Extra rice, Extra chicken) and the top-up that turns a free
+// Half into a Full are money, not plates: they never count as plates and never earn stamps.
+// In the Sales tab their size is "Extra" or "Top-up".
+const NOT_PLATES = { Extra: true, 'Top-up': true };
+function isPlate(r) { return !NOT_PLATES[String(r.size || '')]; }
+function isExtraType(t) { return String(t || '').trim().toLowerCase() === 'extra'; }
+function menuSize(r) { return isExtraType(r.type) ? 'Extra' : (r.size || 'Full'); }
 
 const DEFAULT_SETTINGS = [
   ['timezone', 'Asia/Kolkata', 'Used for the sales date'],
@@ -254,7 +264,7 @@ function founderToday(req) {
   const partners = rows('Partners').filter(p => by[p.partner_id] || (truthy(p.active) && p.role !== 'founder' && !truthy(p.backup)));
   const perPartner = partners.map(p => Object.assign({ partner: publicPartner(p), close: lastClose[p.partner_id] || null }, totalsOf(by[p.partner_id] || [])));
   const byItem = {};
-  sales.forEach(r => { const k = r.item_name + (r.size ? ' · ' + r.size : ''); byItem[k] = (byItem[k] || 0) + Number(r.qty); });
+  sales.forEach(r => { const k = r.item_name + (r.size && r.size !== 'Extra' ? ' · ' + r.size : ''); byItem[k] = (byItem[k] || 0) + Number(r.qty); });
   const bank = rows('BankUpi').filter(r => r.date === d).pop() || null;
   return { date: d, totals: totalsOf(sales), perPartner, byItem, bank };
 }
@@ -353,9 +363,9 @@ function cleanDays(v) {
 function menuAll() {
   const items = {};
   rows('Menu').sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0)).forEach(r => {
-    const it = items[r.item_id] = items[r.item_id] || { item_id: String(r.item_id), name: r.name, type: String(r.type).toLowerCase().indexOf('non') === 0 ? 'nonveg' : 'veg', active: false, sizes: [],
-      website: String(r.website || '').toLowerCase(), days: cleanDays(r.days), photo: String(r.photo || '').trim() };
-    if (!it.sizes.some(z => z.size === (r.size || 'Full'))) it.sizes.push({ size: r.size || 'Full', price: Number(r.price) });
+    const it = items[r.item_id] = items[r.item_id] || { item_id: String(r.item_id), name: r.name, type: isExtraType(r.type) ? 'extra' : String(r.type).toLowerCase().indexOf('non') === 0 ? 'nonveg' : 'veg', active: false, sizes: [],
+      website: String(r.website || '').toLowerCase(), days: cleanDays(r.days), photo: String(r.photo || '').trim(), unit: String(r.unit || '').trim() };
+    if (!it.sizes.some(z => z.size === menuSize(r))) it.sizes.push({ size: menuSize(r), price: Number(r.price) });
     if (truthy(r.active)) it.active = true;
     if (!it.website && r.website) it.website = String(r.website).toLowerCase();
     if (!it.days && r.days) it.days = cleanDays(r.days);
@@ -370,7 +380,7 @@ function menuPublic() {
   const hit = cache.get('menu_public');
   if (hit) return JSON.parse(hit);
   const order = z => ({ Half: 0, Full: 1 })[z] == null ? 2 : ({ Half: 0, Full: 1 })[z];
-  const items = menuAll().filter(m => m.website === 'yes' || (m.website !== 'no' && m.active)).map(m => ({
+  const items = menuAll().filter(m => m.type !== 'extra' && (m.website === 'yes' || (m.website !== 'no' && m.active))).map(m => ({
     name: m.name, type: m.type, today_on: m.active, days: m.days ? m.days.split(',') : [],
     photo: /^[a-z0-9-]{1,60}$/.test(m.photo) ? m.photo : '',
     sizes: m.sizes.filter(z => z.price > 0).sort((a, b) => order(a.size) - order(b.size)),
@@ -405,7 +415,7 @@ function menuUpdate(req, s) {
       if (String(data[i][c('item_id')]) !== id) continue;
       found = found || { name: data[i][c('name')], type: data[i][c('type')], active: data[i][c('active')], sort: data[i][c('sort')], website: c('website') >= 0 ? data[i][c('website')] : '', days: c('days') >= 0 ? data[i][c('days')] : '', photo: c('photo') >= 0 ? data[i][c('photo')] : '' };
       Object.keys(changes).forEach(k => { if (c(k) >= 0) sh.getRange(i + 1, c(k) + 1).setValue(changes[k]); });
-      const z = data[i][c('size')] || 'Full'; seen[z] = true;
+      const z = isExtraType(data[i][c('type')]) ? 'Extra' : data[i][c('size')] || 'Full'; seen[z] = true;
       if (prices && prices[z] != null) sh.getRange(i + 1, c('price') + 1).setValue(Number(prices[z]));
     }
     if (!found) return;
@@ -450,7 +460,7 @@ function report(req) {
   const days = {}, items = {}, partners = {};
   sales.forEach(r => {
     (days[r.date] = days[r.date] || []).push(r);
-    const k = r.item_name + (r.size ? ' · ' + r.size : '');
+    const k = r.item_name + (r.size && r.size !== 'Extra' ? ' · ' + r.size : '');
     const it = items[k] = items[k] || { plates: 0, total: 0 }; it.plates += Number(r.qty) || 0; it.total += Number(r.amount) || 0;
     (partners[r.partner_name] = partners[r.partner_name] || []).push(r);
   });
@@ -528,8 +538,11 @@ function passView(p, D, R, today) {
     claimTill = p.valid_till > addDaysKey(readyOn, R.grace) ? p.valid_till : addDaysKey(readyOn, R.grace);
     state = today <= claimTill ? 'ready' : 'expired';
   } else state = today > p.valid_till ? 'expired' : 'active';
+  // F/H per stamp (blank size = an older stamp, counted as Full). Any Half among the counted stamps makes
+  // the free meal a Half; the customer can pay the difference at the cart for a Full.
+  const sizes = st.slice(0, R.stamps).map(x => String(x.size) === 'Half' ? 'H' : 'F');
   return { pass_id: p.pass_id, customer_id: p.customer_id, code: p.code, issued: p.issued_date, valid_till: p.valid_till, claim_till: claimTill,
-    stamps: Math.min(n, R.stamps), need: R.stamps, state, redeemed_at: p.redeemed_at || '', stampList: st };
+    stamps: Math.min(n, R.stamps), need: R.stamps, state, redeemed_at: p.redeemed_at || '', stampList: st, sizes, free_size: sizes.indexOf('H') >= 0 ? 'Half' : 'Full' };
 }
 
 // Card summary for a customer: the pass being filled, free meals waiting, and how many stamps are left today.
@@ -543,8 +556,8 @@ function customerCard(c, D, R, today) {
 
 function partnerSafe(c, card, R) {
   return { cid: c.customer_id, name: c.name || '', masked: maskPhone(c.phone), blocked: truthy(c.blocked),
-    stamps: card.active ? card.active.stamps : 0, need: R.stamps, valid_till: card.active ? card.active.valid_till : '',
-    ready: card.ready.map(v => ({ pass_id: v.pass_id, claim_till: v.claim_till })), capLeft: card.capLeft };
+    stamps: card.active ? card.active.stamps : 0, need: R.stamps, valid_till: card.active ? card.active.valid_till : '', sizes: card.active ? card.active.sizes : [],
+    ready: card.ready.map(v => ({ pass_id: v.pass_id, claim_till: v.claim_till, free_size: v.free_size, sizes: v.sizes })), capLeft: card.capLeft };
 }
 
 // The QR on a customer's card is their card link (pedalplate.in/club#<key>). Scanning it finds them.
@@ -571,6 +584,7 @@ function clubFind(req, s) {
 }
 
 // Add stamps to a customer's card, starting a new card whenever the current one is full or missing.
+// saleIds: sale ids, or {sale_id, size} for plates (size Full or Half; a plain id is a Full stamp).
 function addStamps(c, D, R, today, saleIds, partnerId, partnerName, cartId) {
   const card0 = customerCard(c, D, R, today);
   let active = card0.active, given = 0, newPass = false;
@@ -582,8 +596,9 @@ function addStamps(c, D, R, today, saleIds, partnerId, partnerName, cartId) {
       append('Passes', p); D.passes.push(p); newPass = true;
       active = { pass_id: p.pass_id, stamps: 0 };
     }
-    const st = { stamp_id: newId('ST'), pass_id: active.pass_id, customer_id: c.customer_id, sale_id: sid, date: today, created_at: new Date(Date.now() + i).toISOString(),
-      partner_id: String(partnerId), partner_name: partnerName, cart_id: cartId || '', status: 'ok', void_by: '', void_at: '' };
+    const u = typeof sid === 'object' && sid ? sid : { sale_id: sid, size: 'Full' };
+    const st = { stamp_id: newId('ST'), pass_id: active.pass_id, customer_id: c.customer_id, sale_id: String(u.sale_id), date: today, created_at: new Date(Date.now() + i).toISOString(),
+      partner_id: String(partnerId), partner_name: partnerName, cart_id: cartId || '', status: 'ok', void_by: '', void_at: '', size: u.size === 'Half' ? 'Half' : 'Full' };
     newStamps.push(st); D.stamps.push(st); active.stamps++; given++;
   });
   appendMany('Stamps', newStamps);
@@ -673,6 +688,9 @@ function confirmCard(c) {
   updateWhere('Customers', r => String(r.customer_id) === c.customer_id, { card_token: c.card_token, verified: 'yes' });
 }
 
+// When the daily stamp limit cuts an order short, Full plates get their stamps first.
+function fullFirst(units) { const f = units.filter(u => u.size !== 'Half'), h = units.filter(u => u.size === 'Half'); units.length = 0; f.concat(h).forEach(u => units.push(u)); return units; }
+
 function newCode() { let c; do { c = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); } while (/^(\d)\1+$/.test(c)); return c; }
 
 // Send a bill for some of this partner's sales, and add Pedal Club stamps if the customer is in.
@@ -717,8 +735,10 @@ function clubBill(req, s) {
       else if (ot !== 'walkin') skip.excluded += q;
       else if (stamped.has(String(r.sale_id))) skip.already += q;
       else if (r.date !== today || age > R.minutes) skip.old += q;
-      else for (let i = 0; i < q; i++) units.push(String(r.sale_id));
+      else if (!isPlate(r)) { /* extras and top-ups: no stamps */ }
+      else for (let i = 0; i < q; i++) units.push({ sale_id: String(r.sale_id), size: r.size === 'Half' ? 'Half' : 'Full' });
     });
+    fullFirst(units);
     let given = 0, newPass = false;
     const card0 = customerCard(c, D, R, today);
     if (units.length && !wantStamps) { /* bill only */ }
@@ -827,7 +847,7 @@ function clubCard(req) {
     name: String(c.name || '').split(' ')[0], masked: maskPhone(c.phone), blocked: truthy(c.blocked), today, confirmed: isConfirmed(c),
     rules: { stamps: R.stamps, days: R.days, cap: R.cap, grace: R.grace, on: R.on },
     passes: recent.map(v => ({ code: v.state === 'active' || v.state === 'ready' ? v.code : '', issued: v.issued, valid_till: v.valid_till, claim_till: v.claim_till,
-      stamps: v.stamps, need: v.need, state: v.state, redeemed_at: v.redeemed_at, dates: v.stampList.map(x => x.date) })),
+      stamps: v.stamps, need: v.need, state: v.state, redeemed_at: v.redeemed_at, dates: v.stampList.map(x => x.date), sizes: v.sizes, free_size: v.free_size })),
   };
 }
 
@@ -890,7 +910,7 @@ function clubCustomer(req) {
       link: c.card_token ? R.site + '/club#' + c.card_token : '', bills: bills.filter(b => String(b.customer_id) === c.customer_id).length,
       passes: card.views.sort((a, b) => a.issued < b.issued ? 1 : -1).map(v => ({ pass_id: v.pass_id, code: v.code, issued: v.issued, valid_till: v.valid_till, claim_till: v.claim_till,
         stamps: v.stamps, need: v.need, state: v.state, redeemed_at: v.redeemed_at,
-        stampList: v.stampList.map(x => ({ stamp_id: x.stamp_id, date: x.date, partner: x.partner_name, cart: x.cart_id, sale_id: x.sale_id })) })) };
+        free_size: v.free_size, stampList: v.stampList.map(x => ({ stamp_id: x.stamp_id, date: x.date, partner: x.partner_name, cart: x.cart_id, sale_id: x.sale_id, size: String(x.size) === 'Half' ? 'Half' : 'Full' })) })) };
   }) };
 }
 
@@ -960,9 +980,12 @@ function orderSave(req, s) {
   const pay = o.pay === 'UPI' ? 'UPI' : o.pay === 'Cash' ? 'Cash' : '';
   if (!pay) fail('Choose Cash or UPI.');
   const lines = (Array.isArray(o.lines) ? o.lines : []).map(l => ({ size: String(l.size || '').slice(0, 12), qty: Math.max(0, Math.min(500, Math.round(Number(l.qty) || 0))) })).filter(l => l.qty > 0);
-  if (!lines.length) fail('Add at least one plate.');
+  // Extras (optional, newer phones): [{item_id, qty}]. Sold alone or with plates; no stamps.
+  const extrasIn = (Array.isArray(o.extras) ? o.extras : []).map(x => ({ item_id: String(x.item_id || '').slice(0, 40), qty: Math.max(0, Math.min(500, Math.round(Number(x.qty) || 0))) })).filter(x => x.qty > 0);
+  if (!lines.length && !extrasIn.length) fail('Add at least one plate.');
   const menu = getMenuIndex();
-  lines.forEach(l => { if (!menu[o.item_id + '|' + l.size]) fail('That combo or plate size is not on the menu.'); });
+  lines.forEach(l => { if (!menu[o.item_id + '|' + l.size] || isExtraType(menu[o.item_id + '|' + l.size].type)) fail('That combo or plate size is not on the menu.'); });
+  extrasIn.forEach(x => { if (!menu[x.item_id + '|Extra']) fail('That extra is not on the menu.'); });
   const cache = CacheService.getScriptCache();
   let extra = { skip: { excluded: 0, old: 0, already: 0, free: 0, cap: 0, off: 0, blocked: 0 }, newPass: false, isNew: false, note: '' };
   let lockout = null, logNew = null, freeLog = null;
@@ -970,7 +993,7 @@ function orderSave(req, s) {
     if (rowsTail('Sales', 6000).some(r => String(r.order_id) === oid)) { extra = null; return; }   // already saved
     const D = clubLoad();
     // customer
-    let c = null;
+    let c = null, billOnly = '';
     if (o.cust && o.cust.card != null) {
       const k = cardKey(o.cust.card); c = k ? D.customers.find(x => !x.deleted_at && x.card_token === k) || null : null;
       if (!c) extra.note = 'card_unknown';
@@ -984,14 +1007,14 @@ function orderSave(req, s) {
         c = { customer_id: newId('CU'), phone, name: String(o.cust.name || '').trim().slice(0, 40), card_token: newToken(), consent_at: at.toISOString(), consent_by: s.partner.name,
           created_at: new Date().toISOString(), blocked: '', blocked_by: '', deleted_at: '', flag_ok: '', verified: 'yes' };
         append('Customers', c); D.customers.push(c); extra.isNew = true; logNew = c;
-      } else if (c && !c.name && o.cust.name) { c.name = String(o.cust.name).trim().slice(0, 40); updateWhere('Customers', r => String(r.customer_id) === c.customer_id, { name: c.name }); }
+      } else if (!c && phone && o.cust.bill_only === true) billOnly = phone;   // bill only: no member, number not saved
+      else if (c && !c.name && o.cust.name) { c.name = String(o.cust.name).trim().slice(0, 40); updateWhere('Customers', r => String(r.customer_id) === c.customer_id, { name: c.name }); }
       else if (!c) extra.note = phone ? 'needs_consent' : 'bad_number';
     }
     // free meal (needs the customer, a ready card and proof: their scanned card, the code, or a founder's reason)
-    const item = menu[o.item_id + '|' + lines[0].size];
-    const sizes = Object.keys(menu).filter(k => k.indexOf(o.item_id + '|') === 0).map(k => menu[k]).sort((a, b) => Number(b.price) - Number(a.price));
-    const top = sizes[0];
-    let pv = null;
+    const sizes = Object.keys(menu).filter(k => k.indexOf(o.item_id + '|') === 0 && !isExtraType(menu[k].type)).map(k => menu[k]).sort((a, b) => Number(b.price) - Number(a.price));
+    const top = sizes[0] || { size: 'Full', price: 0, name: '' }, half = sizes.find(z => String(z.size) === 'Half') || null;
+    let pv = null, freeSize = '', useSize = '', topup = 0;
     if (o.free) {
       if (!c) fail('The free meal needs the customer. Scan their card or type their number.');
       if (truthy(c.blocked)) fail('Pedal Club is on hold for this number. Ask a founder.');
@@ -999,7 +1022,7 @@ function orderSave(req, s) {
       if (wrong >= 5) fail('Too many wrong codes for this number. Try again later or ask a founder.');
       const ready = D.passes.filter(p => p.customer_id === c.customer_id).map(p => passView(p, D, R, today)).filter(v => v.state === 'ready');
       if (!ready.length) fail('No free meal is ready on this number.');
-      if (!lines.some(l => l.size === String(top.size || 'Full'))) fail('Add a ' + (top.size || 'Full') + ' plate for the free meal.');
+      if (!lines.some(l => l.size === String(top.size || 'Full') || (half && l.size === 'Half'))) fail('Add a ' + (top.size || 'Full') + ' plate for the free meal.');
       const override = o.free.override === true && s.partner.role === 'founder';
       if (o.free.override === true && !override) fail('Only founders can give a free meal without the code.');
       if (override && String(o.free.reason || '').trim().length < 3) fail('Write why the code is not available.');
@@ -1007,22 +1030,34 @@ function orderSave(req, s) {
       pv = override || scanned ? ready[0] : ready.find(v => v.code === padCode(o.free.code) && String(o.free.code || '').replace(/\D/g, '').length === 4) || null;
       if (!pv) { cache.put(key, String(wrong + 1), 21600); if (wrong + 1 >= 5) lockout = maskPhone(c.phone); fail("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code."); }
       cache.remove(key);
-      freeLog = maskPhone(c.phone) + ' · ' + top.name + (override ? ' · ' + String(o.free.reason).trim().slice(0, 120) : '');
+      // A card with a Half stamp gives a free Half; "upgrade" makes it a Full for the difference in price.
+      // Phones from before this change don't send o.free.size: they get a free Full, as before.
+      if (pv.free_size === 'Half' && half && o.free.size) {
+        freeSize = 'Half';
+        if (o.free.upgrade === true) { useSize = String(top.size); topup = Math.max(0, Number(top.price) - Number(half.price)); }
+        else useSize = 'Half';
+      } else { freeSize = String(top.size || 'Full'); useSize = freeSize; }
+      if (!lines.some(l => l.size === useSize)) fail('Add a ' + useSize + ' plate for the free meal.');
+      freeLog = maskPhone(c.phone) + ' · ' + top.name + (freeSize === 'Half' ? ' (Half' + (topup ? ', topped up to Full' : '') + ')' : '') + (override ? ' · ' + String(o.free.reason).trim().slice(0, 120) : '');
     }
-    // plates
+    // plates, extras, free meal and top-up
     const base = { created_at: at.toISOString(), date: day, partner_id: s.partner.partner_id, partner_name: s.partner.name, cart_id: s.cart_id, item_id: o.item_id,
       status: 'ok', void_by: '', void_at: '', order_type: 'walkin', order_id: oid };
     const sales = [];
     lines.forEach(l => {
-      const m = menu[o.item_id + '|' + l.size], q = l.qty - (pv && l.size === String(top.size || 'Full') ? 1 : 0);
+      const m = menu[o.item_id + '|' + l.size], q = l.qty - (pv && l.size === useSize ? 1 : 0);
       if (q > 0) sales.push(Object.assign({}, base, { sale_id: oid + '-' + l.size, item_name: m.name, size: l.size, price: Number(m.price), qty: q, amount: Number(m.price) * q, pay, source: 'tap', ref: '' }));
     });
-    if (pv) sales.push(Object.assign({}, base, { sale_id: oid + '-free', item_name: top.name, size: String(top.size || 'Full'), price: 0, qty: 1, amount: 0, pay: 'Free', source: 'club', ref: 'club:' + pv.pass_id }));
+    if (pv) sales.push(Object.assign({}, base, { sale_id: oid + '-free', item_name: top.name, size: freeSize, price: 0, qty: 1, amount: 0, pay: 'Free', source: 'club', ref: 'club:' + pv.pass_id }));
+    if (pv && topup > 0) sales.push(Object.assign({}, base, { sale_id: oid + '-topup', item_name: top.name, size: 'Top-up', price: topup, qty: 1, amount: topup, pay, source: 'club', ref: 'topup:' + pv.pass_id }));
+    extrasIn.forEach(x => { const m = menu[x.item_id + '|Extra'];
+      sales.push(Object.assign({}, base, { sale_id: oid + '-x-' + x.item_id, item_id: x.item_id, item_name: m.name, size: 'Extra', price: Number(m.price), qty: x.qty, amount: Number(m.price) * x.qty, pay, source: 'tap', ref: '' })); });
     appendMany('Sales', sales);
     if (pv) updateWhere('Passes', r => String(r.pass_id) === pv.pass_id, { status: 'redeemed', redeemed_at: at.toISOString(), redeem_sale_id: oid + '-free', redeemed_by: s.partner.name });
-    // stamps (paid walk-in plates, the order's own day, daily limit for that day)
+    // stamps: one per paid walk-in plate, F or H (not extras or top-ups), on the order's own day, daily limit for that day (Full plates first)
     const paid = sales.filter(r => r.pay !== 'Free'), units = [];
-    paid.forEach(r => { for (let i = 0; i < r.qty; i++) units.push(r.sale_id); });
+    paid.filter(isPlate).forEach(r => { for (let i = 0; i < r.qty; i++) units.push({ sale_id: r.sale_id, size: r.size === 'Half' ? 'Half' : 'Full' }); });
+    fullFirst(units);
     if (c && units.length) {
       if (o.stamp === false) { /* bill only */ }
       else if (!R.on) extra.skip.off = units.length;
@@ -1036,22 +1071,24 @@ function orderSave(req, s) {
       }
     }
     // bill
-    if (c) {
-      confirmCard(c);
+    if (c || billOnly) {
+      if (c) confirmCard(c);
       const billsToday = rows('Bills').filter(b => b.date === today).length;
       const total = paid.reduce((n, r) => n + r.amount, 0);
       append('Bills', { bill_no: 'PP' + today.replace(/-/g, '').slice(2) + '-' + String(billsToday + 1).padStart(3, '0'), created_at: new Date().toISOString(), date: today,
-        partner_id: String(s.partner.partner_id), partner_name: s.partner.name, cart_id: s.cart_id, customer_id: c.customer_id, sale_ids: sales.map(r => r.sale_id).join(','),
-        amount: total, stamps: units.length - extra.skip.cap - extra.skip.old - extra.skip.off - extra.skip.blocked - (o.stamp === false ? units.length : 0), pass_id: '', order_id: oid });
+        partner_id: String(s.partner.partner_id), partner_name: s.partner.name, cart_id: s.cart_id, customer_id: c ? c.customer_id : '', sale_ids: sales.map(r => r.sale_id).join(','),
+        amount: total, stamps: c ? units.length - extra.skip.cap - extra.skip.old - extra.skip.off - extra.skip.blocked - (o.stamp === false ? units.length : 0) : 0, pass_id: '', order_id: oid,
+        bill_to: billOnly ? maskPhone(billOnly) : '' });
     }
   }, () => { if (lockout) logAction(s.partner.name, 'club: code lockout', lockout); });
   if (logNew) logAction(s.partner.name, 'club: new customer', maskPhone(logNew.phone));
   if (freeLog) logAction(s.partner.name, o.free && o.free.override === true ? 'club: free meal without code' : 'club: free meal', freeLog);
-  return orderResult(oid, s, extra);
+  return orderResult(oid, s, extra, o);
 }
 
 // The reply for an order (also for a repeat send): the saved plates, and the bill if there is a customer.
-function orderResult(oid, s, extra) {
+// A "bill only" bill has no customer row: its number comes from the order the phone sent (kept nowhere else).
+function orderResult(oid, s, extra, o) {
   const R = clubRules(), today = dateKey(new Date());
   const sales = rowsTail('Sales', 6000).filter(r => String(r.order_id) === oid && r.status !== 'void');
   const ids = sales.map(r => String(r.sale_id));
@@ -1061,9 +1098,9 @@ function orderResult(oid, s, extra) {
   const bill = rows('Bills').find(b => String(b.order_id) === oid);
   if (!bill) return out;
   const D = clubLoad();
-  const c = D.customers.find(x => x.customer_id === String(bill.customer_id));
-  if (!c) return out;
-  const card = customerCard(c, D, R, today);
+  const c = bill.customer_id === '' ? null : D.customers.find(x => x.customer_id === String(bill.customer_id));
+  const onlyPhone = !c && bill.customer_id === '' && o && o.cust && o.cust.bill_only === true ? normPhone(o.cust.phone) : '';
+  if (!c && !onlyPhone) return out;
   const lines = {}; const pay = { Cash: 0, UPI: 0 }; let total = 0;
   sales.forEach(r => {
     const free = r.pay === 'Free', k = r.item_name + '|' + r.size + '|' + (free ? 'free' : Number(r.price));
@@ -1071,12 +1108,20 @@ function orderResult(oid, s, extra) {
     const a = free ? 0 : Number(r.amount) || 0; l.qty += Number(r.qty) || 1; l.amount += a; total += a;
     if (r.pay === 'UPI') pay.UPI += a; else if (r.pay === 'Cash') pay.Cash += a;
   });
-  const given = D.stamps.filter(x => ids.indexOf(x.sale_id) >= 0).length;
+  const billOut = { no: String(bill.bill_no), at: sales.length ? sales[0].created_at : bill.created_at, cart_id: String(bill.cart_id), lines: Object.keys(lines).map(k => lines[k]), total, pay };
   const skip = extra ? extra.skip : { excluded: 0, old: 0, already: 0, free: 0, cap: 0, off: 0, blocked: 0 };
+  if (!c) return Object.assign(out, {
+    bill: billOut,
+    club: { on: R.on, given: 0, newPass: false, skip, need: R.stamps, stamps: 0, valid_till: '', ready: [], blocked: false, link: '', billOnly: true },
+    customer: { cid: '', name: '', masked: maskPhone(onlyPhone), isNew: false, billOnly: true },
+    wa_phone: '91' + onlyPhone, footer: R.footer,
+  });
+  const card = customerCard(c, D, R, today);
+  const given = D.stamps.filter(x => ids.indexOf(x.sale_id) >= 0).length;
   return Object.assign(out, {
-    bill: { no: String(bill.bill_no), at: sales.length ? sales[0].created_at : bill.created_at, cart_id: String(bill.cart_id), lines: Object.keys(lines).map(k => lines[k]), total, pay },
+    bill: billOut,
     club: { on: R.on, given, newPass: extra ? extra.newPass : false, skip, need: R.stamps, stamps: card.active ? card.active.stamps : 0, valid_till: card.active ? card.active.valid_till : '',
-      ready: card.ready.map(v => ({ claim_till: v.claim_till })), blocked: truthy(c.blocked), link: R.site + '/club#' + c.card_token },
+      sizes: card.active ? card.active.sizes : [], ready: card.ready.map(v => ({ claim_till: v.claim_till, free_size: v.free_size })), blocked: truthy(c.blocked), link: R.site + '/club#' + c.card_token },
     customer: { cid: c.customer_id, name: c.name || '', masked: maskPhone(c.phone), isNew: extra ? extra.isNew : false },
     wa_phone: '91' + c.phone, footer: R.footer,
   });
@@ -1090,22 +1135,23 @@ function getConfig() {
   return c;
 }
 function buildConfig() {
-  const items = {};
+  const items = {}, extras = [];
   rows('Menu').filter(r => truthy(r.active)).sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0)).forEach(r => {
+    if (isExtraType(r.type)) { if (Number(r.price) > 0 && !extras.some(x => x.item_id === String(r.item_id))) extras.push({ item_id: String(r.item_id), name: r.name, price: Number(r.price), unit: String(r.unit || '').trim() }); return; }
     const it = items[r.item_id] = items[r.item_id] || { item_id: r.item_id, name: r.name, type: String(r.type).toLowerCase().indexOf('non') === 0 ? 'nonveg' : 'veg', sizes: [] };
     it.sizes.push({ size: r.size || 'Full', price: Number(r.price) });
   });
   const settings = {}; rows('Settings').forEach(r => settings[r.key] = r.value);
   delete settings.timezone;
   return {
-    menu: Object.keys(items).map(k => items[k]),
+    menu: Object.keys(items).map(k => items[k]), extras,
     carts: rows('Carts').filter(c => truthy(c.active)).map(c => ({ cart_id: String(c.cart_id), name: c.name || c.cart_id, float: Number(c.float) || 0 })),
     settings, date: dateKey(new Date()),
   };
 }
 
 function getMenuIndex() {
-  const idx = {}; rows('Menu').forEach(r => idx[r.item_id + '|' + (r.size || 'Full')] = r); return idx;
+  const idx = {}; rows('Menu').forEach(r => idx[r.item_id + '|' + menuSize(r)] = r); return idx;
 }
 
 function todaysSales(d) {
@@ -1113,10 +1159,11 @@ function todaysSales(d) {
 }
 
 function totalsOf(list) {
-  const t = { plates: 0, total: 0, cash: 0, upi: 0, manualPlates: 0, freePlates: 0 };
+  const t = { plates: 0, total: 0, cash: 0, upi: 0, manualPlates: 0, freePlates: 0, extras: 0, extrasTotal: 0 };
   list.forEach(r => {
     const q = Number(r.qty) || 0, a = r.pay === 'Free' ? 0 : (Number(r.amount) || (Number(r.price) * q));
-    t.plates += q; t.total += a;
+    if (isPlate(r)) t.plates += q; else if (r.size === 'Extra') { t.extras += q; t.extrasTotal += a; }
+    t.total += a;
     if (r.pay === 'Free') t.freePlates += q;
     else if (r.pay === 'UPI') t.upi += a; else t.cash += a;
     if (r.source === 'manual') t.manualPlates += q;
@@ -1319,6 +1366,11 @@ function setup() {
     { item_id: 'RPCK', name: 'Reshmi Polao + Chicken Kosha', type: 'nonveg', size: 'Full', price: 80, active: 'yes', sort: 1 },
     { item_id: 'PMP', name: 'Polao + Matar Paneer', type: 'veg', size: 'Full', price: 70, active: 'yes', sort: 2 },
   ]);
+  // Extras: added once. To stop selling one, switch it off (active = no) rather than deleting the row.
+  if (!rows('Menu').some(r => isExtraType(r.type))) appendMany('Menu', [
+    { item_id: 'XRICE', name: 'Extra rice', type: 'extra', size: 'Extra', price: 50, active: 'yes', sort: 90, website: 'no', unit: '' },
+    { item_id: 'XCHK', name: 'Extra chicken', type: 'extra', size: 'Extra', price: 30, active: 'yes', sort: 91, website: 'no', unit: 'piece' },
+  ]);
   if (!rows('Partners').some(p => p.role === 'founder')) {
     const salt = Utilities.getUuid();
     append('Partners', { partner_id: 'F1', name: FIRST_FOUNDER_NAME, role: 'founder', cart_id: '', phone: '', backup: 'no', active: 'yes',
@@ -1406,7 +1458,7 @@ function buildDailyReport(day) {
   if (voids.length) flags.push(`${voids.length} sale${voids.length > 1 ? 's' : ''} undone.`);
 
   // combos
-  const items = {}; sales.forEach(x => { const k = x.item_name || x.item_id; const o = items[k] = items[k] || { plates: 0, total: 0, full: 0, half: 0 }; const q = Number(x.qty) || 0; o.plates += q; o.total += x.pay === 'Free' ? 0 : (Number(x.amount) || 0); if ((x.size || 'Full') === 'Half') o.half += q; else o.full += q; });
+  const items = {}, extrasBy = {}; sales.forEach(x => { if (!isPlate(x)) { if (x.size === 'Extra') { const e = extrasBy[x.item_name || x.item_id] = extrasBy[x.item_name || x.item_id] || { qty: 0, total: 0 }; e.qty += Number(x.qty) || 0; e.total += Number(x.amount) || 0; } return; } const k = x.item_name || x.item_id; const o = items[k] = items[k] || { plates: 0, total: 0, full: 0, half: 0 }; const q = Number(x.qty) || 0; o.plates += q; o.total += x.pay === 'Free' ? 0 : (Number(x.amount) || 0); if ((x.size || 'Full') === 'Half') o.half += q; else o.full += q; });
   const leftTotal = rowsP.reduce((n, x) => n + (x.left || 0), 0), anyLeft = rowsP.some(x => x.left != null);
 
   // Pedal Club
@@ -1443,6 +1495,8 @@ function buildDailyReport(day) {
   h += h2('By combo');
   const il = Object.keys(items).sort((a, b) => items[b].plates - items[a].plates);
   h += il.length ? `<table style="width:100%;border-collapse:collapse"><tr>${th('Combo')}${th('Full', R)}${th('Half', R)}${th('Sales', R)}</tr>${il.map(k => `<tr>${td(k)}${td(items[k].full, R)}${td(items[k].half || '–', R)}${td(money(items[k].total), R)}</tr>`).join('')}</table>` : '';
+  const el = Object.keys(extrasBy);
+  if (el.length) h += `<p style="font-size:14px;margin:10px 0 0">Extras: ${el.map(k => `${k} × <b>${extrasBy[k].qty}</b> (${money(extrasBy[k].total)})`).join(' · ')}</p>`;
   if (anyLeft) h += `<p style="font-size:14px;margin:10px 0 0">Plates left over at close: <b>${leftTotal}</b>${t.plates ? ` (${Math.round(leftTotal * 100 / (t.plates + leftTotal))}% of what was cooked)` : ''}</p>`;
   if (club) { h += h2('Pedal Club'); h += `<table role="presentation" style="width:100%;border-collapse:separate;border-spacing:8px;margin:0 -8px"><tr>${box('Stamps given', club.stamps)}${box('New members', club.newMembers)}${box('Free meals', club.free)}${box('Bills sent', club.bills)}</tr></table>`; }
   h += h2('Last 7 days');
@@ -1454,7 +1508,7 @@ function buildDailyReport(day) {
     ...rowsP.map(x => `${x.name}: ${x.t.plates} plates, cash ${money(x.t.cash)}, UPI ${money(x.t.upi)}, ${!x.closed ? 'NOT CLOSED' : x.diff === 0 ? 'matches' : money(Math.abs(x.diff)) + (x.diff < 0 ? ' short' : ' over')}`)].join('\n');
   const wa = [`*Pedal Plate · ${nice(day)}*`,
     `Sales ${money(t.total)} · ${t.plates} plates${ch == null ? '' : ` (${ch >= 0 ? '+' : ''}${ch}% vs last week)`}`,
-    `Cash ${money(t.cash)} · UPI ${money(t.upi)}`, '',
+    `Cash ${money(t.cash)} · UPI ${money(t.upi)}`, ...(t.extras ? [`Extras: ${t.extras} (${money(t.extrasTotal)})`] : []), '',
     flags.length ? '*Needs a look:*' : '✅ All clear', ...flags.map(f => '• ' + f), '',
     ...rowsP.map(x => `${x.name}: ${x.t.plates} pl, ${!x.closed ? 'not closed' : x.diff === 0 ? 'cash ok' : money(Math.abs(x.diff)) + (x.diff < 0 ? ' short' : ' over')}`),
     ...(club ? ['', `Pedal Club: ${club.stamps} stamps · ${club.newMembers} new · ${club.free} free meals`] : []),
