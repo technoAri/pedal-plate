@@ -141,6 +141,7 @@
   .sdots i.free{border-color:var(--basil);border-style:dashed;opacity:1}
   .sdots.fh i{width:24px;height:24px;font-style:normal;font-size:.68rem;font-weight:800;display:grid;place-items:center;line-height:1}
   .sdots i.on{color:var(--on)} .sdots i.on.h{background:var(--surface);color:var(--brand)}
+  .fairban{display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:10px;border-radius:12px;background:var(--brand);color:var(--on);font-weight:700;font-size:.85rem}
   .extras{display:grid;gap:6px;margin:-2px 0 12px}
   .extras > small{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
   .ex{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
@@ -309,8 +310,13 @@ const DemoApi = (() => {
   const fullFirst = u => u.filter(x => x.size !== 'Half').concat(u.filter(x => x.size === 'Half'));
   const save = () => store.set('demo_db', db);
   const pub = (p, cart) => ({partner_id:p.partner_id,name:p.name,role:p.role,cart_id:cart!=null?cart:p.cart_id,backup:!!p.backup,active:!!p.active});
-  const cfg = () => ({menu:db.menu.filter(m => m.active !== false && m.type !== 'extra').map(({active, ...m}) => m),
-    extras:db.menu.filter(m => m.active !== false && m.type === 'extra').map(m => ({item_id:m.item_id, name:m.name, price:m.sizes[0].price, unit:m.unit||''})),carts:db.carts,settings:{undo_minutes:'2',club_on:'yes',club_stamps:'9',club_days:'30',club_daily_cap:'4'},date:todayKey()});
+  // Special (fair) prices per cart, same as configFor / getMenuIndex(cart) in Code.gs.
+  const cartSp = id => { const c = db.carts.find(x => x.cart_id === id); const o = {}; if (c && c.special) (c.prices || []).forEach(p => o[p.item_id + '|' + p.size] = p.price); return o; };
+  const menuAt = id => { const sp = cartSp(id); return db.menu.map(m => { const c = JSON.parse(JSON.stringify(m));
+    c.sizes.forEach(z => { const k = c.item_id + '|' + z.size; if (sp[k]) { z.base_price = z.price; z.price = sp[k]; } });
+    Object.keys(sp).forEach(k => { const [i, z] = k.split('|'); if (i === c.item_id && !c.sizes.some(x => x.size === z)) c.sizes.push({size: z, price: sp[k]}); }); return c; }); };
+  const cfg = (cart) => ({menu:menuAt(cart).filter(m => m.active !== false && m.type !== 'extra').map(({active, ...m}) => m), cart_special:Object.keys(cartSp(cart)).length ? true : undefined,
+    extras:menuAt(cart).filter(m => m.active !== false && m.type === 'extra').map(m => ({item_id:m.item_id, name:m.name, price:m.sizes[0].price, unit:m.unit||''})),carts:db.carts.filter(c => c.active !== false).map(c => ({cart_id:c.cart_id, name:c.name, float:c.float})),settings:{undo_minutes:'2',club_on:'yes',club_stamps:'9',club_days:'30',club_daily_cap:'4'},date:todayKey()});
   // Pedal Club rules, same defaults as the Settings tab in Code.gs.
   const CR = {on:true, stamps:9, days:30, cap:4, minutes:60, grace:7, newFlag:15, site:'https://pedalplate.in', footer:'Thank you! Pre-book on WhatsApp: +91 76991 49899'};
   const mask = p => p ? p.slice(0,2) + '•••••' + p.slice(-3) : '';
@@ -333,11 +339,17 @@ const DemoApi = (() => {
   const newPin = () => { let p; do { p = String(Math.floor(1000 + Math.random()*9000)); } while (db.partners.some(x => x.pin === p)); return p; };
   const demoPin = (want, self) => { if (want == null || String(want).trim() === '') return newPin(); want = String(want).trim(); if (!/^\d{4}$/.test(want)) throw new Error('The PIN must be 4 digits.'); if (/^(\d)\1+$/.test(want)) throw new Error('Choose a PIN that is harder to guess (not 1111, 2222…).'); if (db.partners.some(x => x !== self && x.pin === want)) throw new Error('That PIN is already in use. Choose another.'); return want; };
   const A = {
-    login({pin}) { const p = db.partners.find(x => x.pin === String(pin)); if (!p) throw new Error("That PIN isn't recognised. Try again."); if (!p.active) throw new Error(p.name + "'s PIN is switched off. Ask a founder."); const token = uid(); db.sessions[token] = {pid:p.partner_id, cart:p.cart_id}; save(); return {token, me:pub(p), config:cfg()}; },
-    config({token}) { const s = sess(token); return {config:cfg(), me:pub(s.p, s.cart)}; },
-    setCart({token, cart_id}) { const s = sess(token); db.sessions[token].cart = cart_id; save(); return {me:pub(s.p, cart_id)}; },
+    login({pin}) { const p = db.partners.find(x => x.pin === String(pin)); if (!p) throw new Error("That PIN isn't recognised. Try again."); if (!p.active) throw new Error(p.name + "'s PIN is switched off. Ask a founder."); const token = uid(); db.sessions[token] = {pid:p.partner_id, cart:p.cart_id}; save(); return {token, me:pub(p), config:cfg(p.cart_id)}; },
+    config({token}) { const s = sess(token); return {config:cfg(s.cart), me:pub(s.p, s.cart)}; },
+    cartsList({token}) { founder(sess(token)); return {carts:db.carts.map(c => Object.assign({active:true, special:false, prices:[]}, c)), menu:menuAll()}; },
+    cartsSave({token, cart_id, name, float, active, special, prices}) { const s = sess(token); founder(s); name = String(name||'').trim(); if (!name) throw new Error('Enter the cart name.');
+      if (db.carts.some(c => c.cart_id !== cart_id && c.name.toLowerCase() === name.toLowerCase())) throw new Error('Another cart already has that name.');
+      prices = (prices||[]).filter(p => +p.price > 0).map(p => ({item_id:p.item_id, size:p.size, price:Math.round(+p.price)}));
+      let c = db.carts.find(x => x.cart_id === cart_id); if (!c) { let n = db.carts.length + 1; while (db.carts.some(x => x.cart_id === 'C' + n)) n++; c = {cart_id:'C' + n}; db.carts.push(c); }
+      Object.assign(c, {name, float:Math.max(0, Math.round(+float||0)), active:active !== false, special:special === true, prices}); log(s.p.name, 'cart', c.cart_id + ' ' + name); save(); return A.cartsList({token}); },
+    setCart({token, cart_id}) { const s = sess(token); db.sessions[token].cart = cart_id; save(); return {me:pub(s.p, cart_id), config:cfg(cart_id)}; },
     record({token, sales}) { const s = sess(token); const ids = new Set(db.sales.map(r => r.sale_id)); const saved = [];
-      (sales||[]).forEach(x => { if (ids.has(x.sale_id)) { saved.push(x.sale_id); return; } const it = db.menu.find(m => m.item_id === x.item_id); const sz = it && it.sizes.find(z => z.size === x.size);
+      (sales||[]).forEach(x => { if (ids.has(x.sale_id)) { saved.push(x.sale_id); return; } const it = menuAt(s.cart).find(m => m.item_id === x.item_id); const sz = it && it.sizes.find(z => z.size === x.size);
         const price = x.source === 'manual' && x.price > 0 ? +x.price : sz ? sz.price : 0; if (!price || !x.pay) return;
         db.sales.push({sale_id:x.sale_id,created_at:x.created_at,date:todayKey(),partner_id:s.p.partner_id,partner_name:s.p.name,cart_id:s.cart,item_id:x.item_id,item_name:it?it.name:x.item_id,size:x.size,price,qty:x.qty||1,amount:price*(x.qty||1),pay:x.pay,source:x.source,status:'ok',order_type:x.order_type||'walkin'}); saved.push(x.sale_id); });
       save(); return {saved}; },
@@ -374,12 +386,12 @@ const DemoApi = (() => {
     // One order saved whole (same rules as orderSave in Code.gs, for training)
     orderSave({token, order: o}) { const s = sess(token);
       const reply = () => { const sales = db.sales.filter(r => r.order_id === o.order_id && r.status !== 'void'); const out = {order_id: o.order_id, saved: sales.map(r => r.sale_id)};
-        const fr = sales.find(r => r.pay === 'Free'); if (fr) out.free = {sale_id: fr.sale_id, item_name: fr.item_name, size: fr.size, value: (db.menu.find(m => m.item_id === fr.item_id).sizes.find(z => z.size === fr.size) || {}).price || 0};
+        const fr = sales.find(r => r.pay === 'Free'); if (fr) out.free = {sale_id: fr.sale_id, item_name: fr.item_name, size: fr.size, value: (menuAt(fr.cart_id).find(m => m.item_id === fr.item_id).sizes.find(z => z.size === fr.size) || {}).price || 0};
         return out; };
       if (db.sales.some(r => r.order_id === o.order_id)) return Object.assign(reply(), o._bill || {}, {repeat: true});
       const lines = (o.lines || []).filter(l => l.qty > 0), xs = (o.extras || []).filter(x => x.qty > 0);
       if (!lines.length && !xs.length) throw new Error('Add at least one plate.');
-      const it = db.menu.find(m => m.item_id === o.item_id && m.type !== 'extra'); if (lines.length && !it) throw new Error('That combo or plate size is not on the menu.');
+      const it = menuAt(s.cart).find(m => m.item_id === o.item_id && m.type !== 'extra'); if (lines.length && !it) throw new Error('That combo or plate size is not on the menu.');
       xs.forEach(x => { if (!db.menu.some(m => m.item_id === x.item_id && m.type === 'extra')) throw new Error('That extra is not on the menu.'); });
       const top = it ? it.sizes.slice().sort((a, b) => b.price - a.price)[0] : null, half = it && it.sizes.find(z => z.size === 'Half');
       let c = null, note = '', only = '';
@@ -403,7 +415,7 @@ const DemoApi = (() => {
       if (pv) { row({sale_id: o.order_id + '-free', item_name: it.name, size: freeSize, price: 0, qty: 1, amount: 0, pay: 'Free', source: 'club', ref: 'club:' + pv.pass_id});
         if (topup > 0) row({sale_id: o.order_id + '-topup', item_name: it.name, size: 'Top-up', price: topup, qty: 1, amount: topup, source: 'club', ref: 'topup:' + pv.pass_id});
         const pp = db.passes.find(x => x.pass_id === pv.pass_id); pp.status = 'redeemed'; pp.redeem_sale_id = o.order_id + '-free'; }
-      xs.forEach(x => { const m = db.menu.find(y => y.item_id === x.item_id); row({sale_id: o.order_id + '-x-' + x.item_id, item_id: x.item_id, item_name: m.name, size: 'Extra', price: m.sizes[0].price, qty: x.qty, amount: m.sizes[0].price * x.qty}); });
+      xs.forEach(x => { const m = menuAt(s.cart).find(y => y.item_id === x.item_id); row({sale_id: o.order_id + '-x-' + x.item_id, item_id: x.item_id, item_name: m.name, size: 'Extra', price: m.sizes[0].price, qty: x.qty, amount: m.sizes[0].price * x.qty}); });
       save();
       if (only) { const sales = db.sales.filter(r => r.order_id === o.order_id), today = todayKey(); const no = 'PP' + today.replace(/-/g,'').slice(2) + '-' + String(db.bills.filter(b => b.date === today).length + 1).padStart(3,'0');
         const lines2 = {}, pay = {Cash:0, UPI:0}; let total = 0; sales.forEach(r => { const k2 = r.item_name+'|'+r.size+'|'+r.price; const l = lines2[k2] = lines2[k2] || {name:r.item_name, size:r.size, qty:0, price:r.price, amount:0, free:false}; l.qty += r.qty; l.amount += r.amount; total += r.amount; pay[r.pay] += r.amount; });
@@ -430,7 +442,7 @@ const DemoApi = (() => {
       const km = card != null ? String(card).match(/([a-f0-9]{32,48})\s*$/i) : null; const scanned = !!(km && km[1].toLowerCase() === c.card_token);
       if (card != null && !scanned && override !== true) throw new Error('That card belongs to someone else. Scan the right card or type the code.');
       const p = override === true || scanned ? ready[0] : ready.find(v => v.code === String(code||'')); if (!p) { wrong[cid] = (wrong[cid]||0) + 1; throw new Error("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code."); }
-      const it = db.menu.find(m => m.item_id === item_id && m.active !== false); if (!it) throw new Error("Choose one of today's combos.");
+      const it = menuAt(s.cart).find(m => m.item_id === item_id && m.active !== false); if (!it) throw new Error("Choose one of today's combos.");
       const z = it.sizes.slice().sort((a,b) => b.price - a.price)[0];
       const sale = {sale_id:'CLUB'+uid().slice(0,8), created_at:new Date().toISOString(), date:todayKey(), partner_id:s.p.partner_id, partner_name:s.p.name, cart_id:s.cart, item_id, item_name:it.name, size:z.size, price:0, qty:1, amount:0, pay:'Free', source:'club', status:'ok', order_type:'walkin', ref:'club:'+p.pass_id};
       db.sales.push(sale); const pp = db.passes.find(x => x.pass_id === p.pass_id); pp.status = 'redeemed'; pp.redeemed_at = sale.created_at; pp.redeem_sale_id = sale.sale_id; delete wrong[cid];
@@ -450,7 +462,7 @@ const DemoApi = (() => {
     clubForget({token, cid}) { const s = sess(token); founder(s); const c = db.customers.find(x => x.customer_id === cid && !x.deleted_at); if (!c) throw new Error('Customer not found or already deleted.'); Object.assign(c, {phone:'', name:'', card_token:'', deleted_at:new Date().toISOString()}); log(s.p.name,'club: deleted customer data',cid); save(); return {}; },
     clubUndoRedeem({token, pass_id}) { const s = sess(token); founder(s); const p = db.passes.find(x => x.pass_id === pass_id && x.status === 'redeemed'); if (!p) throw new Error('That free meal was not found.'); const r = db.sales.find(x => x.sale_id === p.redeem_sale_id); if (r) r.status = 'void'; p.status = 'open'; log(s.p.name,'club: free meal cancelled',pass_id); save(); return {}; },
     clubFlagOk({token, kind, id}) { const s = sess(token); founder(s); const x = kind === 'customer' ? db.customers.find(c => c.customer_id === id) : db.passes.find(p => p.pass_id === id); if (!x) throw new Error('Not found.'); x.flag_ok = true; save(); return {}; },
-    mine({token}) { const s = sess(token); return {totals:tot(live().filter(r => r.partner_id === s.p.partner_id)), close:db.closes.filter(c=>c.date===todayKey()&&c.partner_id===s.p.partner_id).pop()||null, config:cfg(), me:pub(s.p, s.cart)}; },
+    mine({token}) { const s = sess(token); return {totals:tot(live().filter(r => r.partner_id === s.p.partner_id)), close:db.closes.filter(c=>c.date===todayKey()&&c.partner_id===s.p.partner_id).pop()||null, config:cfg(s.cart), me:pub(s.p, s.cart)}; },
     changePin({token, old_pin, new_pin}) { const s = sess(token); if (s.p.pin !== String(old_pin)) throw new Error('Your current PIN is not right.'); if (!/^\d{4,6}$/.test(new_pin||'')) throw new Error('The new PIN must be 4 to 6 digits.'); if (/^(\d)\1+$/.test(new_pin)) throw new Error('Choose a PIN that is harder to guess.'); if (db.partners.some(p => p !== s.p && p.pin === new_pin)) throw new Error('That PIN is already in use. Choose another.'); s.p.pin = String(new_pin); log(s.p.name,'changed own PIN',''); save(); return {}; },
     menuList({token}) { founder(sess(token)); return {menu:menuAll()}; },
     menuUpdate({token, item_id, active, prices, name, website, days, photo}) { const s = sess(token); founder(s); const m = db.menu.find(x => x.item_id === item_id); if (!m) throw new Error('That combo is not in the Menu tab.');
@@ -889,8 +901,9 @@ function vSell() {
   const sizes = it.sizes.slice().sort(bySize);
   app.innerHTML = topbar() + `
     ${lastBillStrip()}
+    ${cfg().cart_special ? `<div class="fairban">🎪 ${esc(cartName(cart))} prices</div>` : ''}
     <button class="combo-pick" data-v="combo"><span class="mark ${it.type}" aria-hidden="true"><i></i></span><span><small>Today's combo · tap to change</small><b>${esc(it.name)}</b></span></button>
-    <div class="plates">${sizes.map(z => { const n = o.counts[z.size] || 0; return `<div class="pl ${n ? 'on' : ''}"><button class="add" data-cnt="${esc(z.size)}|1" aria-label="Add one ${esc(z.size)} plate"><small>${esc(z.size)}</small><b class="num">${rs(z.price)}</b><em class="num">${n}</em><span class="plus">+ add</span></button><button class="minus" data-cnt="${esc(z.size)}|-1" aria-label="One ${esc(z.size)} less" ${n ? '' : 'disabled'}>− 1</button></div>`; }).join('')}</div>
+    <div class="plates">${sizes.map(z => { const n = o.counts[z.size] || 0; return `<div class="pl ${n ? 'on' : ''}"><button class="add" data-cnt="${esc(z.size)}|1" aria-label="Add one ${esc(z.size)} plate"><small>${esc(z.size)}</small><b class="num">${rs(z.price)}</b>${z.base_price && z.base_price !== z.price ? `<s class="num" style="font-size:.75rem;color:var(--soft);line-height:1">${rs(z.base_price)}</s>` : ''}<em class="num">${n}</em><span class="plus">+ add</span></button><button class="minus" data-cnt="${esc(z.size)}|-1" aria-label="One ${esc(z.size)} less" ${n ? '' : 'disabled'}>− 1</button></div>`; }).join('')}</div>
     ${extrasBox()}
     ${custBox(it)}
     ${freeBill(it)}
@@ -1074,6 +1087,7 @@ function vMore() {
    <button class="btn" data-v="missed">Bulk, delivery or missed sale</button>
    <button class="btn" data-v="combo">Change today's combo</button>
    <button class="btn" data-v="cart">Change cart · ${esc(cartName(u.cart_id))}</button>
+   ${isFounder() ? '<button class="btn" data-v="carts">Carts and fair prices</button>' : ''}
    <button class="btn" data-v="me">Change my PIN</button>
    <button class="btn ghost" data-a="logout">Switch partner (log out)</button></div>`;
 }
@@ -1267,6 +1281,7 @@ function vMenu() {
        <label>Photo <span class="muted" style="font-weight:500">name of a photo already on the website, or blank</span><input name="photo" maxlength="60" value="${esc(m.photo || '')}" placeholder="e.g. polao-chicken" autocomplete="off"></label>
        <button class="mini" style="min-height:40px">Save</button></form></details></div>`;
   app.innerHTML = topbar() + `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h1>Menu</h1><button class="btn primary" style="flex:none" data-v="madd">+ Add combo</button></div>
+   <button class="btn" style="margin-bottom:10px" data-v="carts">Carts and fair prices ›</button>
    <p class="hint" style="margin-bottom:10px">Switch on only today's combos. Partners' phones pick up changes within a minute, and the website menu within 5 minutes.</p>
    <div class="plist">${on.map(card).join('') || '<p class="muted">Nothing is on today. Switch a combo on below.</p>'}</div>
    ${off.length ? `<h2 style="margin:18px 0 8px">Not on today</h2><div class="plist">${off.map(card).join('')}</div>` : ''}
@@ -1277,6 +1292,39 @@ function vMenu() {
   app.querySelectorAll('[data-mprice]').forEach(f => f.onsubmit = async e => { e.preventDefault(); const prices = {};
     f.querySelectorAll('input').forEach(i => { if (i.value !== '') prices[i.name] = +i.value; });
     try { S.founderData = await api('menuUpdate', {item_id: f.dataset.mprice, prices}); toast('Prices saved'); render(); } catch (err) { handleError(err); } });
+}
+
+/* ----- founder: carts and special (fair) prices -----
+   A cart with "special prices" sells at its own prices: whoever picks that cart sells at them.
+   Blank = the normal Menu price. A Half priced here but not on the menu is sold only at this cart. */
+function vCarts() {
+  const d = S.founderData;
+  if (!d || !d.carts) { app.innerHTML = topbar() + '<p class="muted"><span class="spin"></span>Loading carts…</p>'; if (!d) load('cartsList'); return; }
+  app.innerHTML = topbar() + `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h1>Carts</h1><button class="btn primary" style="flex:none" data-cedit="new">+ Add cart</button></div>
+   <div class="plist">${d.carts.map(c => `<div class="pp"><div class="line"><div class="meta"><b>${esc(c.name)}</b><small><span class="pill ${c.active ? 'act' : 'off'}">${c.active ? 'On' : 'Off'}</span>${c.special ? ' <span class="pill end">Special prices</span>' : ''} Float ${rs(c.float)}${c.special ? '' : ' · Normal prices'}</small></div><button class="mini" data-cedit="${esc(c.cart_id)}">Edit</button></div></div>`).join('')}</div>
+   <p class="hint" style="margin-top:10px">Partners pick their cart under More → Change cart. Switch a cart off when the fair ends; its sales stay in reports.</p>
+   <div class="row"><button class="btn ghost" data-v="menu">Back to Menu</button></div>`;
+}
+function vCartEdit() {
+  const d = S.founderData;
+  if (!d || !d.carts) { S.view = 'carts'; vCarts(); return; }
+  const c = d.carts.find(x => x.cart_id === S.cartEdit) || {cart_id: '', name: '', float: 500, active: true, special: false, prices: []};
+  const pv = (id, z) => { const p = c.prices.find(x => x.item_id === id && x.size === z); return p ? p.price : ''; };
+  const combos = d.menu.filter(m => m.type !== 'extra'), xs = d.menu.filter(m => m.type === 'extra');
+  const box = (m, z) => { const base = m.sizes.find(x => x.size === z); return `<label>${esc(z === 'Extra' ? m.name : z)} <span class="muted" style="font-weight:500">${base ? '(normal ' + rs(base.price) + ')' : '(not on menu)'}</span><input type="number" inputmode="numeric" min="1" data-pr="${esc(m.item_id)}|${esc(z)}" value="${pv(m.item_id, z)}" placeholder="${base ? rs(base.price) : 'not sold'}"></label>`; };
+  app.innerHTML = topbar() + `<h1 style="margin-bottom:12px">${c.cart_id ? 'Edit ' + esc(c.name) : 'Add a cart'}</h1>
+   <form class="stack" id="cForm">
+    <div class="grid2"><label>Cart name<input id="cName" maxlength="40" value="${esc(c.name)}" placeholder="e.g. Food fair" required></label><label>Morning float (₹)<input id="cFloat" type="number" inputmode="numeric" min="0" value="${c.float}"></label></div>
+    <label class="chk"><input type="checkbox" id="cOn" ${c.active ? 'checked' : ''}><span>Cart is on<small>Off: partners can't pick it. Its sales stay in reports.</small></span></label>
+    <label class="freeq up"><span>Special prices at this cart</span><input type="checkbox" id="cSp" ${c.special ? 'checked' : ''} role="switch"></label>
+    <p class="hint">Blank = normal price. Only this cart changes; the other carts keep normal prices. Turning special prices off keeps the prices below for next time.</p>
+    ${combos.map(m => `<div class="card" style="gap:8px"><b>${esc(m.name)}</b>${m.active ? '' : ' <small class="muted">not on today</small>'}<div class="grid2">${box(m, 'Full')}${box(m, 'Half')}</div></div>`).join('')}
+    ${xs.length ? `<div class="card" style="gap:8px"><b>Extras</b><div class="grid2">${xs.map(m => box(m, 'Extra')).join('')}</div></div>` : ''}
+    <div class="row" style="margin:0"><button type="button" class="btn ghost" data-v="carts">Cancel</button><button class="btn primary">Save cart</button></div></form>`;
+  $('#cForm').onsubmit = async e => { e.preventDefault();
+    const prices = [...app.querySelectorAll('[data-pr]')].filter(i => i.value !== '').map(i => { const [item_id, size] = i.dataset.pr.split('|'); return {item_id, size, price: +i.value}; });
+    try { S.founderData = await api('cartsSave', {cart_id: c.cart_id, name: $('#cName').value.trim(), float: +$('#cFloat').value || 0, active: $('#cOn').checked, special: $('#cSp').checked, prices});
+      toast('Cart saved'); S.view = 'carts'; refreshMine().then(render); render(); } catch (err) { handleError(err); } };
 }
 
 function vMenuAdd() {
@@ -1337,7 +1385,7 @@ async function exportCsv(kind) {
     toast(full.sales.length + ' sales downloaded'); } catch (err) { handleError(err); }
 }
 
-const VIEWS = {sell: vSell, bills: vBills, combo: vPickCombo, day: vDay, more: vMore, missed: vMissed, cart: vCart, close: vClose, me: vMe, today: vToday, menu: vMenu, madd: vMenuAdd, report: vReport, club: vClub, clubc: vClubC, partners: vPartners, add: vAdd, log: vLog};
+const VIEWS = {carts: vCarts, cartedit: vCartEdit, sell: vSell, bills: vBills, combo: vPickCombo, day: vDay, more: vMore, missed: vMissed, cart: vCart, close: vClose, me: vMe, today: vToday, menu: vMenu, madd: vMenuAdd, report: vReport, club: vClub, clubc: vClubC, partners: vPartners, add: vAdd, log: vLog};
 function render() {
   $('#demo').hidden = !DEMO;
   if (!S.session) { $('#tabs').hidden = true; vLogin(); return; }
@@ -1356,9 +1404,10 @@ document.addEventListener('click', async e => {
   if (b.dataset.pay) { finishOrder(b.dataset.pay); return; }
   if (b.dataset.pick) { store.set(comboKey(), {day: todayKey(), item_id: b.dataset.pick}); S.order = newOrder(); S.view = 'sell'; render(); toast('Selling ' + ((cfg().menu.find(m => m.item_id === b.dataset.pick) || {}).name || '')); return; }
   if (b.dataset.cpick) { const o = order(); setCust(o.typing.matches.find(m => m.cid === b.dataset.cpick)); vSell(); return; }
-  if (b.dataset.v) { S.view = b.dataset.v; if (['today','partners','log','menu','report','club'].includes(S.view)) S.founderData = null; if (S.view !== 'partners') S.newPin = null; S.confirm = null; S.manual = null; render(); window.scrollTo(0, 0); return; }
+  if (b.dataset.v) { S.view = b.dataset.v; if (['today','partners','log','menu','report','club','carts'].includes(S.view)) S.founderData = null; if (S.view !== 'partners') S.newPin = null; S.confirm = null; S.manual = null; render(); window.scrollTo(0, 0); return; }
   if (b.dataset.ca) { clubAction(b); return; }
-  if (b.dataset.cart) { try { const r = await api('setCart', {cart_id: b.dataset.cart}); S.session.me = r.me; persist(); S.view = 'sell'; render(); toast('Selling on ' + cartName(r.me.cart_id)); } catch (err) { handleError(err); } return; }
+  if (b.dataset.cedit) { S.cartEdit = b.dataset.cedit === 'new' ? '' : b.dataset.cedit; S.view = 'cartedit'; render(); return; }
+  if (b.dataset.cart) { try { const r = await api('setCart', {cart_id: b.dataset.cart}); S.session.me = r.me; if (r.config) S.session.config = r.config; S.order = newOrder(); persist(); S.view = 'sell'; render(); toast('Selling on ' + cartName(r.me.cart_id)); } catch (err) { handleError(err); } return; }
   if (b.dataset.setpin) { const pt = (S.founderData && S.founderData.partners || []).find(x => x.partner_id === b.dataset.setpin); S.setPin = {id: b.dataset.setpin, name: pt ? pt.name : ''}; render(); return; }
   if (b.dataset.reset) { try { const r = await api('partnersResetPin', {partner_id: b.dataset.reset}); S.newPin = {name: r.partner.name, pin: r.pin}; S.founderData = null; render(); } catch (err) { handleError(err); } return; }
   if (b.dataset.mtoggle) { try { S.founderData = await api('menuUpdate', {item_id: b.dataset.mtoggle, active: b.dataset.on === '1'}); toast(b.dataset.on === '1' ? 'On today' : 'Switched off'); render(); } catch (err) { handleError(err); } return; }

@@ -17,7 +17,10 @@
 const SCHEMA = {
   Settings: ['key', 'value', 'note'],
   Menu:     ['item_id', 'name', 'type', 'size', 'price', 'active', 'sort', 'website', 'days', 'photo', 'unit'],
-  Carts:    ['cart_id', 'name', 'float', 'active'],
+  // Carts.special = yes: this cart sells at its own prices (CartPrices tab), e.g. a food fair stall.
+  Carts:    ['cart_id', 'name', 'float', 'active', 'special'],
+  // Special prices per cart. A size missing from the Menu tab (e.g. a Half sold only at the fair) is sold only at that cart.
+  CartPrices: ['cart_id', 'item_id', 'size', 'price'],
   Partners: ['partner_id', 'name', 'role', 'cart_id', 'phone', 'backup', 'active', 'start_date', 'pin_hash', 'salt', 'created_at'],
   Sessions: ['token', 'partner_id', 'cart_id', 'expires_at'],
   Sales:    ['sale_id', 'created_at', 'date', 'partner_id', 'partner_name', 'cart_id', 'item_id', 'item_name', 'size', 'price', 'qty', 'amount', 'pay', 'source', 'status', 'void_by', 'void_at', 'order_type', 'ref', 'order_id'],
@@ -94,7 +97,9 @@ function fail(msg) { const e = new Error(msg); e.userMessage = msg; throw e; }
 
 const ACTIONS = {
   login: { public: true, fn: login },
-  config: { fn: (req, s) => ({ config: getConfig(), me: publicPartner(s.partner, s.cart_id) }) },
+  config: { fn: (req, s) => ({ config: configFor(s.cart_id), me: publicPartner(s.partner, s.cart_id) }) },
+  cartsList: { founder: true, fn: () => ({ carts: cartsAll(), menu: menuAll() }) },
+  cartsSave: { founder: true, fn: cartsSave },
   record: { fn: recordSales },
   void: { fn: voidSale },
   mine: { fn: mineToday },
@@ -132,7 +137,7 @@ const ACTIONS = {
     if (!cart) fail('That cart is not active.');
     withLock(() => updateWhere('Sessions', r => r.token === req.token, { cart_id: String(cart.cart_id) }));
     rememberSession({ token: req.token, partner_id: s.partner.partner_id, cart_id: String(cart.cart_id), expires_at: s.expires_at }, s.partner.salt);
-    return { me: publicPartner(s.partner, String(cart.cart_id)) };
+    return { me: publicPartner(s.partner, String(cart.cart_id)), config: configFor(String(cart.cart_id)) };
   } },
 };
 
@@ -161,13 +166,13 @@ function login(req) {
     append('Sessions', sess);
   });
   rememberSession(sess, p.salt);
-  return { token, me: publicPartner(p, cart), config: getConfig(), expires_in_hours: hours };
+  return { token, me: publicPartner(p, cart), config: configFor(cart), expires_in_hours: hours };
 }
 
 function recordSales(req, s) {
   const list = Array.isArray(req.sales) ? req.sales.slice(0, 200) : [];
   if (!list.length) return { saved: [] };
-  const menu = getMenuIndex();
+  const menu = getMenuIndex(s.cart_id);
   const saved = [];
   withLock(() => {
     const seen = new Set(rowsTail('Sales', 4000).map(r => r.sale_id));
@@ -227,7 +232,7 @@ function mineToday(req, s) {
   const d = dateKey(new Date());
   const sales = todaysSales(d).filter(r => String(r.partner_id) === String(s.partner.partner_id));
   const close = rows('Closes').filter(r => r.date === d && String(r.partner_id) === String(s.partner.partner_id)).pop() || null;
-  return { date: d, totals: totalsOf(sales), close, config: getConfig(), me: publicPartner(s.partner, s.cart_id) };
+  return { date: d, totals: totalsOf(sales), close, config: configFor(s.cart_id), me: publicPartner(s.partner, s.cart_id) };
 }
 
 function closeDay(req, s) {
@@ -803,7 +808,7 @@ function clubRedeem(req, s) {
       if (wrong + 1 >= 5) lockout = maskPhone(c.phone);
       fail("That code doesn't match. Ask the customer to open their Pedal Club card and read the 4-digit code.");
     }
-    const item = getConfig().menu.find(m => String(m.item_id) === String(req.item_id || ''));
+    const item = configFor(s.cart_id).menu.find(m => String(m.item_id) === String(req.item_id || ''));
     if (!item) fail("Choose one of today's combos.");
     const size = item.sizes.slice().sort((a, b) => b.price - a.price)[0];
     const sale = { sale_id: newId('CLUB'), created_at: new Date().toISOString(), date: today, partner_id: s.partner.partner_id, partner_name: s.partner.name,
@@ -859,7 +864,7 @@ function clubOverview(req) {
   const weekAgo = addDaysKey(today, -6), monthStart = today.slice(0, 8) + '01';
   const freeSales = rows('Sales').filter(r => r.pay === 'Free' && r.status !== 'void');
   const menuIdx = getMenuIndex();
-  const valueOf = r => { const m = menuIdx[r.item_id + '|' + r.size]; return m ? Number(m.price) || 0 : 0; };
+  const idxBy = {}; const valueOf = r => { const ix = idxBy[r.cart_id] = idxBy[r.cart_id] || getMenuIndex(r.cart_id); const m = ix[r.item_id + '|' + r.size]; return m ? Number(m.price) || 0 : 0; };
   const freeMonth = freeSales.filter(r => r.date >= monthStart);
   const stampsWeek = D.stamps.filter(x => x.date >= weekAgo);
   // flags
@@ -983,7 +988,7 @@ function orderSave(req, s) {
   // Extras (optional, newer phones): [{item_id, qty}]. Sold alone or with plates; no stamps.
   const extrasIn = (Array.isArray(o.extras) ? o.extras : []).map(x => ({ item_id: String(x.item_id || '').slice(0, 40), qty: Math.max(0, Math.min(500, Math.round(Number(x.qty) || 0))) })).filter(x => x.qty > 0);
   if (!lines.length && !extrasIn.length) fail('Add at least one plate.');
-  const menu = getMenuIndex();
+  const menu = getMenuIndex(s.cart_id);
   lines.forEach(l => { if (!menu[o.item_id + '|' + l.size] || isExtraType(menu[o.item_id + '|' + l.size].type)) fail('That combo or plate size is not on the menu.'); });
   extrasIn.forEach(x => { if (!menu[x.item_id + '|Extra']) fail('That extra is not on the menu.'); });
   const cache = CacheService.getScriptCache();
@@ -1094,7 +1099,7 @@ function orderResult(oid, s, extra, o) {
   const ids = sales.map(r => String(r.sale_id));
   const out = { order_id: oid, saved: ids, repeat: !extra, note: extra ? extra.note : '' };
   const fr = sales.find(r => r.pay === 'Free');
-  if (fr) { const m = getMenuIndex()[fr.item_id + '|' + fr.size]; out.free = { sale_id: String(fr.sale_id), item_name: fr.item_name, size: fr.size, value: m ? Number(m.price) : 0 }; }
+  if (fr) { const m = getMenuIndex(fr.cart_id)[fr.item_id + '|' + fr.size]; out.free = { sale_id: String(fr.sale_id), item_name: fr.item_name, size: fr.size, value: m ? Number(m.price) : 0 }; }
   const bill = rows('Bills').find(b => String(b.order_id) === oid);
   if (!bill) return out;
   const D = clubLoad();
@@ -1150,8 +1155,71 @@ function buildConfig() {
   };
 }
 
-function getMenuIndex() {
-  const idx = {}; rows('Menu').forEach(r => idx[r.item_id + '|' + menuSize(r)] = r); return idx;
+// Menu rows by item|size. With a cart that has special prices, those prices replace the Menu price,
+// and a size priced only for that cart (e.g. a Half at the fair) is added for that cart.
+function getMenuIndex(cartId) {
+  const idx = {}; rows('Menu').forEach(r => idx[r.item_id + '|' + menuSize(r)] = r);
+  const sp = specialPrices(cartId);
+  Object.keys(sp).forEach(k => {
+    const base = idx[k] || (function () { const id = k.split('|')[0]; const any = Object.keys(idx).filter(x => x.indexOf(id + '|') === 0).map(x => idx[x])[0]; return any ? Object.assign({}, any, { size: k.split('|')[1] }) : null; })();
+    if (base) idx[k] = Object.assign({}, base, { price: sp[k], base_price: idx[k] ? Number(idx[k].price) : '' });
+  });
+  return idx;
+}
+// { 'item_id|size': price } for a cart with special = yes; {} otherwise.
+// Cached for a minute (cleared at once when Carts or CartPrices change), so the phones' minute-by-minute refresh reads no tabs.
+function specialPrices(cartId) {
+  if (!cartId) return {};
+  const all = cached('cartprices_v1', 60, () => {
+    const on = rows('Carts').filter(c => truthy(c.special)).map(c => String(c.cart_id));
+    const out = {}; if (!on.length) return out;
+    rows('CartPrices').filter(r => on.indexOf(String(r.cart_id)) >= 0 && Number(r.price) > 0)
+      .forEach(r => { const c = out[String(r.cart_id)] = out[String(r.cart_id)] || {}; c[String(r.item_id) + '|' + String(r.size || 'Full')] = Number(r.price); });
+    return out;
+  });
+  return all[String(cartId)] || {};
+}
+// The app's config for one cart: the shared menu with that cart's special prices applied.
+function configFor(cartId) {
+  const c = JSON.parse(JSON.stringify(getConfig()));
+  const sp = specialPrices(cartId);
+  if (!Object.keys(sp).length) return c;
+  c.cart_special = true;
+  c.menu.forEach(it => {
+    it.sizes.forEach(z => { const k = it.item_id + '|' + z.size; if (sp[k]) { z.base_price = z.price; z.price = sp[k]; } });
+    Object.keys(sp).forEach(k => { const [id, size] = k.split('|'); if (id === String(it.item_id) && !it.sizes.some(z => z.size === size)) it.sizes.push({ size, price: sp[k] }); });
+  });
+  (c.extras || []).forEach(x => { const k = x.item_id + '|Extra'; if (sp[k]) { x.base_price = x.price; x.price = sp[k]; } });
+  return c;
+}
+function cartsAll() {
+  const prices = rows('CartPrices');
+  return rows('Carts').map(c => ({ cart_id: String(c.cart_id), name: c.name || String(c.cart_id), float: Number(c.float) || 0, active: truthy(c.active), special: truthy(c.special),
+    prices: prices.filter(r => String(r.cart_id) === String(c.cart_id) && Number(r.price) > 0).map(r => ({ item_id: String(r.item_id), size: String(r.size || 'Full'), price: Number(r.price) })) }));
+}
+// Add or change a cart (founders): name, float, on/off, special prices on/off, and the special prices.
+function cartsSave(req, s) {
+  const name = String(req.name || '').trim().slice(0, 40);
+  if (!name) fail('Enter the cart name.');
+  const float = Math.max(0, Math.round(Number(req.float) || 0));
+  const menu = getMenuIndex();
+  const items = {}; Object.keys(menu).forEach(k => items[k.split('|')[0]] = true);
+  const prices = (Array.isArray(req.prices) ? req.prices : []).map(p => ({ item_id: String(p.item_id || ''), size: String(p.size || 'Full').slice(0, 12), price: Math.round(Number(p.price) || 0) }))
+    .filter(p => p.price > 0);
+  prices.forEach(p => { if (!items[p.item_id]) fail('That combo is not in the Menu tab.'); if (!/^[A-Za-z -]{1,12}$/.test(p.size)) fail('Plate size must be a short word, like Half or Full.'); });
+  let id = String(req.cart_id || '');
+  withLock(() => {
+    const all = rows('Carts');
+    if (all.some(c => String(c.cart_id) !== id && String(c.name).trim().toLowerCase() === name.toLowerCase())) fail('Another cart already has that name.');
+    const row = { name, float, active: req.active === false ? 'no' : 'yes', special: req.special === true ? 'yes' : 'no' };
+    if (id && all.some(c => String(c.cart_id) === id)) updateWhere('Carts', c => String(c.cart_id) === id, row);
+    else { let n = all.length + 1; while (all.some(c => String(c.cart_id) === 'C' + n)) n++; id = 'C' + n; append('Carts', Object.assign({ cart_id: id }, row)); }
+    deleteWhere('CartPrices', r => String(r.cart_id) === id);
+    appendMany('CartPrices', prices.map(p => Object.assign({ cart_id: id }, p)));
+  });
+  const cc = CacheService.getScriptCache(); cc.remove('config_v1'); cc.remove('cartprices_v1');
+  logAction(s.partner.name, 'cart', id + ' ' + name + (req.special === true ? ' · special prices ' + prices.map(p => p.item_id + ' ' + p.size + ' ' + p.price).join(', ') : ''));
+  return { carts: cartsAll(), menu: menuAll() };
 }
 
 function todaysSales(d) {
@@ -1289,6 +1357,7 @@ function changed(name) {
   const c = CacheService.getScriptCache();
   if (name === 'Settings') { c.remove('settings_v1'); c.remove('config_v1'); SETTINGS_CACHE = null; }
   if (name === 'Menu' || name === 'Carts') { c.remove('config_v1'); c.remove('menu_public'); }
+  if (name === 'Carts' || name === 'CartPrices') c.remove('cartprices_v1');
   if (name === 'Partners') c.remove('partners_v1');
 }
 

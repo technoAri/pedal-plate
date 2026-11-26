@@ -45,7 +45,8 @@ for training.
 | Tab | What to edit |
 |---|---|
 | **Menu** | **The one place for the menu**: the sales app, bills, free meals, reports and the website all read it. Easiest from the app: founder → **Menu** to switch today's combos on or off, change prices, add a half price, rename, add a combo, and set **Name and website** (show on website: when switched on / always / never; days; photo). In the Sheet: one row per combo **and size**, same `item_id` for the Half and Full rows, `type` is `veg` or `nonveg`, `active` `yes`/`no`, `website` `yes`/`no`/blank, `days` like `Mon,Wed,Fri`, `photo` the name of a processed photo in `images/menu` (for example `polao-chicken`). Partners' phones pick up changes within a minute; the website within 5 minutes (at once when changed from the app). New combos never need the script redeployed. **Extras** (Extra rice, Extra chicken): rows with `type` `extra`, `size` `Extra`, a `price`, and optionally `unit` (e.g. `piece`, shown as "₹30 a piece"). `setup()` adds Extra rice ₹50 and Extra chicken ₹30 once; change prices or switch them off from the app (founder → **Menu → Extras**). To stop selling an extra, switch it off rather than deleting the row. |
-| **Carts** | One row per cart: `cart_id` (e.g. `C3`), name, `float` (₹ kept in the pouch every morning), `active`. |
+| **Carts** | Easiest from the app: founder → **Menu → Carts and fair prices** to add a cart, change its name or float, switch it off, or give it **special prices**. In the Sheet: one row per cart: `cart_id` (e.g. `C3`), name, `float` (₹ kept in the pouch every morning), `active`, `special` (`yes` = sells at its own prices). |
+| **CartPrices** | Written by the app (Carts screen): `cart_id`, `item_id`, `size`, `price`. Used only while that cart's `special` is `yes`. A size that isn't on the Menu (e.g. a Half sold only at the fair) is sold only at that cart. |
 | **Settings** | `undo_minutes`, `session_hours`, `pin_length`, `timezone`, and the Pedal Club rules below. |
 | **Partners** | Add partners from the app (founder → Partners → Add partner). Add more founders by running `addFounder` from the Apps Script editor. Never delete rows: switch people off instead. |
 
@@ -102,6 +103,13 @@ daily limit cuts an order short, Full plates get their stamps first. When a card
   customer pays the difference (Full price − Half price from the Menu tab, e.g. ₹80 − ₹50 = ₹30). It is
   saved as the free Half (₹0) plus a "Top-up" sale; the top-up is money, not a plate, and gets no stamp.
 - A combo with no Half price gives a free Full, as before.
+
+**Special (fair) prices per cart.** A cart with special prices (e.g. **Food fair**) sells at its own prices:
+whoever picks that cart (More → Change cart) sees "Food fair prices" with the normal price crossed out, and
+the server charges the cart's price. Blank = the normal Menu price. Bills, the day close, reports and the
+daily report use the price actually charged. Pedal Club works as usual; a free meal is worth the cart's price,
+and a free Half topped up to Full costs the difference in that cart's prices. When the fair ends, switch the
+cart off (or turn special prices off); its sales stay in reports.
 
 **Bill only (no Pedal Club).** For a new number the rider picks what the customer said yes to: **Pedal
 Club** (bills + stamps, the number is saved) or **Bill only**: this one WhatsApp bill, no stamps, and
